@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SRZK SMP — Minecraft Community</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070a09;--surf:#0d1410;--surf2:#111a14;--surf3:#162019;
+  --border:#1c2822;--border2:#273d2f;
+  --green:#4ade80;--green2:#22c55e;--glow:rgba(74,222,128,.12);--glow2:rgba(74,222,128,.06);
+  --cyan:#22d3ee;--amber:#fbbf24;--red:#f87171;--purple:#c084fc;
+  --txt:#dff0e8;--txt2:#8aab9a;--txt3:#4d6b5a;--txt4:#2e4a3a;
+  --pf:'Press Start 2P',monospace;--bf:'Outfit',sans-serif;--mf:'DM Mono',monospace;
+  --r:14px;--rs:9px;--ease:cubic-bezier(.4,0,.2,1);--nav-h:64px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--txt);font-family:var(--bf);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9998;opacity:.5;mix-blend-mode:overlay}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(74,222,128,.015) 1px,transparent 1px),linear-gradient(90deg,rgba(74,222,128,.015) 1px,transparent 1px);background-size:32px 32px;pointer-events:none;z-index:0}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:500;height:var(--nav-h);padding:0 18px;display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(7,10,9,.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-bottom:1px solid var(--border)}
+.nav-logo{display:flex;align-items:center;gap:9px;cursor:pointer;flex-shrink:0}
+.nav-logo-icon{width:32px;height:32px;border-radius:7px;background:linear-gradient(135deg,#3d6e30,#5adb80 60%);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-logo-text{font-family:var(--pf);font-size:7.5px;color:var(--txt);white-space:nowrap}
+.nav-center{display:flex;align-items:center;gap:1px;flex:1;justify-content:center}
+.nav-link{padding:6px 11px;border-radius:var(--rs);color:var(--txt2);font-size:13px;font-weight:500;cursor:pointer;transition:all .22s var(--ease);white-space:nowrap;border:none;background:none;font-family:var(--bf)}
+.nav-link:hover{color:var(--txt);background:var(--surf)}
+.nav-link.active{color:var(--green);background:var(--glow)}
+.nav-end{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:8px 16px;border-radius:var(--rs);font-family:var(--bf);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .25s var(--ease);position:relative;overflow:hidden;white-space:nowrap}
+.btn::after{content:'';position:absolute;inset:0;background:#fff;opacity:0;transition:opacity .15s}
+.btn:active::after{opacity:.07}
+.btn-primary{background:var(--green);color:#071009}
+.btn-primary:hover{background:var(--green2);transform:translateY(-1px);box-shadow:0 5px 20px rgba(74,222,128,.28)}
+.btn-ghost{background:transparent;color:var(--txt2);border:1px solid var(--border)}
+.btn-ghost:hover{border-color:var(--border2);color:var(--txt);background:var(--surf)}
+.btn-cyan{background:rgba(34,211,238,.1);color:var(--cyan);border:1px solid rgba(34,211,238,.25)}
+.btn-cyan:hover{background:rgba(34,211,238,.2)}
+.btn-danger{background:rgba(248,113,113,.07);color:var(--red);border:1px solid rgba(248,113,113,.2)}
+.btn-danger:hover{background:rgba(248,113,113,.18)}
+.btn-green-ghost{background:transparent;color:var(--green);border:1px solid rgba(74,222,128,.3)}
+.btn-green-ghost:hover{background:var(--glow)}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* ── HAMBURGER ── */
+.nav-hamburger{display:none;flex-direction:column;gap:5px;background:var(--surf);border:1px solid var(--border);border-radius:var(--rs);cursor:pointer;padding:9px 10px;transition:all .2s var(--ease);flex-shrink:0}
+.nav-hamburger:hover{border-color:var(--border2);background:var(--surf2)}
+.nav-hamburger span{width:18px;height:2px;background:var(--txt2);border-radius:2px;transition:all .3s var(--ease);display:block}
+.nav-hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.nav-hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.nav-hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+@media(max-width:680px){.nav-center,.nav-end{display:none}.nav-hamburger{display:flex}}
+
+/* ── DRAWER ── */
+.drawer-overlay{position:fixed;inset:0;z-index:590;background:rgba(0,0,0,.65);opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
+.drawer-overlay.open{opacity:1;pointer-events:all}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(300px,90vw);background:rgba(7,10,9,.98);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);z-index:600;transform:translateX(100%);transition:transform .32s var(--ease);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.drawer.open{transform:translateX(0)}
+.drawer-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;min-height:var(--nav-h)}
+.drawer-logo{display:flex;align-items:center;gap:9px}
+.drawer-logo-icon{width:28px;height:28px;border-radius:6px;background:linear-gradient(135deg,#3d6e30,#5adb80 60%);display:flex;align-items:center;justify-content:center}
+.drawer-logo-text{font-family:var(--pf);font-size:6.5px;color:var(--txt)}
+.drawer-close{width:30px;height:30px;border-radius:7px;background:var(--surf2);border:1px solid var(--border);color:var(--txt2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s var(--ease)}
+.drawer-close:hover{color:var(--txt);border-color:var(--border2)}
+.drawer-nav{padding:10px 14px;display:flex;flex-direction:column;gap:4px;flex:1}
+.drawer-link{width:100%;padding:13px 16px;color:var(--txt2);font-size:14.5px;font-weight:500;cursor:pointer;transition:background .18s var(--ease),color .18s var(--ease),transform .18s var(--ease);border:none;background:none;font-family:var(--bf);text-align:left;display:flex;align-items:center;gap:13px;border-radius:var(--rs);opacity:0;transform:translateX(22px)}
+.drawer-link .dl-icon{font-size:17px;width:22px;text-align:center;flex-shrink:0}
+.drawer-link:hover{color:var(--txt);background:var(--surf)}
+.drawer-link.active{color:var(--green);background:var(--glow)}
+@keyframes drawerLinkIn{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:translateX(0)}}
+.drawer.open .drawer-link{animation:drawerLinkIn .32s var(--ease) both}
+.drawer.open .drawer-link:nth-child(1){animation-delay:.04s}
+.drawer.open .drawer-link:nth-child(2){animation-delay:.09s}
+.drawer.open .drawer-link:nth-child(3){animation-delay:.14s}
+.drawer.open .drawer-link:nth-child(4){animation-delay:.19s}
+.drawer.open .drawer-link:nth-child(5){animation-delay:.24s}
+.drawer.open .drawer-link:nth-child(6){animation-delay:.29s}
+
+/* ── PAGES ── */
+main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
+.page{display:none}
+.page.active{display:block;animation:pgIn .38s var(--ease)}
+@keyframes pgIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── SCROLL REVEAL ── */
+.rv{opacity:0;transform:translateY(20px);transition:opacity .48s var(--ease),transform .48s var(--ease);will-change:opacity,transform}
+.rv.in{opacity:1;transform:translateY(0)}
+.rv-d1{transition-delay:.06s}.rv-d2{transition-delay:.12s}.rv-d3{transition-delay:.18s}.rv-d4{transition-delay:.24s}
+
+/* ── TAP FX ── */
+.tap-splash{position:fixed;pointer-events:none;z-index:99997;border-radius:50%;animation:tapOut .55s ease-out forwards}
+@keyframes tapOut{0%{transform:scale(0);opacity:.85}60%{opacity:.3}100%{transform:scale(1);opacity:0}}
+.trail-dot{position:fixed;pointer-events:none;z-index:99996;border-radius:50%;transform:translate(-50%,-50%);animation:trailFade .55s ease-out forwards}
+@keyframes trailFade{0%{opacity:.75;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-50%) scale(.2)}}
+
+/* ── HERO ── */
+.hero{position:relative;min-height:calc(100vh - var(--nav-h));display:flex;align-items:center;justify-content:center;overflow:hidden;padding:36px 24px 80px}
+.hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 55% at 50% 0%,rgba(74,222,128,.08) 0%,transparent 60%),radial-gradient(ellipse 30% 30% at 82% 80%,rgba(34,211,238,.04) 0%,transparent 50%);pointer-events:none}
+.hero-land{position:absolute;bottom:0;left:0;right:0;height:200px;opacity:.11}
+.hero-content{text-align:center;max-width:640px;position:relative;z-index:2}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:5px 15px;border-radius:100px;background:var(--surf);border:1px solid var(--border);font-size:11px;color:var(--txt2);margin-bottom:22px;font-family:var(--mf)}
+.dp{width:6px;height:6px;border-radius:50%;background:var(--green);animation:dpulse 2.2s infinite;flex-shrink:0}
+@keyframes dpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.hero-title{font-family:var(--pf);font-size:clamp(13px,3vw,25px);line-height:1.8;color:var(--txt);margin-bottom:14px}
+.hero-title em{color:var(--green);font-style:normal}
+.hero-desc{font-size:15px;color:var(--txt2);line-height:1.8;margin-bottom:30px}
+.hero-ctas{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
+.hero-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;max-width:390px;margin:50px auto 0}
+.stat-c{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:15px;text-align:center;transition:all .28s var(--ease)}
+.stat-c:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.3)}
+.stat-n{font-family:var(--pf);font-size:17px;color:var(--green);display:block;margin-bottom:6px}
+.stat-l{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em}
+@media(max-width:480px){.hero{padding:24px 18px 70px}.hero-ctas{gap:7px}}
+
+/* ── SECTIONS ── */
+.section{max-width:1120px;margin:0 auto;padding:64px 22px}
+.sec-label{font-family:var(--mf);font-size:10px;text-transform:uppercase;letter-spacing:.18em;color:var(--green);display:block;margin-bottom:8px}
+.sec-title{font-size:clamp(18px,2.6vw,30px);font-weight:700;color:var(--txt);line-height:1.22}
+.sec-sub{margin-top:8px;font-size:14px;color:var(--txt2);line-height:1.7}
+.sec-hd{margin-bottom:36px}
+
+/* ── FEAT ── */
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:13px}
+.feat-item{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:22px;transition:all .28s var(--ease)}
+.feat-item:hover{border-color:var(--border2);background:var(--surf2);transform:translateY(-3px);box-shadow:0 10px 28px rgba(0,0,0,.3)}
+.feat-icon{font-size:26px;display:block;margin-bottom:12px}
+.feat-item h4{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:5px}
+.feat-item p{font-size:12.5px;color:var(--txt2);line-height:1.65}
+
+/* ── HOME LATEST ── */
+.hlp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.hlp{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .28s var(--ease)}
+.hlp:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.hlp-thumb{width:100%;height:136px;object-fit:cover;display:block;border-bottom:1px solid var(--border)}
+.hlp-thumb-ph{width:100%;height:136px;background:linear-gradient(135deg,var(--surf2),var(--surf3));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:34px}
+.hlp-body{padding:15px}
+.hlp-tag{font-family:var(--mf);font-size:9px;text-transform:uppercase;letter-spacing:.1em;padding:2px 7px;border-radius:4px;background:var(--glow);color:var(--green);border:1px solid rgba(74,222,128,.2);display:inline-flex;margin-bottom:7px}
+.hlp-title{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:5px;line-height:1.35}
+.hlp-date{font-size:10px;color:var(--txt3);font-family:var(--mf)}
+
+/* ── UPDATES ── */
+.updates-list{display:flex;flex-direction:column;gap:24px;max-width:760px;margin:0 auto}
+.post-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:all .3s var(--ease);cursor:pointer}
+.post-card:hover{border-color:var(--border2);box-shadow:0 10px 32px rgba(0,0,0,.3);transform:translateY(-1px)}
+.post-body{padding:22px 26px}
+.post-meta{display:flex;align-items:center;gap:9px;margin-bottom:10px;flex-wrap:wrap}
+.post-tag{font-family:var(--mf);font-size:9px;text-transform:uppercase;letter-spacing:.1em;padding:2px 8px;border-radius:4px;background:var(--glow);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.post-date{font-size:10.5px;color:var(--txt3);font-family:var(--mf)}
+.post-title{font-size:19px;font-weight:700;color:var(--txt);margin-bottom:10px;line-height:1.3}
+/* 3-line clamped preview with fade */
+.post-content-wrap{position:relative}
+.post-content-preview{font-size:14px;color:var(--txt2);line-height:1.75;word-break:break-word;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.post-content-wrap::after{content:'';position:absolute;bottom:0;left:0;right:0;height:48px;background:linear-gradient(to bottom,transparent,var(--surf));pointer-events:none}
+.post-read-hint{font-size:11px;color:var(--txt3);margin-top:12px;font-family:var(--mf);display:flex;align-items:center;gap:4px}
+/* Full content in detail modal */
+.post-full-content{font-size:14.5px;color:var(--txt2);line-height:1.82;word-break:break-word;white-space:pre-wrap}
+@media(max-width:540px){.post-body{padding:18px}}
+
+/* ── IMAGE CAROUSEL ── */
+.post-carousel{position:relative;border-bottom:1px solid var(--border);background:var(--surf2);overflow:hidden;border-radius:0;user-select:none;touch-action:pan-y;height:260px;cursor:grab}
+.post-carousel.is-dragging{cursor:grabbing}
+.carousel-viewport{overflow:hidden;width:100%;height:100%}
+.carousel-track{display:flex;width:100%;height:100%;transition:transform .38s var(--ease);will-change:transform}
+.carousel-track.no-transition{transition:none}
+.carousel-slide{flex:0 0 100%;min-width:0;position:relative;height:100%}
+.carousel-slide img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in;-webkit-user-drag:none;user-drag:none;user-select:none;-webkit-user-select:none}
+/* Nav arrows */
+.c-prev,.c-next{position:absolute;top:50%;transform:translateY(-50%);z-index:10;width:38px;height:38px;border-radius:50%;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.15);color:#fff;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .15s;line-height:1;padding:0;pointer-events:all}
+.c-prev{left:10px}
+.c-next{right:10px}
+.c-prev:hover,.c-next:hover{background:rgba(0,0,0,.85);transform:translateY(-50%) scale(1.08)}
+/* Counter badge */
+.c-counter{position:absolute;top:10px;right:12px;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);color:#fff;font-size:10.5px;font-family:var(--mf);padding:3px 10px;border-radius:100px;z-index:10;pointer-events:none;letter-spacing:.04em}
+/* Dot indicators */
+.c-dots{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:10}
+.c-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.4);transition:all .25s;cursor:pointer;pointer-events:all}
+.c-dot.active{background:#fff;width:14px;border-radius:3px}
+/* Single image wrap — always fills the box, object-fit:cover */
+.post-img-wrap{border-bottom:1px solid var(--border);overflow:hidden;position:relative;cursor:zoom-in;height:260px}
+.post-img-wrap::after{content:'🔍';position:absolute;bottom:10px;right:12px;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);padding:5px 9px;border-radius:7px;font-size:12px;opacity:0;transition:opacity .25s var(--ease);pointer-events:none}
+.post-img-wrap:hover::after{opacity:1}
+.post-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s var(--ease)}
+.post-card:hover .post-img-wrap img{transform:scale(1.015)}
+
+/* Admin image thumbnails */
+.img-thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.img-thumb-wrap{position:relative;width:70px;height:70px;border-radius:var(--rs);overflow:hidden;border:1px solid var(--border);flex-shrink:0}
+.img-thumb-wrap img{width:100%;height:100%;object-fit:cover}
+.img-thumb-remove{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:4px;background:rgba(0,0,0,.7);color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:none;transition:background .2s}
+.img-thumb-remove:hover{background:var(--red)}
+
+/* Post detail modal */
+.post-detail-box{max-width:700px;max-height:90vh;overflow-y:auto;padding:0;overflow:hidden}
+.post-detail-scroll{overflow-y:auto;max-height:88vh;padding:26px}
+.post-detail-carousel{border-radius:10px;overflow:hidden;margin-bottom:18px}
+.post-detail-carousel .post-carousel{height:320px;border-bottom:none;border-radius:10px}
+.post-detail-title{font-size:22px;font-weight:700;color:var(--txt);margin-bottom:12px;line-height:1.3}
+.post-detail-meta{display:flex;align-items:center;gap:9px;margin-bottom:12px;flex-wrap:wrap}
+
+/* ── SERVERS ── */
+.server-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:15px}
+.server-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:19px;display:flex;gap:14px;align-items:flex-start;transition:all .28s var(--ease);position:relative;overflow:hidden;cursor:pointer}
+.server-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--glow2),transparent 60%);opacity:0;transition:opacity .28s var(--ease)}
+.server-card:hover{border-color:rgba(74,222,128,.18);transform:translateY(-2px);box-shadow:0 12px 34px rgba(0,0,0,.32)}
+.server-card:hover::before{opacity:1}
+.srv-img{width:74px;height:74px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--surf2);border:1px solid var(--border);image-rendering:pixelated}
+.srv-placeholder{width:74px;height:74px;border-radius:10px;background:var(--surf2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:30px}
+.srv-info{flex:1;min-width:0;position:relative;z-index:1}
+.srv-name{font-size:15.5px;font-weight:700;color:var(--txt);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srv-desc{font-size:11.5px;color:var(--txt2);margin-bottom:9px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.srv-field{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.srv-lbl{font-family:var(--mf);font-size:8.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--txt4);min-width:36px;flex-shrink:0}
+.srv-val{font-family:var(--mf);font-size:11.5px;color:var(--txt2)}
+.srv-tags{display:flex;align-items:center;gap:4px;margin-top:8px;flex-wrap:wrap}
+.srv-badge{font-family:var(--mf);font-size:8.5px;text-transform:uppercase;letter-spacing:.05em;padding:2px 6px;border-radius:4px}
+.srv-badge.java{background:rgba(74,222,128,.08);color:var(--green);border:1px solid rgba(74,222,128,.2)}
+.srv-badge.bedrock{background:rgba(34,211,238,.08);color:var(--cyan);border:1px solid rgba(34,211,238,.2)}
+.srv-badge.cracked{background:rgba(251,191,36,.08);color:var(--amber);border:1px solid rgba(251,191,36,.2)}
+.srv-badge.type-tag{background:rgba(192,132,252,.08);color:var(--purple);border:1px solid rgba(192,132,252,.2)}
+.srv-badge.online{background:rgba(74,222,128,.1);color:var(--green);border:1px solid rgba(74,222,128,.18);display:inline-flex;align-items:center;gap:4px}
+.srv-badge.offline{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2);display:inline-flex;align-items:center;gap:4px}
+.srv-badge.checking{background:rgba(251,191,36,.06);color:var(--amber);border:1px solid rgba(251,191,36,.18);display:inline-flex;align-items:center;gap:4px}
+.srv-actions{display:flex;align-items:center;gap:5px;margin-top:10px;flex-wrap:wrap}
+.copy-btn{display:flex;align-items:center;gap:3px;padding:4px 9px;border-radius:7px;background:var(--surf2);border:1px solid var(--border);color:var(--txt2);font-size:10.5px;font-family:var(--mf);cursor:pointer;transition:all .22s var(--ease)}
+.copy-btn:hover{border-color:rgba(74,222,128,.3);color:var(--green);background:var(--glow)}
+@media(max-width:580px){.server-grid{grid-template-columns:1fr}}
+
+/* ── PLAYERS ── */
+.players-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:13px}
+.player-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:15px;display:flex;gap:13px;align-items:flex-start;cursor:pointer;transition:all .28s var(--ease);position:relative;overflow:hidden}
+.player-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--green),transparent);opacity:0;transition:opacity .28s var(--ease)}
+.player-card:hover{border-color:rgba(74,222,128,.2);background:var(--surf2);transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.3)}
+.player-card:hover::before{opacity:1}
+.pl-avatar-wrap{width:64px;height:64px;border-radius:9px;flex-shrink:0;border:2px solid var(--border);overflow:hidden;transition:border-color .28s var(--ease);background:var(--surf2)}
+.player-card:hover .pl-avatar-wrap{border-color:rgba(74,222,128,.3)}
+.pl-avatar{width:100%;height:100%;object-fit:cover;image-rendering:pixelated;display:block}
+.pl-right{flex:1;min-width:0}
+.pl-name-row{display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap}
+.pl-name{font-size:14px;font-weight:700;color:var(--txt)}
+.pl-copy-name{display:inline-flex;align-items:center;gap:2px;padding:2px 6px;border-radius:4px;background:var(--surf2);border:1px solid var(--border);color:var(--txt3);font-size:9.5px;font-family:var(--mf);cursor:pointer;transition:all .2s var(--ease);flex-shrink:0}
+.pl-copy-name:hover{color:var(--green);border-color:rgba(74,222,128,.3);background:var(--glow)}
+.pl-badges{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px}
+.pl-role{font-size:8.5px;font-family:var(--mf);text-transform:uppercase;letter-spacing:.07em;padding:2px 6px;border-radius:4px;display:inline-block}
+.pl-role.player{color:var(--txt3);background:rgba(77,107,90,.1);border:1px solid rgba(77,107,90,.18)}
+.pl-role.vip{color:var(--green);background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.18)}
+.pl-role.mod{color:var(--cyan);background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.18)}
+.pl-role.admin{color:var(--amber);background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.18)}
+.pl-type-tag{font-size:8px;font-family:var(--mf);text-transform:uppercase;letter-spacing:.05em;padding:2px 5px;border-radius:3px;background:rgba(192,132,252,.08);color:var(--purple);border:1px solid rgba(192,132,252,.15)}
+.pl-meta{font-size:10.5px;color:var(--txt3);margin-top:5px;font-family:var(--mf);display:flex;flex-direction:column;gap:3px}
+/* Contact — platform-name-only redirect button in card */
+.contact-platform-btn{display:inline-flex;align-items:center;gap:4px;color:var(--cyan);background:none;border:none;cursor:pointer;font-family:var(--mf);font-size:10.5px;padding:0;text-decoration:none;transition:color .18s}
+.contact-platform-btn:hover{color:#fff}
+/* Contact — large button in modal */
+.modal-contact-redirect{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:9px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.22);color:var(--cyan);text-decoration:none;font-family:var(--bf);font-size:13px;font-weight:600;cursor:pointer;transition:all .22s var(--ease)}
+.modal-contact-redirect:hover{background:rgba(34,211,238,.18);color:#fff;transform:translateY(-1px)}
+@media(max-width:480px){.players-grid{grid-template-columns:1fr}}
+
+/* Player modal */
+.player-modal-box{max-width:420px}
+.pm-avatar-wrap{width:96px;height:96px;border-radius:14px;border:3px solid var(--border);overflow:hidden;margin:0 auto 12px;background:var(--surf2)}
+.pm-avatar{width:100%;height:100%;object-fit:cover;image-rendering:pixelated;display:block}
+.pm-name{font-size:20px;font-weight:700;color:var(--txt);margin-bottom:6px;text-align:center}
+.pm-center{display:flex;justify-content:center;gap:5px;margin-bottom:6px;flex-wrap:wrap}
+.pm-tags{display:flex;justify-content:center;flex-wrap:wrap;gap:5px;margin:7px 0}
+.pm-copy-wrap{display:flex;justify-content:center;margin:9px 0 4px}
+.pm-copy-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 12px;border-radius:7px;background:var(--surf2);border:1px solid var(--border);color:var(--txt2);font-size:11px;font-family:var(--mf);cursor:pointer;transition:all .22s var(--ease)}
+.pm-copy-btn:hover{color:var(--green);border-color:rgba(74,222,128,.3);background:var(--glow)}
+/* 2×2 info grid — always 4 cells */
+.pm-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.pm-info-item{background:var(--surf2);border:1px solid var(--border);border-radius:9px;padding:12px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.pm-info-lbl{font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--txt3);font-family:var(--mf)}
+.pm-info-val{font-size:12.5px;color:var(--txt2);word-break:break-all;font-family:var(--mf)}
+
+/* ── TYPE TAGS ── */
+.type-tags-wrap{display:flex;flex-wrap:wrap;gap:7px;margin-top:4px}
+.type-tag-btn{padding:6px 12px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--surf2);color:var(--txt2);transition:all .2s var(--ease);font-family:var(--bf)}
+.type-tag-btn:hover{border-color:rgba(192,132,252,.4);color:var(--purple);background:rgba(192,132,252,.08)}
+.type-tag-btn.selected{border-color:rgba(192,132,252,.5);color:var(--purple);background:rgba(192,132,252,.12);font-weight:600}
+.type-tag-btn.maxed:not(.selected){opacity:.38;cursor:not-allowed}
+.type-count-hint{font-size:11px;color:var(--txt3);margin-top:6px;font-family:var(--mf)}
+
+/* ── REGISTER ── */
+.register-wrap{max-width:680px;margin:0 auto;padding:52px 22px 60px}
+.register-hd{text-align:center;margin-bottom:36px}
+.register-hd h1{font-family:var(--pf);font-size:12px;color:var(--txt);margin-bottom:10px;line-height:1.65}
+.register-hd p{font-size:13.5px;color:var(--txt2);line-height:1.7}
+.reg-section{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:22px;margin-bottom:16px}
+.reg-section-title{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:17px;display:flex;align-items:center;gap:7px}
+.word-counter{font-size:10.5px;font-family:var(--mf);color:var(--txt3);text-align:right;margin-top:5px}
+.word-counter.warn{color:var(--amber)}.word-counter.over{color:var(--red)}
+.reg-success{background:rgba(74,222,128,.08);border:1px solid rgba(74,222,128,.22);border-radius:var(--r);padding:30px;text-align:center;display:none;animation:pgIn .4s var(--ease)}
+.reg-success.show{display:block}
+.reg-success-icon{font-size:44px;display:block;margin-bottom:14px}
+.reg-success h3{font-size:17px;font-weight:700;color:var(--green);margin-bottom:8px}
+.reg-success p{font-size:13.5px;color:var(--txt2)}
+.contact-group{display:grid;grid-template-columns:140px 1fr;gap:10px}
+@media(max-width:500px){.contact-group{grid-template-columns:1fr}}
+
+/* ── FORM ── */
+.form-group{margin-bottom:16px}
+label{display:block;font-size:9.5px;font-weight:600;color:var(--txt2);text-transform:uppercase;letter-spacing:.09em;margin-bottom:6px;font-family:var(--mf)}
+.label-opt{color:var(--txt3);font-weight:400;font-family:var(--bf);font-size:10px;text-transform:none;letter-spacing:0}
+input,textarea,select{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--rs);padding:10px 13px;color:var(--txt);font-family:var(--bf);font-size:13.5px;transition:all .24s var(--ease);outline:none}
+input:focus,textarea:focus,select:focus{border-color:var(--green);box-shadow:0 0 0 3px var(--glow)}
+input::placeholder,textarea::placeholder{color:var(--txt4)}
+textarea{resize:vertical;min-height:100px;line-height:1.6}
+select{cursor:pointer}
+select option{background:var(--surf)}
+.pw-wrap{position:relative}
+.pw-wrap input{padding-right:42px}
+.pw-toggle{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--txt3);cursor:pointer;font-size:15px;padding:2px;transition:color .2s;line-height:1}
+.pw-toggle:hover{color:var(--txt2)}
+.upload-area{border:2px dashed var(--border2);border-radius:var(--rs);padding:22px;text-align:center;cursor:pointer;transition:all .25s var(--ease);position:relative;overflow:hidden}
+.upload-area:hover,.upload-area.drag{border-color:var(--green);background:var(--glow)}
+.upload-area input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.up-icon{font-size:20px;display:block;margin-bottom:5px}
+.up-text{font-size:12.5px;color:var(--txt2)}
+.up-hint{font-size:10.5px;color:var(--txt3);display:block;margin-top:3px}
+.up-preview{width:100%;max-height:160px;object-fit:cover;border-radius:var(--rs);margin-top:10px;display:none;border:1px solid var(--border)}
+.pl-upload-area{border:2px dashed var(--border2);border-radius:var(--rs);padding:14px;text-align:center;cursor:pointer;transition:all .25s var(--ease);position:relative}
+.pl-upload-area:hover,.pl-upload-area.drag{border-color:var(--green);background:var(--glow)}
+.pl-upload-area input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.pl-up-preview{width:56px;height:56px;border-radius:8px;object-fit:cover;image-rendering:pixelated;display:none;border:2px solid var(--border);margin:8px auto 0}
+
+/* ── ADMIN PRE ── */
+.admin-pre-wrap{max-width:660px;margin:0 auto;padding:48px 22px 40px}
+.admin-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:22px}
+@media(max-width:540px){.admin-info-grid{grid-template-columns:1fr}}
+.admin-info-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:19px}
+.aic-label{font-family:var(--mf);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);margin-bottom:11px;display:block}
+.aic-person{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.aic-person:last-child{margin-bottom:0}
+.aic-avatar{width:36px;height:36px;border-radius:6px;border:1px solid var(--border);image-rendering:pixelated;object-fit:cover;background:var(--surf2)}
+.aic-pname{font-size:13px;font-weight:600;color:var(--txt)}
+.aic-role-text{font-size:9.5px;font-family:var(--mf);color:var(--txt3)}
+.aic-empty{font-size:12px;color:var(--txt3);font-style:italic}
+.admin-contact-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:19px;margin-bottom:22px}
+.contact-text-pre{font-size:13.5px;color:var(--txt2);margin-bottom:12px;line-height:1.65}
+.pre-divider{display:flex;align-items:center;gap:12px;margin-bottom:22px;color:var(--txt3);font-size:12px;font-family:var(--mf)}
+.pre-divider::before,.pre-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.admin-pre-cta{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:26px;text-align:center;position:relative;overflow:hidden}
+.admin-pre-cta::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--glow2),transparent);pointer-events:none}
+.admin-pre-q{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:5px}
+.admin-pre-hint{font-size:12.5px;color:var(--txt2);margin-bottom:18px}
+
+/* ── ADMIN LOGIN ── */
+.admin-login-wrap{min-height:calc(100vh - var(--nav-h));display:flex;align-items:center;justify-content:center;padding:36px 22px}
+.login-card{background:var(--surf);border:1px solid var(--border);border-radius:17px;padding:40px 36px;width:100%;max-width:390px}
+.login-top{text-align:center;margin-bottom:26px}
+.login-icon{width:54px;height:54px;background:var(--surf2);border:1px solid var(--border);border-radius:12px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.login-card h2{font-family:var(--pf);font-size:10.5px;color:var(--txt);margin-bottom:7px}
+.login-card .sub{font-size:12.5px;color:var(--txt2)}
+.login-err{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.2);border-radius:var(--rs);padding:10px 13px;font-size:12.5px;color:var(--red);margin-bottom:13px;display:none}
+.login-err.show{display:block;animation:pgIn .25s var(--ease)}
+.shake{animation:shake .4s cubic-bezier(.36,.07,.19,.97)}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}40%{transform:translateX(9px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+@media(max-width:480px){.login-card{padding:26px 16px}}
+
+/* ── ADMIN DASH ── */
+.admin-dash{max-width:1120px;margin:0 auto;padding:36px 22px}
+.dash-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:26px;flex-wrap:wrap;gap:12px}
+.dash-title{font-size:22px;font-weight:700;color:var(--txt)}
+.dash-sub{font-size:12.5px;color:var(--txt2);margin-top:3px}
+.tabs{display:flex;gap:3px;background:var(--surf);border:1px solid var(--border);border-radius:var(--rs);padding:4px;margin-bottom:22px;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:7px 14px;border-radius:7px;font-size:12.5px;font-weight:500;cursor:pointer;transition:all .2s var(--ease);color:var(--txt2);background:none;border:none;font-family:var(--bf);flex-shrink:0;white-space:nowrap;position:relative}
+.tab.active{background:var(--green);color:#071009;font-weight:700}
+.tab:hover:not(.active){color:var(--txt);background:var(--surf2)}
+.tab-badge{position:absolute;top:2px;right:2px;min-width:16px;height:16px;border-radius:8px;background:var(--red);color:#fff;font-size:9px;font-weight:700;display:none;align-items:center;justify-content:center;font-family:var(--mf);padding:0 3px}
+.panel{display:none;animation:pgIn .3s var(--ease)}
+.panel.active{display:block}
+.card-box{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);padding:23px;margin-bottom:20px}
+.card-box h3{font-size:15.5px;font-weight:700;color:var(--txt);margin-bottom:18px;display:flex;align-items:center;gap:7px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:640px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+/* ── TABLE ── */
+.dtable-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.dtable{width:100%;border-collapse:collapse;min-width:420px}
+.dtable th{text-align:left;padding:9px 12px;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);font-family:var(--mf);border-bottom:1px solid var(--border)}
+.dtable td{padding:11px 12px;font-size:12.5px;color:var(--txt2);border-bottom:1px solid var(--border);vertical-align:middle}
+.dtable tr:last-child td{border-bottom:none}
+.dtable tr:hover td{background:rgba(255,255,255,.012)}
+.tbl-actions{display:flex;gap:5px}
+.icon-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--txt3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all .22s var(--ease)}
+.icon-btn:hover{color:var(--green);border-color:rgba(74,222,128,.3);background:var(--glow)}
+.icon-btn.del:hover{color:var(--red);border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.07)}
+
+/* ── REQUESTS ── */
+.requests-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:13px}
+.req-card{background:var(--surf2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .28s var(--ease)}
+.req-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 8px 22px rgba(0,0,0,.28)}
+.req-thumb{width:100%;height:120px;object-fit:cover;display:block;border-bottom:1px solid var(--border);image-rendering:pixelated}
+.req-thumb-ph{width:100%;height:120px;background:linear-gradient(135deg,var(--surf),var(--surf3));border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:40px}
+.req-body{padding:14px}
+.req-ign{font-size:14px;font-weight:700;color:var(--txt);margin-bottom:4px}
+.req-gender{font-size:10.5px;color:var(--txt3);font-family:var(--mf);margin-bottom:8px}
+.req-when{font-size:10px;color:var(--txt3);font-family:var(--mf)}
+.req-actions{display:flex;gap:6px;padding:10px 14px;border-top:1px solid var(--border);background:var(--surf)}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:9px;font-family:var(--mf)}
+.bg{background:rgba(74,222,128,.1);color:var(--green);border:1px solid rgba(74,222,128,.18)}
+.ba{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.18)}
+.bc{background:rgba(34,211,238,.1);color:var(--cyan);border:1px solid rgba(34,211,238,.18)}
+.br{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.18)}
+.bp{background:rgba(192,132,252,.1);color:var(--purple);border:1px solid rgba(192,132,252,.18)}
+
+/* ── MODALS ── */
+.modal-overlay{position:fixed;inset:0;z-index:800;background:rgba(0,0,0,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;pointer-events:none;transition:opacity .3s var(--ease)}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-box{background:var(--surf);border:1px solid var(--border);border-radius:17px;padding:26px;width:100%;max-width:540px;max-height:88vh;overflow-y:auto;position:relative;transform:scale(.95) translateY(10px);transition:transform .3s var(--ease)}
+.modal-overlay.open .modal-box{transform:scale(1) translateY(0)}
+.modal-close{position:absolute;top:13px;right:13px;width:30px;height:30px;border-radius:7px;background:var(--surf2);border:1px solid var(--border);color:var(--txt2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .2s var(--ease);z-index:1}
+.modal-close:hover{color:var(--txt);border-color:var(--border2)}
+.modal-title{font-size:16px;font-weight:700;color:var(--txt);margin-bottom:18px;padding-right:34px}
+/* Server modal */
+.server-modal-box{max-width:480px}
+.sm-header{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px}
+.sm-img{width:72px;height:72px;border-radius:10px;object-fit:cover;flex-shrink:0;border:1px solid var(--border);image-rendering:pixelated;background:var(--surf2)}
+.sm-ph{width:72px;height:72px;border-radius:10px;background:var(--surf2);border:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:28px}
+.sm-name{font-size:18px;font-weight:700;color:var(--txt);margin-bottom:5px}
+.sm-badges{display:flex;flex-wrap:wrap;gap:5px}
+.sm-desc{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:16px}
+.sm-fields{display:flex;flex-direction:column;gap:10px;margin-bottom:16px}
+.sm-field{background:var(--surf2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.sm-field-lbl{font-family:var(--mf);font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:2px}
+.sm-field-val{font-family:var(--mf);font-size:13px;color:var(--txt)}
+.sm-copy{display:flex;align-items:center;gap:3px;padding:4px 9px;border-radius:6px;background:var(--surf);border:1px solid var(--border);color:var(--txt2);font-size:10.5px;font-family:var(--mf);cursor:pointer;transition:all .22s var(--ease);flex-shrink:0}
+.sm-copy:hover{color:var(--green);border-color:rgba(74,222,128,.3);background:var(--glow)}
+/* Request modal */
+.req-modal-box{max-width:500px}
+.req-modal-avatar{width:90px;height:90px;border-radius:13px;border:2px solid var(--border);overflow:hidden;margin:0 auto 14px;background:var(--surf2)}
+.req-modal-avatar img{width:100%;height:100%;object-fit:cover;image-rendering:pixelated;display:block}
+.req-field-row{display:flex;gap:8px;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.req-field-row:last-of-type{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.req-field-lbl{font-family:var(--mf);font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);min-width:80px;flex-shrink:0;padding-top:2px}
+.req-field-val{font-size:13px;color:var(--txt2);line-height:1.65;word-break:break-word}
+/* Lightbox */
+.lightbox-overlay{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;padding:18px;opacity:0;pointer-events:none;transition:opacity .3s var(--ease);cursor:zoom-out}
+.lightbox-overlay.open{opacity:1;pointer-events:all}
+.lightbox-img{max-width:100%;max-height:88vh;object-fit:contain;border-radius:11px;transform:scale(.93);transition:transform .3s var(--ease);cursor:default;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.lightbox-overlay.open .lightbox-img{transform:scale(1)}
+.lightbox-close{position:absolute;top:14px;right:14px;width:38px;height:38px;border-radius:9px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;transition:all .2s;z-index:1}
+.lightbox-close:hover{background:rgba(255,255,255,.2)}
+/* Toast */
+.toast-wrap{position:fixed;bottom:18px;right:18px;z-index:2000;display:flex;flex-direction:column;gap:7px;pointer-events:none}
+.toast{background:var(--surf2);border:1px solid var(--border);border-left:3px solid var(--green);border-radius:var(--rs);padding:10px 15px;font-size:12.5px;color:var(--txt);display:flex;align-items:center;gap:8px;box-shadow:0 6px 26px rgba(0,0,0,.5);pointer-events:all;animation:toastIn .3s var(--ease)}
+@keyframes toastIn{from{opacity:0;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
+.toast.err{border-left-color:var(--red)}
+/* Empty */
+.empty{text-align:center;padding:50px 22px;color:var(--txt3)}
+.empty-icon{font-size:40px;display:block;margin-bottom:11px;opacity:.35}
+.empty p{font-size:13px}
+/* Ripple */
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.18);transform:scale(0);animation:rpl .55s linear forwards;pointer-events:none}
+@keyframes rpl{to{transform:scale(4);opacity:0}}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ══ NAV ══════════════════════════════════════════ -->
+<nav>
+  <div class="nav-logo" onclick="nav('home')">
+    <div class="nav-logo-icon"><svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="0" y="0" width="4" height="4" fill="#5d7c3f"/><rect x="5" y="0" width="4" height="4" fill="#7cb248"/><rect x="10" y="0" width="4" height="4" fill="#5d7c3f"/><rect x="15" y="0" width="4" height="4" fill="#7cb248"/><rect x="0" y="5" width="4" height="4" fill="#7cb248"/><rect x="5" y="5" width="4" height="4" fill="#5d7c3f"/><rect x="10" y="5" width="4" height="4" fill="#7cb248"/><rect x="15" y="5" width="4" height="4" fill="#5d7c3f"/><rect x="0" y="10" width="4" height="4" fill="#8b5e3c"/><rect x="5" y="10" width="4" height="4" fill="#7a5230"/><rect x="10" y="10" width="4" height="4" fill="#8b5e3c"/><rect x="15" y="10" width="4" height="4" fill="#7a5230"/><rect x="0" y="15" width="4" height="4" fill="#7a5230"/><rect x="5" y="15" width="4" height="4" fill="#8b5e3c"/><rect x="10" y="15" width="4" height="4" fill="#7a5230"/><rect x="15" y="15" width="4" height="4" fill="#8b5e3c"/></svg></div>
+    <span class="nav-logo-text">SRZK SMP</span>
+  </div>
+  <div class="nav-center">
+    <button class="nav-link active" id="nl-home"     onclick="nav('home')">Home</button>
+    <button class="nav-link"        id="nl-servers"  onclick="nav('servers')">Servers</button>
+    <button class="nav-link"        id="nl-players"  onclick="nav('players')">Players</button>
+    <button class="nav-link"        id="nl-updates"  onclick="nav('updates')">Updates</button>
+  </div>
+  <div class="nav-end">
+    <button class="btn btn-cyan btn-sm"  id="nl-register" onclick="nav('register')">✍️ Register</button>
+    <button class="btn btn-ghost btn-sm" id="nl-admin"    onclick="nav('admin')">🛡️ Admin</button>
+  </div>
+  <button class="nav-hamburger" id="nav-hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></button>
+</nav>
+
+<!-- ══ DRAWER ════════════════════════════════════════ -->
+<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div class="drawer-logo"><div class="drawer-logo-icon"><svg width="16" height="16" viewBox="0 0 20 20" fill="none"><rect x="0" y="0" width="4" height="4" fill="#5d7c3f"/><rect x="5" y="0" width="4" height="4" fill="#7cb248"/><rect x="10" y="0" width="4" height="4" fill="#5d7c3f"/><rect x="15" y="0" width="4" height="4" fill="#7cb248"/><rect x="0" y="5" width="4" height="4" fill="#7cb248"/><rect x="5" y="5" width="4" height="4" fill="#5d7c3f"/><rect x="10" y="5" width="4" height="4" fill="#7cb248"/><rect x="15" y="5" width="4" height="4" fill="#5d7c3f"/><rect x="0" y="10" width="4" height="4" fill="#8b5e3c"/><rect x="5" y="10" width="4" height="4" fill="#7a5230"/><rect x="10" y="10" width="4" height="4" fill="#8b5e3c"/><rect x="15" y="10" width="4" height="4" fill="#7a5230"/><rect x="0" y="15" width="4" height="4" fill="#7a5230"/><rect x="5" y="15" width="4" height="4" fill="#8b5e3c"/><rect x="10" y="15" width="4" height="4" fill="#7a5230"/><rect x="15" y="15" width="4" height="4" fill="#8b5e3c"/></svg></div><span class="drawer-logo-text">SRZK SMP</span></div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <nav class="drawer-nav">
+    <button class="drawer-link active" id="dl-home"     onclick="nav('home');closeDrawer()"><span class="dl-icon">🏠</span>Home</button>
+    <button class="drawer-link"        id="dl-servers"  onclick="nav('servers');closeDrawer()"><span class="dl-icon">🌐</span>Servers</button>
+    <button class="drawer-link"        id="dl-players"  onclick="nav('players');closeDrawer()"><span class="dl-icon">👥</span>Players</button>
+    <button class="drawer-link"        id="dl-updates"  onclick="nav('updates');closeDrawer()"><span class="dl-icon">📢</span>Updates</button>
+    <button class="drawer-link"        id="dl-register" onclick="nav('register');closeDrawer()"><span class="dl-icon">✍️</span>Register</button>
+    <button class="drawer-link"        id="dl-admin"    onclick="nav('admin');closeDrawer()"><span class="dl-icon">🛡️</span>Admin Panel</button>
+  </nav>
+</div>
+
+<main>
+<!-- ══ HOME ═════════════════════════════════════════ -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <div class="hero-bg"></div>
+    <svg class="hero-land" viewBox="0 0 1440 200" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="150" width="1440" height="50" fill="#1a2820"/><rect x="0" y="168" width="1440" height="32" fill="#0d1812"/><rect x="0" y="134" width="1440" height="16" fill="#243e2c" opacity=".6"/><rect x="90" y="78" width="14" height="56" fill="#1a1408"/><rect x="74" y="56" width="46" height="34" fill="#1a3820"/><rect x="82" y="38" width="30" height="24" fill="#142a18"/><rect x="90" y="20" width="14" height="22" fill="#0f2014"/><rect x="210" y="94" width="14" height="40" fill="#1a1408"/><rect x="194" y="74" width="46" height="30" fill="#1a3820"/><rect x="202" y="56" width="30" height="24" fill="#142a18"/><rect x="360" y="62" width="16" height="72" fill="#1a1408"/><rect x="340" y="36" width="56" height="40" fill="#1a3820"/><rect x="348" y="18" width="40" height="24" fill="#142a18"/><rect x="356" y="4" width="24" height="18" fill="#0f2014"/><rect x="520" y="88" width="14" height="46" fill="#1a1408"/><rect x="504" y="68" width="46" height="30" fill="#1a3820"/><rect x="512" y="50" width="30" height="24" fill="#142a18"/><rect x="670" y="55" width="16" height="79" fill="#1a1408"/><rect x="650" y="28" width="56" height="42" fill="#1a3820"/><rect x="658" y="10" width="40" height="24" fill="#142a18"/><rect x="820" y="82" width="14" height="52" fill="#1a1408"/><rect x="802" y="60" width="48" height="34" fill="#1a3820"/><rect x="810" y="42" width="32" height="24" fill="#142a18"/><rect x="970" y="64" width="16" height="70" fill="#1a1408"/><rect x="950" y="38" width="56" height="40" fill="#1a3820"/><rect x="958" y="20" width="40" height="24" fill="#142a18"/><rect x="1120" y="90" width="14" height="44" fill="#1a1408"/><rect x="1104" y="68" width="46" height="32" fill="#1a3820"/><rect x="1112" y="50" width="30" height="24" fill="#142a18"/><rect x="1280" y="74" width="14" height="60" fill="#1a1408"/><rect x="1262" y="50" width="50" height="36" fill="#1a3820"/><rect x="1270" y="32" width="34" height="24" fill="#142a18"/></svg>
+    <div class="hero-content">
+      <div class="hero-badge"><span class="dp"></span>Network Online</div>
+      <h1 class="hero-title">Your Minecraft<br><em>Community Hub.</em></h1>
+      <p class="hero-desc">Browse servers, discover players, and stay updated with everything happening in our community.</p>
+      <div class="hero-ctas">
+        <button class="btn btn-primary" onclick="nav('servers')">Browse Servers</button>
+        <button class="btn btn-ghost"   onclick="nav('updates')">Latest Updates</button>
+        <button class="btn btn-ghost"   onclick="nav('players')">Server Players</button>
+        <button class="btn btn-cyan"    onclick="nav('register')">✍️ Join Us</button>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-c rv"><span class="stat-n" id="stat-srv">0</span><span class="stat-l">Servers</span></div>
+        <div class="stat-c rv rv-d1"><span class="stat-n" id="stat-pl">0</span><span class="stat-l">Players</span></div>
+        <div class="stat-c rv rv-d2"><span class="stat-n" id="stat-po">0</span><span class="stat-l">Updates</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="sec-hd rv"><span class="sec-label">What we offer</span><h2 class="sec-title">Everything your community needs.</h2></div>
+    <div class="feat-grid">
+      <div class="feat-item rv"><span class="feat-icon">⚔️</span><h4>Multiple Servers</h4><p>Browse our network — survival, creative, minigames, skyblock, and more.</p></div>
+      <div class="feat-item rv rv-d1"><span class="feat-icon">👥</span><h4>Player Roster</h4><p>Meet community members, see their roles, and find out when they joined.</p></div>
+      <div class="feat-item rv rv-d2"><span class="feat-icon">📢</span><h4>Live Updates</h4><p>Patch notes, events, and announcements in one place.</p></div>
+      <div class="feat-item rv rv-d3"><span class="feat-icon">✍️</span><h4>Join the SMP</h4><p>Submit a registration and get approved by an admin to join the community.</p></div>
+    </div>
+  </div>
+  <div class="section" style="padding-top:0">
+    <div class="sec-hd rv"><span class="sec-label">Latest</span><h2 class="sec-title">Recent Updates</h2></div>
+    <div class="hlp-grid" id="home-posts"><div class="empty" style="grid-column:1/-1"><span class="empty-icon">📋</span><p>No updates yet.</p></div></div>
+  </div>
+</div>
+
+<!-- ══ SERVERS ════════════════════════════════════════ -->
+<div class="page" id="page-servers">
+  <div class="section">
+    <div class="sec-hd rv"><span class="sec-label">Network</span><h2 class="sec-title">Our Servers</h2><p class="sec-sub">Click any server card for full details and copy options. Status is checked live via the server IP.</p></div>
+    <div class="server-grid" id="server-grid"><div class="empty" style="grid-column:1/-1"><span class="empty-icon">🌐</span><p>No servers added yet.</p></div></div>
+  </div>
+</div>
+
+<!-- ══ PLAYERS ════════════════════════════════════════ -->
+<div class="page" id="page-players">
+  <div class="section">
+    <div class="sec-hd rv"><span class="sec-label">Community</span><h2 class="sec-title">Players</h2><p class="sec-sub">Click any player card to view their full profile.</p></div>
+    <div class="players-grid" id="players-grid"><div class="empty" style="grid-column:1/-1"><span class="empty-icon">👾</span><p>No players listed yet.</p></div></div>
+  </div>
+</div>
+
+<!-- ══ UPDATES ════════════════════════════════════════ -->
+<div class="page" id="page-updates">
+  <div class="section">
+    <div class="sec-hd rv"><span class="sec-label">News & Announcements</span><h2 class="sec-title">Updates</h2><p class="sec-sub">Click a post to read in full. Click an image to view it enlarged.</p></div>
+    <div class="updates-list" id="updates-list"><div class="empty"><span class="empty-icon">📢</span><p>No updates yet.</p></div></div>
+  </div>
+</div>
+
+<!-- ══ REGISTER ═══════════════════════════════════════ -->
+<div class="page" id="page-register">
+  <div class="register-wrap">
+    <div class="register-hd rv"><h1>Join SRZK SMP</h1><p>Fill out the form below. An admin will review and approve your application.</p></div>
+    <div class="reg-success" id="reg-success"><span class="reg-success-icon">🎉</span><h3>Application Submitted!</h3><p>Your registration is pending admin approval. Check back soon!</p></div>
+    <div id="reg-form-wrap">
+      <div class="reg-section rv"><div class="reg-section-title">🧑‍💻 Personal Info</div>
+        <div class="form-group"><label>In-Game Name (IGN) <span style="color:var(--red)">*</span></label><input type="text" id="r-ign" placeholder="Your Minecraft username" maxlength="24"></div>
+        <div class="form-group"><label>Gender <span class="label-opt">(optional)</span></label><select id="r-gender"><option value="">Prefer not to say</option><option value="Male">Male</option><option value="Female">Female</option><option value="Non-binary">Non-binary</option><option value="Other">Other</option></select></div>
+      </div>
+      <div class="reg-section rv rv-d1"><div class="reg-section-title">⚒️ Player Style <span style="font-size:11px;font-weight:400;color:var(--txt3);font-family:var(--mf)">(choose 1–3)</span></div>
+        <div class="type-tags-wrap" id="r-type-tags">
+          <button class="type-tag-btn" onclick="toggleType(this,'Builder','reg')">🏗️ Builder</button>
+          <button class="type-tag-btn" onclick="toggleType(this,'Miner','reg')">⛏️ Miner</button>
+          <button class="type-tag-btn" onclick="toggleType(this,'PvP','reg')">⚔️ PvP</button>
+          <button class="type-tag-btn" onclick="toggleType(this,'Adventurer','reg')">🗺️ Adventurer</button>
+          <button class="type-tag-btn" onclick="toggleType(this,'Explorer','reg')">🧭 Explorer</button>
+          <button class="type-tag-btn" onclick="toggleType(this,'Redstone Builder','reg')">🔴 Redstone Builder</button>
+          <button class="type-tag-btn" onclick="toggleType(this,'Interior Designer','reg')">🛋️ Interior Designer</button>
+          <button class="type-tag-btn" onclick="toggleType(this,'Resource Collector','reg')">📦 Resource Collector</button>
+          <button class="type-tag-btn" onclick="toggleType(this,'Collector','reg')">🗃️ Collector</button>
+        </div>
+        <div class="type-count-hint" id="r-type-hint">Select at least 1 (max 3)</div>
+      </div>
+      <div class="reg-section rv rv-d2"><div class="reg-section-title">📝 About You</div>
+        <div class="form-group"><label>Why do you want to join? <span style="color:var(--red)">*</span></label>
+          <textarea id="r-reason" placeholder="Tell us about yourself and why you'd like to join SRZK SMP…" oninput="updateWordCount(this,'r-word-count')"></textarea>
+          <div class="word-counter" id="r-word-count">0 / 300 words</div>
+        </div>
+      </div>
+      <div class="reg-section rv rv-d2"><div class="reg-section-title">🖼️ Avatar <span style="font-size:11px;font-weight:400;color:var(--txt3);font-family:var(--mf)">(optional)</span></div>
+        <div class="upload-area"><input type="file" id="r-img-input" accept="image/*" onchange="handleImg(this,'r-img-preview','regImg')">
+          <span class="up-icon">🧑‍🎤</span><span class="up-text">Upload your avatar</span><span class="up-hint">Leave blank for MC skin lookup</span>
+          <img id="r-img-preview" class="up-preview"></div>
+      </div>
+      <div class="reg-section rv rv-d3"><div class="reg-section-title">📬 Contact <span style="font-size:11px;font-weight:400;color:var(--txt3);font-family:var(--mf)">(optional)</span></div>
+        <div class="contact-group">
+          <div class="form-group" style="margin-bottom:0"><label>Platform</label><select id="r-contact-platform"><option value="">None</option><option value="Discord">Discord</option><option value="TikTok">TikTok</option><option value="Facebook">Facebook</option><option value="Messenger">Messenger</option></select></div>
+          <div class="form-group" style="margin-bottom:0"><label>Username / Handle</label><input type="text" id="r-contact-value" placeholder="e.g. @username"></div>
+        </div>
+      </div>
+      <div class="rv rv-d4" style="margin-top:20px"><button class="btn btn-primary" style="width:100%;padding:13px" onclick="submitRegistration()">Submit Application ✍️</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADMIN ══════════════════════════════════════════ -->
+<div class="page" id="page-admin">
+  <div id="admin-pre" style="display:none">
+    <div class="admin-pre-wrap">
+      <div class="rv"><span class="sec-label">Server Administration</span>
+        <h2 style="font-family:var(--pf);font-size:11px;color:var(--txt);margin-bottom:9px;line-height:1.6">SRZK SMP Staff</h2>
+        <p style="font-size:13.5px;color:var(--txt2);margin-bottom:28px;line-height:1.7">Meet the people running this server. Reach out to any staff member for help.</p>
+      </div>
+      <div class="admin-info-grid rv rv-d1">
+        <div class="admin-info-card"><span class="aic-label">👑 Admins</span><div id="pre-admins"><span class="aic-empty">No admins listed yet.</span></div></div>
+        <div class="admin-info-card"><span class="aic-label">🛡️ Moderators</span><div id="pre-mods"><span class="aic-empty">No moderators listed yet.</span></div></div>
+      </div>
+      <div class="admin-contact-card rv rv-d2"><span class="aic-label">📬 Contact & Support</span>
+        <div class="contact-text-pre" id="pre-contact-text">No contact info set yet.</div>
+        <div id="pre-discord-wrap" style="display:none"><a id="pre-discord-link" href="#" target="_blank" class="btn btn-green-ghost btn-sm" style="text-decoration:none;display:inline-flex">💬 Message Admin</a></div>
+      </div>
+      <div class="pre-divider rv rv-d3">Are you staff?</div>
+      <div class="admin-pre-cta rv rv-d4"><div class="admin-pre-q">I'm the Admin</div><div class="admin-pre-hint">Sign in to manage servers, players, posts & review applications</div><button class="btn btn-primary" onclick="showLogin()">🔐 Sign In to Admin Panel</button></div>
+    </div>
+  </div>
+  <div class="admin-login-wrap" id="login-wrap" style="display:none">
+    <div class="login-card" id="login-card">
+      <div class="login-top"><div class="login-icon">🛡️</div><h2>Admin Sign In</h2><p class="sub">Enter your password to continue</p></div>
+      <div class="login-err" id="login-err">Incorrect password. Please try again.</div>
+      <div class="form-group"><label>Password</label>
+        <div class="pw-wrap"><input type="password" id="adm-pw" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')doLogin()"><button class="pw-toggle" type="button" onclick="togglePw('adm-pw',this)">👁️</button></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Sign In</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:9px" onclick="showInfoPanel()">← Back to Staff Info</button>
+      <p style="text-align:center;font-size:10.5px;color:var(--txt3);margin-top:14px">Default: <span style="font-family:var(--mf);color:var(--txt2)">admin123</span></p>
+    </div>
+  </div>
+  <div id="dash-wrap" style="display:none">
+    <div class="admin-dash">
+      <div class="dash-hd"><div><div class="dash-title">Admin Dashboard</div><div class="dash-sub">Manage SRZK SMP community</div></div><button class="btn btn-ghost btn-sm" onclick="doLogout()">Sign Out</button></div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab(this,'tab-posts')">📢 Posts</button>
+        <button class="tab" onclick="switchTab(this,'tab-servers')">🌐 Servers</button>
+        <button class="tab" onclick="switchTab(this,'tab-players')">👥 Players</button>
+        <button class="tab" id="tab-req-btn" onclick="switchTab(this,'tab-requests')">📋 Requests<span class="tab-badge" id="req-badge">0</span></button>
+        <button class="tab" onclick="switchTab(this,'tab-settings')">⚙️ Settings</button>
+      </div>
+      <!-- POSTS -->
+      <div class="panel active" id="tab-posts">
+        <div class="card-box"><h3>📝 New Post</h3>
+          <div class="form-group"><label>Title</label><input type="text" id="p-title" placeholder="Announcement title…"></div>
+          <div class="form-group"><label>Tag</label><select id="p-tag"><option>Announcement</option><option>Update</option><option>Maintenance</option><option>Event</option><option>News</option></select></div>
+          <div class="form-group"><label>Content</label><textarea id="p-content" placeholder="Write your update here…"></textarea></div>
+          <div class="form-group"><label>Images <span class="label-opt">(optional — select multiple)</span></label>
+            <div class="upload-area"><input type="file" id="p-img-input" accept="image/*" multiple onchange="handleMultiImg(this)">
+              <span class="up-icon">🖼️</span><span class="up-text">Click or drag to upload (select multiple)</span><span class="up-hint">PNG, JPG, GIF, WEBP</span></div>
+            <div class="img-thumbs" id="p-img-thumbs"></div>
+          </div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap"><button class="btn btn-primary" onclick="addPost()">Publish Post</button><button class="btn btn-ghost" onclick="clearPost()">Clear</button></div>
+        </div>
+        <div class="card-box"><h3>📋 Published Posts</h3><div id="adm-posts"><div class="empty"><span class="empty-icon">📋</span><p>No posts yet.</p></div></div></div>
+      </div>
+      <!-- SERVERS -->
+      <div class="panel" id="tab-servers">
+        <div class="card-box"><h3>➕ Add Server</h3>
+          <div class="grid-2" style="margin-bottom:12px">
+            <div class="form-group" style="margin-bottom:0"><label>Server Name *</label><input type="text" id="s-name" placeholder="My Minecraft Server"></div>
+            <div class="form-group" style="margin-bottom:0"><label>Category</label><select id="s-cat"><option>Survival</option><option>Creative</option><option>Minigames</option><option>Skyblock</option><option>Factions</option><option>Roleplay</option><option>Other</option></select></div>
+            <div class="form-group" style="margin-bottom:0"><label>Server Type</label><select id="s-type" onchange="onSrvTypeChange('s')"><option value="java">Java Edition</option><option value="bedrock">Bedrock Edition</option><option value="cracked">Java & Bedrock (Cracked)</option></select></div>
+            <div class="form-group" style="margin-bottom:0"><label>Version <span class="label-opt">(optional)</span></label><input type="text" id="s-version" placeholder="e.g. 1.21.4"></div>
+          </div>
+          <div class="form-group"><label id="s-ip-label">IP Address *</label><input type="text" id="s-ip" placeholder="play.example.com"></div>
+          <div class="form-group" id="s-port-group" style="display:none"><label>Port *</label><input type="number" id="s-port" placeholder="19132"></div>
+          <div class="form-group" id="s-java-ip-group" style="display:none"><label>Java IP Address *</label><input type="text" id="s-java-ip" placeholder="java.example.com"></div>
+          <div class="form-group"><label>Description <span class="label-opt">(optional)</span></label><input type="text" id="s-desc" placeholder="A short description…"></div>
+          <div class="form-group"><label>Server Image <span class="label-opt">(optional)</span></label>
+            <div class="upload-area"><input type="file" id="s-img-input" accept="image/*" onchange="handleImg(this,'s-img-preview','srvImg')">
+              <span class="up-icon">🖼️</span><span class="up-text">Click or drag to upload icon</span><img id="s-img-preview" class="up-preview" style="max-height:90px"></div>
+          </div>
+          <button class="btn btn-primary" onclick="addServer()">Add Server</button>
+        </div>
+        <div class="card-box"><h3>🌐 Server List</h3><div class="dtable-wrap" id="adm-servers"><div class="empty"><span class="empty-icon">🌐</span><p>No servers yet.</p></div></div></div>
+      </div>
+      <!-- PLAYERS -->
+      <div class="panel" id="tab-players">
+        <div class="card-box"><h3>👤 Add Player</h3>
+          <div class="grid-2">
+            <div class="form-group"><label>Username *</label><input type="text" id="pl-name" placeholder="Notch"></div>
+            <div class="form-group"><label>Role</label><select id="pl-role"><option value="player">Player</option><option value="vip">VIP</option><option value="mod">Moderator</option><option value="admin">Admin</option></select></div>
+            <div class="form-group"><label>Joined Date</label><input type="date" id="pl-date"></div>
+            <div class="form-group"><label>Gender <span class="label-opt">(optional)</span></label><select id="pl-gender"><option value="">Prefer not to say</option><option value="Male">Male</option><option value="Female">Female</option><option value="Non-binary">Non-binary</option><option value="Other">Other</option></select></div>
+          </div>
+          <div class="form-group"><label>Player Style <span class="label-opt">(1–3, optional)</span></label>
+            <div class="type-tags-wrap" id="adm-type-tags">
+              <button class="type-tag-btn" onclick="toggleType(this,'Builder','adm')">🏗️ Builder</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Miner','adm')">⛏️ Miner</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'PvP','adm')">⚔️ PvP</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Adventurer','adm')">🗺️ Adventurer</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Explorer','adm')">🧭 Explorer</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Redstone Builder','adm')">🔴 Redstone Builder</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Interior Designer','adm')">🛋️ Interior Designer</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Resource Collector','adm')">📦 Resource Collector</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Collector','adm')">🗃️ Collector</button>
+            </div>
+          </div>
+          <div class="form-group"><label>Contact <span class="label-opt">(optional)</span></label>
+            <div class="contact-group">
+              <select id="pl-contact-platform"><option value="">None</option><option value="Discord">Discord</option><option value="TikTok">TikTok</option><option value="Facebook">Facebook</option><option value="Messenger">Messenger</option></select>
+              <input type="text" id="pl-contact-value" placeholder="Username or handle">
+            </div>
+          </div>
+          <div class="form-group"><label>Custom Avatar <span class="label-opt">(optional)</span></label>
+            <div class="pl-upload-area"><input type="file" id="pl-img-input" accept="image/*" onchange="handleImg(this,'pl-img-preview','plrImg')">
+              <span style="font-size:17px;display:block;margin-bottom:4px">🧑‍🎤</span><span style="font-size:12px;color:var(--txt2)">Upload avatar or leave blank for MC skin</span>
+              <img id="pl-img-preview" class="pl-up-preview"></div>
+          </div>
+          <button class="btn btn-primary" onclick="addPlayer()">Add Player</button>
+        </div>
+        <div class="card-box"><h3>👥 Player Roster</h3><div class="dtable-wrap" id="adm-players"><div class="empty"><span class="empty-icon">👾</span><p>No players yet.</p></div></div></div>
+      </div>
+      <!-- REQUESTS -->
+      <div class="panel" id="tab-requests">
+        <div class="card-box" style="background:var(--surf2);border-style:dashed;margin-bottom:18px"><p style="font-size:13px;color:var(--txt2)">📋 Review player registration requests. Click a card to preview, then approve or deny.</p></div>
+        <div class="requests-grid" id="adm-requests"><div class="empty" style="grid-column:1/-1"><span class="empty-icon">📋</span><p>No pending requests.</p></div></div>
+      </div>
+      <!-- SETTINGS -->
+      <div class="panel" id="tab-settings">
+        <div class="card-box"><h3>⚙️ Community Settings</h3>
+          <div class="grid-2">
+            <div class="form-group"><label>Community Name</label><input type="text" id="cfg-name" placeholder="SRZK SMP"></div>
+            <div class="form-group"><label>Tagline</label><input type="text" id="cfg-desc" placeholder="Your Minecraft community…"></div>
+          </div>
+          <div class="form-group"><label>Contact Info <span class="label-opt">(shown on staff page)</span></label><input type="text" id="cfg-contact" placeholder="Discord: @admin | Email: admin@example.com"></div>
+          <div class="form-group"><label>Discord / Message Link <span class="label-opt">(button URL)</span></label><input type="text" id="cfg-discord" placeholder="https://discord.gg/invite…"></div>
+          <div class="form-group"><label>New Admin Password <span class="label-opt">(blank = keep current)</span></label>
+            <div class="pw-wrap"><input type="password" id="cfg-pw" placeholder="New password"><button class="pw-toggle" type="button" onclick="togglePw('cfg-pw',this)">👁️</button></div>
+          </div>
+          <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+        </div>
+        <div class="card-box"><h3 style="color:var(--red)">🗑️ Danger Zone</h3>
+          <p style="font-size:12.5px;color:var(--txt2);margin-bottom:16px">Permanently delete all data.</p>
+          <button class="btn btn-danger" onclick="clearAll()">Clear All Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<!-- ══ MODALS ════════════════════════════════════════ -->
+<div class="modal-overlay" id="edit-modal" onclick="if(event.target===this)closeModal('edit-modal')">
+  <div class="modal-box" id="edit-modal-box" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('edit-modal')">✕</button>
+    <div class="modal-title" id="edit-modal-title"></div>
+    <div id="edit-modal-body"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="player-modal" onclick="if(event.target===this)closeModal('player-modal')">
+  <div class="modal-box player-modal-box" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('player-modal')">✕</button>
+    <div id="player-modal-body"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="server-modal" onclick="if(event.target===this)closeModal('server-modal')">
+  <div class="modal-box server-modal-box" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('server-modal')">✕</button>
+    <div id="server-modal-body"></div>
+  </div>
+</div>
+<!-- Post detail modal -->
+<div class="modal-overlay" id="post-detail-modal" onclick="if(event.target===this)closeModal('post-detail-modal')">
+  <div class="modal-box post-detail-box" style="padding:0;overflow:hidden;max-width:680px" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('post-detail-modal')" style="top:12px;right:12px;z-index:10;background:rgba(13,20,16,.9)">✕</button>
+    <div class="post-detail-scroll" id="post-detail-body"></div>
+  </div>
+</div>
+<div class="modal-overlay" id="req-modal" onclick="if(event.target===this)closeModal('req-modal')">
+  <div class="modal-box req-modal-box" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('req-modal')">✕</button>
+    <div id="req-modal-body"></div>
+  </div>
+</div>
+<div class="lightbox-overlay" id="lightbox" onclick="if(event.target===this||event.target.classList.contains('lightbox-overlay'))closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img class="lightbox-img" id="lightbox-img" src="" alt="">
+</div>
+<div class="toast-wrap" id="toasts"></div>
+
+<!-- ══ FIREBASE ══════════════════════════════════════════ -->
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js';
+import{getFirestore,doc,setDoc,onSnapshot}from'https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js';
+
+const _app=initializeApp({
+  apiKey:"AIzaSyCcNit4aphByw-IoUNSEVd_FigCwabC0LQ",
+  authDomain:"website-database-8b759.firebaseapp.com",
+  projectId:"website-database-8b759",
+  storageBucket:"website-database-8b759.firebasestorage.app",
+  messagingSenderId:"824097828307",
+  appId:"1:824097828307:web:d0cde53c0eeede012f1326"
+});
+const _db=getFirestore(_app);
+
+// Expose Firestore helpers to the main (non-module) script via window
+window._fsDoc =(col,id)=>doc(_db,col,id);
+window._fsSet =(ref,data)=>setDoc(ref,data,{merge:true});
+window._fsSnap=(ref,cb,eb)=>onSnapshot(ref,cb,eb||console.warn);
+window._fbReady=true;
+document.dispatchEvent(new Event('firebase-ready'));
+</script>
+
+<script>
+// ═════ STATE ═════════════════════════════════════════
+let S={posts:[],servers:[],players:[],requests:[],
+  cfg:{name:'SRZK SMP',desc:'Your Minecraft Community Hub',pw:'admin123',adminContact:'',discordLink:''},authed:false};
+let srvImg=null,plrImg=null,regImg=null,editImg=null,postImgs=[];
+let selectedTypes={reg:[],adm:[]};
+const seenEls=new WeakSet();
+
+// save() is still called the same way everywhere — fire-and-forget write to Firestore.
+// The UI updates instantly from in-memory S; Firestore syncs in the background.
+function save(){
+  _fsSave().catch(e=>{
+    console.warn('Firestore save failed, falling back to localStorage:',e);
+    try{localStorage.setItem('srzk_v5',JSON.stringify(S));}catch(_){}
+  });
+}
+async function _fsSave(){
+  const D=window._fsDoc,W=window._fsSet;
+  await Promise.all([
+    W(D('srzk','posts'),   {items:S.posts}),
+    W(D('srzk','servers'), {items:S.servers}),
+    W(D('srzk','players'), {items:S.players}),
+    W(D('srzk','requests'),{items:S.requests}),
+    W(D('srzk','cfg'),     {...S.cfg}),
+  ]);
+}
+
+// load() sets up onSnapshot listeners for every collection.
+// The first snapshot resolves the promise (initial page load).
+// All subsequent snapshots are live updates from Firestore — if the admin
+// changes data on another device, this page updates automatically.
+async function load(){
+  return new Promise(resolve=>{
+    const KEYS=['posts','servers','players','requests','cfg'];
+    let got=0;let done=false;
+    const finish=()=>{if(!done){done=true;resolve();}};
+
+    KEYS.forEach(key=>{
+      window._fsSnap(
+        window._fsDoc('srzk',key),
+        snap=>{
+          if(snap.exists()){
+            if(key==='cfg')S.cfg={...S.cfg,...snap.data()};
+            else S[key]=snap.data().items||[];
+          }
+          if(!done){got++;if(got>=KEYS.length)finish();}
+          else _onRemoteUpdate(key);// live update after initial load
+        },
+        ()=>{if(!done){got++;if(got>=KEYS.length)finish();}}
+      );
+    });
+
+    // Safety: don't block forever if Firestore is unreachable
+    setTimeout(finish,7000);
+  });
+}
+
+// Called by onSnapshot after initial load — re-renders only the relevant page.
+function _onRemoteUpdate(key){
+  const pg=document.querySelector('.page.active');
+  const id=pg?pg.id:'';
+  if(key==='posts'){updateStats();if(id==='page-updates')renderUpdates();if(id==='page-home')renderHome();}
+  if(key==='servers'){updateStats();if(id==='page-servers'){renderServers();_startSrvPolling();}if(id==='page-home')renderHome();}
+  if(key==='players'){updateStats();if(id==='page-players')renderPlayers();if(id==='page-home')renderHome();}
+  if(key==='requests'&&S.authed){renderAdmRequests();}
+  if(key==='cfg'){renderHome();if(S.authed&&id==='page-admin'){const ci=document.getElementById('cfg-name');if(ci)ci.value=S.cfg.name||'';}}
+}
+
+function toggleDrawer(){const d=document.getElementById('drawer'),o=document.getElementById('drawer-overlay'),h=document.getElementById('nav-hamburger');d.classList.toggle('open');o.classList.toggle('open');h.classList.toggle('open');}
+function closeDrawer(){document.getElementById('drawer').classList.remove('open');document.getElementById('drawer-overlay').classList.remove('open');document.getElementById('nav-hamburger').classList.remove('open');}
+
+// ═════ NAV ═══════════════════════════════════════════
+function nav(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(a=>a.classList.remove('active'));
+  document.querySelectorAll('.drawer-link').forEach(a=>a.classList.remove('active'));
+  const pg=document.getElementById('page-'+page);if(pg)pg.classList.add('active');
+  const nl=document.getElementById('nl-'+page);if(nl)nl.classList.add('active');
+  const dl=document.getElementById('dl-'+page);if(dl)dl.classList.add('active');
+  if(page!=='servers')_stopSrvPolling();// stop polling when leaving servers page
+  if(page==='admin'){S.authed?showDash():showInfoPanel();}
+  if(page==='servers'){renderServers();_startSrvPolling();}// render + start 30s poll
+  if(page==='players')renderPlayers();
+  if(page==='updates')renderUpdates();
+  if(page==='home'){renderHome();updateStats();}
+  if(page==='register')resetRegForm();
+  window.scrollTo({top:0,behavior:'smooth'});
+  setTimeout(initReveal,200);
+}
+
+// ═════ TYPE TAGS ══════════════════════════════════════
+function toggleType(btn,typeName,ctx){
+  const arr=selectedTypes[ctx]||[];const idx=arr.indexOf(typeName);
+  if(idx>-1){arr.splice(idx,1);btn.classList.remove('selected');}
+  else{if(arr.length>=3){toast('Max 3 styles.','err');return;}arr.push(typeName);btn.classList.add('selected');}
+  const c=btn.closest('.type-tags-wrap');c.querySelectorAll('.type-tag-btn').forEach(b=>{if(!b.classList.contains('selected'))b.classList.toggle('maxed',arr.length>=3);});
+  if(ctx==='reg'){const h=document.getElementById('r-type-hint');if(h)h.textContent=`${arr.length} selected (max 3)`;}
+}
+function clearTypeTags(cId,ctx){selectedTypes[ctx]=[];document.querySelectorAll(`#${cId} .type-tag-btn`).forEach(b=>b.classList.remove('selected','maxed'));}
+
+// ═════ CAROUSEL (FIXED) ══════════════════════════════
+/* Each carousel is a self-contained object tracked by ID */
+const carousels={};
+let _cid=0;
+function buildCarousel(images,forModal){
+  if(!images||!images.length)return'';
+  const id='c'+(++_cid);
+  carousels[id]={idx:0,total:images.length,images};
+  const multi=images.length>1;
+  const safeImgs=images.map(src=>src.replace(/\\/g,'\\\\').replace(/'/g,"\\'"));
+  const slides=images.map((src,i)=>`<div class="carousel-slide" id="${id}-s${i}">
+    <img src="${src}" data-lb="${safeImgs[i]}" loading="lazy" alt="Image ${i+1}" draggable="false">
+  </div>`).join('');
+  const dots=multi?`<div class="c-dots" id="${id}-dots">${images.map((_,i)=>`<div class="c-dot${i===0?' active':''}" onclick="event.stopPropagation();carouselGo('${id}',${i})"></div>`).join('')}</div>`:'';
+  const arrows=multi?`<button class="c-prev" onclick="event.stopPropagation();carouselMove('${id}',-1)">&#8249;</button><button class="c-next" onclick="event.stopPropagation();carouselMove('${id}',1)">&#8250;</button>`:'';
+  const counter=multi?`<div class="c-counter" id="${id}-cnt">1&nbsp;/&nbsp;${images.length}</div>`:'';
+  return`<div class="post-carousel" id="${id}" data-cid="${id}" onclick="event.stopPropagation()">
+    <div class="carousel-viewport"><div class="carousel-track" id="${id}-track">${slides}</div></div>
+    ${arrows}${counter}${dots}
+  </div>`;
+}
+function carouselMove(id,dir){
+  const c=carousels[id];if(!c)return;
+  c.idx=((c.idx+dir)+c.total)%c.total;
+  _updateCarousel(id);
+}
+function carouselGo(id,idx){
+  const c=carousels[id];if(!c)return;
+  c.idx=idx;_updateCarousel(id);
+}
+function _updateCarousel(id){
+  const c=carousels[id];if(!c)return;
+  const track=document.getElementById(id+'-track');
+  if(track)track.style.transform=`translateX(-${c.idx*100}%)`;
+  const cnt=document.getElementById(id+'-cnt');
+  if(cnt)cnt.innerHTML=`${c.idx+1}&nbsp;/&nbsp;${c.total}`;
+  const dots=document.getElementById(id+'-dots');
+  if(dots)dots.querySelectorAll('.c-dot').forEach((d,i)=>d.classList.toggle('active',i===c.idx));
+}
+// Touch / mouse swipe support for carousel — fully rewritten
+// Prevents native image-drag freeze; handles both mouse and touch correctly.
+let _activeCar=null;
+document.addEventListener('pointerdown',e=>{
+  const cr=e.target.closest('.post-carousel[data-cid]');
+  if(!cr)return;
+  // Let button / dot clicks pass through normally
+  if(e.target.closest('button,.c-dot'))return;
+  const id=cr.dataset.cid;const c=carousels[id];if(!c)return;
+  // Prevent native image drag (the root cause of cursor freeze on desktop)
+  e.preventDefault();
+  c._sx=e.clientX;c._sy=e.clientY;c._t=Date.now();c._moved=false;
+  _activeCar=id;
+  cr.classList.add('is-dragging');
+  // Capture pointer so we keep events even outside the element
+  try{cr.setPointerCapture(e.pointerId);}catch(_){}
+},{capture:true,passive:false});
+
+document.addEventListener('pointermove',e=>{
+  if(_activeCar===null)return;
+  const c=carousels[_activeCar];if(!c||c._sx===undefined)return;
+  const dx=Math.abs(e.clientX-c._sx),dy=Math.abs(e.clientY-c._sy);
+  // Mark as a drag only when horizontal movement dominates
+  if(dx>6&&dx>dy)c._moved=true;
+},{capture:true,passive:true});
+
+document.addEventListener('pointerup',e=>{
+  if(_activeCar===null)return;
+  const id=_activeCar;_activeCar=null;
+  // Do NOT stopPropagation here — doing so in capture phase kills the
+  // bubble-phase "isDown=false" trail handler and breaks the tap/trail FX.
+  // The carousel's own onclick="stopPropagation()" handles blocking the post modal.
+  const cr=document.getElementById(id);
+  if(cr)cr.classList.remove('is-dragging');
+  isDown=false; // safety net reset so trail never gets stuck
+  const c=carousels[id];if(!c||c._sx===undefined)return;
+  const dx=e.clientX-c._sx,dt=Date.now()-c._t;
+  if(Math.abs(dx)>40&&dt<500){
+    // Swipe: change slide
+    carouselMove(id,dx<0?1:-1);
+  } else if(!c._moved){
+    // Pure tap/click with no drag — open lightbox for current slide
+    const track=document.getElementById(id+'-track');
+    if(track){
+      const img=track.querySelectorAll('.carousel-slide img')[c.idx];
+      if(img&&img.dataset.lb)openLightbox(img.dataset.lb);
+    }
+  }
+  c._sx=undefined;c._sy=undefined;c._moved=false;
+},{capture:true,passive:false});
+
+document.addEventListener('pointercancel',e=>{
+  if(_activeCar===null)return;
+  const cr=document.getElementById(_activeCar);
+  if(cr)cr.classList.remove('is-dragging');
+  const c=carousels[_activeCar];
+  if(c){c._sx=undefined;c._sy=undefined;c._moved=false;}
+  isDown=false; // safety net reset
+  _activeCar=null;
+},true);
+
+// ═════ POST DETAIL MODAL ══════════════════════════════
+function openPostModal(postId){
+  const p=S.posts.find(x=>x.id===postId);if(!p)return;
+  const imgs=p.images||[];
+  const carHtml=imgs.length?`<div class="post-detail-carousel" style="border-radius:10px;overflow:hidden;margin-bottom:18px;background:var(--surf2)">${buildCarousel(imgs,true)}</div>`:'';
+  document.getElementById('post-detail-body').innerHTML=`
+    ${carHtml}
+    <div class="post-detail-meta"><span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span></div>
+    <div class="post-detail-title">${esc(p.title)}</div>
+    <div class="post-full-content">${esc(p.content)}</div>`;
+  openModal('post-detail-modal');
+}
+
+// ═════ MULTI IMAGE UPLOAD ════════════════════════════
+function handleMultiImg(input){
+  Array.from(input.files).forEach(file=>{
+    const r=new FileReader();r.onload=e=>{postImgs.push(e.target.result);renderAdminThumb(e.target.result,postImgs.length-1);};r.readAsDataURL(file);
+  });input.value='';
+}
+function renderAdminThumb(src,idx){
+  const wrap=document.getElementById('p-img-thumbs');if(!wrap)return;
+  const div=document.createElement('div');div.className='img-thumb-wrap';div.dataset.idx=idx;
+  div.innerHTML=`<img src="${src}"><button class="img-thumb-remove" onclick="removePostImg(${idx})">✕</button>`;
+  wrap.appendChild(div);
+}
+function removePostImg(idx){
+  postImgs.splice(idx,1);
+  const wrap=document.getElementById('p-img-thumbs');if(!wrap)return;
+  wrap.innerHTML='';postImgs.forEach((src,i)=>renderAdminThumb(src,i));
+}
+function handleImg(input,previewId,store){
+  const file=input.files[0];if(!file)return;
+  const r=new FileReader();r.onload=e=>{
+    if(store==='srvImg')srvImg=e.target.result;
+    else if(store==='plrImg')plrImg=e.target.result;
+    else if(store==='regImg')regImg=e.target.result;
+    else if(store==='editImg')editImg=e.target.result;
+    const prev=document.getElementById(previewId);if(prev){prev.src=e.target.result;prev.style.display='block';}
+  };r.readAsDataURL(file);
+}
+
+// ═════ POSTS ═════════════════════════════════════════
+function addPost(){
+  const t=v('p-title'),c=v('p-content'),tag=v('p-tag');
+  if(!t||!c){toast('Title and content required.','err');return;}
+  S.posts.unshift({id:Date.now(),title:t,content:c,tag,images:[...postImgs],date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})});
+  save();clearPost();renderAdmPosts();toast('Post published! 📢','ok');
+}
+function clearPost(){
+  set('p-title','');set('p-content','');document.getElementById('p-tag').value='Announcement';
+  const wrap=document.getElementById('p-img-thumbs');if(wrap)wrap.innerHTML='';
+  document.getElementById('p-img-input').value='';postImgs=[];
+}
+function delPost(id){if(!confirm('Delete this post?'))return;S.posts=S.posts.filter(p=>p.id!==id);save();renderAdmPosts();toast('Post deleted.','ok');}
+function openEditPost(id){
+  const p=S.posts.find(x=>x.id===id);if(!p)return;
+  document.getElementById('edit-modal-title').textContent='✏️ Edit Post';
+  const imgs=p.images||[];
+  document.getElementById('edit-modal-body').innerHTML=`
+    <div class="form-group"><label>Title</label><input type="text" id="ep-title" value="${esc(p.title)}"></div>
+    <div class="form-group"><label>Tag</label><select id="ep-tag">${['Announcement','Update','Maintenance','Event','News'].map(t=>`<option${p.tag===t?' selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="form-group"><label>Content</label><textarea id="ep-content">${esc(p.content)}</textarea></div>
+    <div class="form-group"><label>Images <span class="label-opt">(add more)</span></label>
+      <div class="upload-area"><input type="file" id="ep-img-input" accept="image/*" multiple onchange="handleEditMultiImg(this,${id})">
+        <span class="up-icon">🖼️</span><span class="up-text">Click or drag to add images</span></div>
+      <div class="img-thumbs" id="ep-img-thumbs">${imgs.map((src,i)=>`<div class="img-thumb-wrap"><img src="${src}"><button class="img-thumb-remove" onclick="removeEditPostImg(${id},${i})">✕</button></div>`).join('')}</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-primary" onclick="saveEditPost(${id})">Save</button><button class="btn btn-ghost" onclick="closeModal('edit-modal')">Cancel</button></div>`;
+  openModal('edit-modal');
+}
+function handleEditMultiImg(input,postId){
+  const p=S.posts.find(x=>x.id===postId);if(!p)return;if(!p.images)p.images=[];
+  Array.from(input.files).forEach(file=>{
+    const r=new FileReader();r.onload=e=>{
+      const idx=p.images.push(e.target.result)-1;
+      const wrap=document.getElementById('ep-img-thumbs');if(!wrap)return;
+      const div=document.createElement('div');div.className='img-thumb-wrap';
+      div.innerHTML=`<img src="${e.target.result}"><button class="img-thumb-remove" onclick="removeEditPostImg(${postId},${idx})">✕</button>`;
+      wrap.appendChild(div);
+    };r.readAsDataURL(file);
+  });input.value='';
+}
+function removeEditPostImg(postId,idx){
+  const p=S.posts.find(x=>x.id===postId);if(!p||!p.images)return;
+  p.images.splice(idx,1);
+  const wrap=document.getElementById('ep-img-thumbs');if(!wrap)return;
+  wrap.innerHTML=p.images.map((src,i)=>`<div class="img-thumb-wrap"><img src="${src}"><button class="img-thumb-remove" onclick="removeEditPostImg(${postId},${i})">✕</button></div>`).join('');
+}
+function saveEditPost(id){
+  const t=v('ep-title'),c=v('ep-content'),tag=v('ep-tag');if(!t||!c){toast('Title and content required.','err');return;}
+  const p=S.posts.find(x=>x.id===id);if(!p)return;
+  p.title=t;p.content=c;p.tag=tag;
+  save();closeModal('edit-modal');renderAdmPosts();toast('Post updated! ✅','ok');
+}
+function renderAdmPosts(){
+  const el=document.getElementById('adm-posts');
+  if(!S.posts.length){el.innerHTML=empty('📋','No posts yet.');return;}
+  el.innerHTML=`<div class="dtable-wrap"><table class="dtable"><thead><tr><th>Title</th><th>Tag</th><th>Date</th><th>Imgs</th><th></th></tr></thead><tbody>${S.posts.map(p=>`<tr>
+    <td style="color:var(--txt);font-weight:600;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.title)}</td>
+    <td><span class="badge bg">${esc(p.tag)}</span></td>
+    <td style="font-family:var(--mf);font-size:10px;white-space:nowrap">${esc(p.date)}</td>
+    <td style="font-family:var(--mf);font-size:11px;color:var(--txt2)">${(p.images||[]).length||'—'}</td>
+    <td><div class="tbl-actions"><button class="icon-btn" onclick="openEditPost(${p.id})">✏️</button><button class="icon-btn del" onclick="delPost(${p.id})">🗑️</button></div></td>
+  </tr>`).join('')}</tbody></table></div>`;
+}
+function tagEmoji(t){return{Announcement:'📢',Update:'🔧',Maintenance:'🚧',Event:'🎉',News:'📰'}[t]||'📋';}
+function renderUpdates(){
+  const el=document.getElementById('updates-list');
+  if(!S.posts.length){el.innerHTML=`<div class="empty"><span class="empty-icon">📢</span><p>No updates yet.</p></div>`;return;}
+  el.innerHTML=S.posts.map(p=>{
+    const imgs=p.images||[];
+    // Build image section: multi = carousel, single = lightbox img
+    let imgHtml='';
+    if(imgs.length>1){
+      imgHtml=buildCarousel(imgs,false);
+    }else if(imgs.length===1){
+      const safeS=imgs[0].replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      imgHtml=`<div class="post-img-wrap" onclick="event.stopPropagation();openLightbox('${safeS}')"><img src="${imgs[0]}" loading="lazy" alt="${esc(p.title)}"></div>`;
+    }
+    return`<article class="post-card rv" onclick="openPostModal(${p.id})">
+      ${imgHtml}
+      <div class="post-body">
+        <div class="post-meta"><span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span></div>
+        <div class="post-title">${esc(p.title)}</div>
+        <div class="post-content-wrap">
+          <div class="post-content-preview">${esc(p.content)}</div>
+        </div>
+        <div class="post-read-hint">📖 Click to read full post</div>
+      </div>
+    </article>`;
+  }).join('');
+  setTimeout(initReveal,100);
+}
+function renderHome(){
+  const el=document.getElementById('home-posts');const latest=S.posts.slice(0,4);
+  if(!latest.length){el.innerHTML=`<div class="empty" style="grid-column:1/-1"><span class="empty-icon">📋</span><p>No updates yet.</p></div>`;return;}
+  el.innerHTML=latest.map((p,i)=>{const imgs=p.images||[];const thumb=imgs.length?imgs[0]:null;
+    return`<div class="hlp rv rv-d${i}" onclick="nav('updates')">
+      ${thumb?`<img class="hlp-thumb" src="${thumb}" alt="${esc(p.title)}" loading="lazy">`:`<div class="hlp-thumb-ph">${tagEmoji(p.tag)}</div>`}
+      <div class="hlp-body"><span class="hlp-tag">${esc(p.tag)}</span><div class="hlp-title">${esc(p.title)}</div><div class="hlp-date">${esc(p.date)}</div></div>
+    </div>`;
+  }).join('');setTimeout(initReveal,100);
+}
+
+// ═════ CONTACT HELPERS ════════════════════════════════
+const contactIcon={Discord:'💬',TikTok:'🎵',Facebook:'📘',Messenger:'📩'};
+function getContactUrl(platform,value){
+  const clean=value.replace(/^@/,'');
+  if(platform==='TikTok'){
+    return`https://www.tiktok.com/@${clean}`;
+  }
+  if(platform==='Facebook'){
+    return`https://www.facebook.com/${clean}`;
+  }
+  if(platform==='Messenger'){
+    if(value.includes('m.me/')||value.includes('messenger.com')){
+      return value.startsWith('http')?value:`https://${value}`;
+    }
+    return`https://m.me/${clean}`;
+  }
+  if(platform==='Discord'){
+    if(value.includes('discord.gg')||value.includes('discord.com')){
+      return value.startsWith('http')?value:`https://${value}`;
+    }
+    return`https://discord.com/users/${clean}`;
+  }
+  return null;
+}
+// Card: show only platform name, click = redirect (or toast for Discord)
+function buildContactCardBtn(contact){
+  if(!contact)return'';
+  const url=getContactUrl(contact.platform,contact.value);
+  const icon=contactIcon[contact.platform]||'📨';
+  if(url){
+    return`<a href="${url}" target="_blank" rel="noopener noreferrer" class="contact-platform-btn" onclick="event.stopPropagation()">${icon} ${esc(contact.platform)}</a>`;
+  }
+  // Discord — copy handle
+  return`<button class="contact-platform-btn" onclick="event.stopPropagation();copyToClip('${esc(contact.value)}','Discord handle')" title="${esc(contact.value)}">${icon} ${esc(contact.platform)}</button>`;
+}
+// Modal: large redirect button
+function buildContactModalBtn(contact){
+  if(!contact)return'<span style="color:var(--txt3);font-family:var(--mf);font-size:12px">—</span>';
+  const url=getContactUrl(contact.platform,contact.value);
+  const icon=contactIcon[contact.platform]||'📨';
+  if(url){
+    return`<a href="${url}" target="_blank" rel="noopener noreferrer" class="modal-contact-redirect">${icon} Open ${esc(contact.platform)} ↗</a>`;
+  }
+  return`<button class="modal-contact-redirect" onclick="copyToClip('${esc(contact.value)}','Discord handle')">${icon} ${esc(contact.platform)} (copy)</button>`;
+}
+// Request modal contact
+function buildContactReqBtn(contact){
+  if(!contact)return'N/A';
+  const url=getContactUrl(contact.platform,contact.value);
+  const icon=contactIcon[contact.platform]||'📨';
+  if(url)return`<a href="${url}" target="_blank" rel="noopener" class="modal-contact-redirect" style="font-size:12px;padding:5px 12px">${icon} Open ${esc(contact.platform)} ↗</a>`;
+  return`<span style="font-family:var(--mf);font-size:12px;color:var(--txt2)">${icon} ${esc(contact.platform)}: ${esc(contact.value)}</span>`;
+}
+function copyToClip(text,label){
+  navigator.clipboard.writeText(text).then(()=>toast(`Copied ${label}: ${text}`,'ok')).catch(()=>toast('Copy failed','err'));
+}
+
+// ═════ SERVERS ════════════════════════════════════════
+const catEmoji={Survival:'⚔️',Creative:'🎨',Minigames:'🎮',Skyblock:'🏝️',Factions:'🏴',Roleplay:'🎭',Other:'🌐'};
+const srvTypeLabel={java:'Java',bedrock:'Bedrock',cracked:'Java+BE'};
+const srvTypeBadge={java:'java',bedrock:'bedrock',cracked:'cracked'};
+function onSrvTypeChange(pfx){
+  const type=document.getElementById(pfx+'-type').value;
+  const portGrp=document.getElementById(pfx+'-port-group');const javaGrp=document.getElementById(pfx+'-java-ip-group');const ipLbl=document.getElementById(pfx+'-ip-label');const portEl=document.getElementById(pfx+'-port');
+  if(type==='java'){if(portGrp)portGrp.style.display='none';if(javaGrp)javaGrp.style.display='none';if(ipLbl)ipLbl.innerHTML='IP Address *';}
+  else if(type==='bedrock'){if(portGrp){portGrp.style.display='';if(portEl&&!portEl.value)portEl.value='19132';}if(javaGrp)javaGrp.style.display='none';if(ipLbl)ipLbl.innerHTML='IP Address *';}
+  else{if(portGrp){portGrp.style.display='';if(portEl&&!portEl.value)portEl.value='19132';}if(javaGrp)javaGrp.style.display='';if(ipLbl)ipLbl.innerHTML='Bedrock IP Address *';}
+}
+function addServer(){
+  const name=v('s-name'),ip=v('s-ip'),type=v('s-type'),port=document.getElementById('s-port').value.trim(),javaIp=v('s-java-ip');
+  if(!name){toast('Server name required.','err');return;}if(!ip){toast('IP address required.','err');return;}
+  if(type!=='java'&&!port){toast('Port is required.','err');return;}if(type==='cracked'&&!javaIp){toast('Java IP required.','err');return;}
+  S.servers.push({id:Date.now(),name,ip,port,javaIp:javaIp||'',cat:v('s-cat'),desc:v('s-desc'),stype:type,version:v('s-version'),image:srvImg||null});
+  save();clearSrv();renderAdmServers();toast('Server added! 🌐','ok');
+}
+function clearSrv(){
+  ['s-name','s-ip','s-desc','s-version','s-java-ip'].forEach(id=>set(id,''));
+  document.getElementById('s-port').value='';document.getElementById('s-type').value='java';
+  const pr=document.getElementById('s-img-preview');pr.style.display='none';pr.src='';document.getElementById('s-img-input').value='';srvImg=null;onSrvTypeChange('s');
+}
+function delServer(id){if(!confirm('Remove this server?'))return;S.servers=S.servers.filter(s=>s.id!==id);save();renderAdmServers();toast('Server removed.','ok');}
+function openEditServer(id){
+  const s=S.servers.find(x=>x.id===id);if(!s)return;editImg=s.image||null;
+  const t=s.stype||'java';const portVis=t!=='java';const javaVis=t==='cracked';
+  document.getElementById('edit-modal-title').textContent='✏️ Edit Server';
+  document.getElementById('edit-modal-body').innerHTML=`
+    <div class="grid-2" style="margin-bottom:12px">
+      <div class="form-group" style="margin-bottom:0"><label>Name *</label><input type="text" id="es-name" value="${esc(s.name)}"></div>
+      <div class="form-group" style="margin-bottom:0"><label>Category</label><select id="es-cat">${['Survival','Creative','Minigames','Skyblock','Factions','Roleplay','Other'].map(c=>`<option${s.cat===c?' selected':''}>${c}</option>`).join('')}</select></div>
+      <div class="form-group" style="margin-bottom:0"><label>Type</label><select id="es-type" onchange="onSrvTypeChange('es')"><option value="java"${t==='java'?' selected':''}>Java Edition</option><option value="bedrock"${t==='bedrock'?' selected':''}>Bedrock Edition</option><option value="cracked"${t==='cracked'?' selected':''}>Java & Bedrock (Cracked)</option></select></div>
+      <div class="form-group" style="margin-bottom:0"><label>Version</label><input type="text" id="es-version" value="${esc(s.version||'')}"></div>
+    </div>
+    <div class="form-group"><label id="es-ip-label">${javaVis?'Bedrock IP *':'IP Address *'}</label><input type="text" id="es-ip" value="${esc(s.ip)}"></div>
+    <div class="form-group" id="es-port-group" style="display:${portVis?'':'none'}"><label>Port *</label><input type="number" id="es-port" value="${esc(s.port||'')}"></div>
+    <div class="form-group" id="es-java-ip-group" style="display:${javaVis?'':'none'}"><label>Java IP *</label><input type="text" id="es-java-ip" value="${esc(s.javaIp||'')}"></div>
+    <div class="form-group"><label>Description</label><input type="text" id="es-desc" value="${esc(s.desc||'')}"></div>
+    <div class="form-group"><label>Image <span class="label-opt">(optional)</span></label>
+      <div class="upload-area"><input type="file" id="es-img-input" accept="image/*" onchange="handleImg(this,'es-img-preview','editImg')">
+        <span class="up-icon">🖼️</span><span class="up-text">Click or drag to replace</span>
+        <img id="es-img-preview" class="up-preview" ${s.image?`src="${s.image}" style="display:block;max-height:90px"`:'style="display:none"'}></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-primary" onclick="saveEditServer(${id})">Save</button><button class="btn btn-ghost" onclick="closeModal('edit-modal')">Cancel</button></div>`;
+  openModal('edit-modal');
+}
+function saveEditServer(id){
+  const name=v('es-name'),ip=v('es-ip'),type=v('es-type');if(!name||!ip){toast('Name and IP required.','err');return;}
+  const port=document.getElementById('es-port')?document.getElementById('es-port').value.trim():'';const javaIp=v('es-java-ip');
+  if(type!=='java'&&!port){toast('Port required.','err');return;}if(type==='cracked'&&!javaIp){toast('Java IP required.','err');return;}
+  const s=S.servers.find(x=>x.id===id);if(!s)return;
+  s.name=name;s.ip=ip;s.port=port;s.javaIp=javaIp||'';s.cat=v('es-cat');s.stype=type;s.version=v('es-version');s.desc=v('es-desc');if(editImg!==undefined)s.image=editImg;
+  save();closeModal('edit-modal');renderAdmServers();toast('Server updated! ✅','ok');
+}
+function getCopyAllStr(s){const t=s.stype||'java';if(t==='java')return s.ip;if(t==='bedrock')return`${s.ip}:${s.port}`;return`Bedrock: ${s.ip}:${s.port} | Java: ${s.javaIp}`;}
+function srvFieldsHtml(s){
+  const t=s.stype||'java';
+  if(t==='java')return`<div class="srv-field"><span class="srv-lbl">IP</span><span class="srv-val">${esc(s.ip)}</span></div>${s.version?`<div class="srv-field"><span class="srv-lbl">Ver</span><span class="srv-val">${esc(s.version)}</span></div>`:''}`;
+  if(t==='bedrock')return`<div class="srv-field"><span class="srv-lbl">IP</span><span class="srv-val">${esc(s.ip)}</span></div><div class="srv-field"><span class="srv-lbl">Port</span><span class="srv-val">${esc(s.port)}</span></div>${s.version?`<div class="srv-field"><span class="srv-lbl">Ver</span><span class="srv-val">${esc(s.version)}</span></div>`:''}`;
+  return`<div class="srv-field"><span class="srv-lbl">BE IP</span><span class="srv-val">${esc(s.ip)}</span></div><div class="srv-field"><span class="srv-lbl">Port</span><span class="srv-val">${esc(s.port)}</span></div><div class="srv-field"><span class="srv-lbl">JE IP</span><span class="srv-val">${esc(s.javaIp||'')}</span></div>${s.version?`<div class="srv-field"><span class="srv-lbl">Ver</span><span class="srv-val">${esc(s.version)}</span></div>`:''}`;
+}
+function srvActionsHtml(s){
+  const t=s.stype||'java';
+  if(t==='java')return`<button class="copy-btn" onclick="copyText('${esc(s.ip)}','IP',this)">📋 Copy IP</button>`;
+  if(t==='bedrock')return`<button class="copy-btn" onclick="copyText('${esc(s.ip)}','IP',this)">📋 Copy IP</button><button class="copy-btn" onclick="copyText('${esc(s.port)}','Port',this)">📋 Port</button>`;
+  return`<button class="copy-btn" onclick="copyText('${esc(s.ip)}','BE IP',this)">📋 BE IP</button><button class="copy-btn" onclick="copyText('${esc(s.port)}','Port',this)">📋 Port</button><button class="copy-btn" onclick="copyText('${esc(s.javaIp||'')}','JE IP',this)">📋 JE IP</button>`;
+}
+function srvModalFieldsHtml(s){
+  const t=s.stype||'java';let html='';
+  if(t==='java'){html+=`<div class="sm-field"><div><div class="sm-field-lbl">IP Address</div><div class="sm-field-val">${esc(s.ip)}</div></div><button class="sm-copy" onclick="copyText('${esc(s.ip)}','IP',this)">📋 Copy</button></div>`;}
+  else if(t==='bedrock'){html+=`<div class="sm-field"><div><div class="sm-field-lbl">IP Address</div><div class="sm-field-val">${esc(s.ip)}</div></div><button class="sm-copy" onclick="copyText('${esc(s.ip)}','IP',this)">📋 Copy</button></div>`;html+=`<div class="sm-field"><div><div class="sm-field-lbl">Port</div><div class="sm-field-val">${esc(s.port)}</div></div><button class="sm-copy" onclick="copyText('${esc(s.port)}','Port',this)">📋 Copy</button></div>`;}
+  else{html+=`<div class="sm-field"><div><div class="sm-field-lbl">Bedrock IP</div><div class="sm-field-val">${esc(s.ip)}</div></div><button class="sm-copy" onclick="copyText('${esc(s.ip)}','BE IP',this)">📋 Copy</button></div>`;html+=`<div class="sm-field"><div><div class="sm-field-lbl">Port</div><div class="sm-field-val">${esc(s.port)}</div></div><button class="sm-copy" onclick="copyText('${esc(s.port)}','Port',this)">📋 Copy</button></div>`;html+=`<div class="sm-field"><div><div class="sm-field-lbl">Java IP</div><div class="sm-field-val">${esc(s.javaIp||'')}</div></div><button class="sm-copy" onclick="copyText('${esc(s.javaIp||'')}','JE IP',this)">📋 Copy</button></div>`;}
+  return html;
+}
+function openServerModal(id){
+  const s=S.servers.find(x=>x.id===id);if(!s)return;const t=s.stype||'java';const all=getCopyAllStr(s);
+  document.getElementById('server-modal-body').innerHTML=`
+    <div class="sm-header">
+      ${s.image?`<img class="sm-img" src="${s.image}" alt="${esc(s.name)}" loading="lazy">`:`<div class="sm-ph">${catEmoji[s.cat]||'🌐'}</div>`}
+      <div><div class="sm-name">${esc(s.name)}</div><div class="sm-badges">${_statusBadgeHtml(s.id,_srvCache[s.id]||null,'ms')}<span class="srv-badge ${srvTypeBadge[t]}">${srvTypeLabel[t]}</span><span class="srv-badge type-tag">${esc(s.cat)}</span>${s.version?`<span class="srv-badge" style="background:var(--glow2);color:var(--txt2);border:1px solid var(--border)">v${esc(s.version)}</span>`:''}</div></div>
+    </div>
+    ${s.desc?`<div class="sm-desc">${esc(s.desc)}</div>`:''}
+    <div class="sm-fields">${srvModalFieldsHtml(s)}</div>
+    <button class="btn btn-primary" style="width:100%" onclick="copyText('${all.replace(/'/g,"\\'")}','All Connection Info',this)">📋 Copy All IP & Port</button>`;
+  openModal('server-modal');
+  _checkModalStatus(id);// update modal badge live (uses cache if fresh)
+}
+function copyText(text,label,btn){
+  navigator.clipboard.writeText(text).then(()=>{
+    const orig=btn.innerHTML;btn.innerHTML='✓ Copied!';btn.style.color='var(--green)';
+    setTimeout(()=>{btn.innerHTML=orig;btn.style.color='';},2000);toast(`Copied ${label}`,'ok');
+  }).catch(()=>toast('Copy failed','err'));
+}
+// ═════ SERVER STATUS CHECK (LIVE — via mcsrvstat.us) ═══
+// Works for any Minecraft server IP including Aternos (*.aternos.me).
+// Results are cached for 60 s so navigating back doesn't re-ping immediately.
+const _srvCache={};
+const _SRV_TTL=60000;
+
+function _srvApiUrl(s){
+  const t=s.stype||'java';
+  if(t==='bedrock')return`https://api.mcsrvstat.us/bedrock/3/${encodeURIComponent(s.ip)}:${s.port||19132}`;
+  // cracked = Java+Bedrock: ping the Java IP for status
+  const ip=(t==='cracked'&&s.javaIp)?s.javaIp:s.ip;
+  return`https://api.mcsrvstat.us/3/${encodeURIComponent(ip)}`;
+}
+
+async function _fetchSrvStatus(s,force=false){
+  const hit=_srvCache[s.id];
+  if(!force&&hit&&Date.now()-hit.ts<_SRV_TTL)return hit;
+  try{
+    const res=await fetch(_srvApiUrl(s),{signal:AbortSignal.timeout(8000)});
+    const d=await res.json();
+    const r={ts:Date.now(),online:!!d.online,players:d.players||null};
+    _srvCache[s.id]=r;return r;
+  }catch{
+    // network error / timeout — return last-known status so badge doesn't reset
+    if(hit)return hit;
+    return{ts:0,online:false,players:null};
+  }
+}
+
+function _statusBadgeHtml(sid,status,pfx){
+  const id=`${pfx}-${sid}`;
+  if(!status){
+    // only shown on very first check before any result has arrived
+    return`<span class="srv-badge checking" id="${id}"><span class="dp" style="background:var(--amber);animation:none;opacity:.7"></span>Checking…</span>`;
+  }
+  if(status.online){
+    const pl=status.players?` &middot; ${status.players.online}/${status.players.max}`:'';
+    return`<span class="srv-badge online" id="${id}"><span class="dp"></span>Online${pl}</span>`;
+  }
+  return`<span class="srv-badge offline" id="${id}"><span style="width:5px;height:5px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>Offline</span>`;
+}
+
+function _applyStatus(sid,status,pfx){
+  const el=document.getElementById(`${pfx}-${sid}`);if(!el)return;
+  const tmp=document.createElement('span');
+  tmp.innerHTML=_statusBadgeHtml(sid,status,pfx);
+  const n=tmp.firstChild;
+  el.className=n.className;el.innerHTML=n.innerHTML;
+}
+
+async function _checkAllStatuses(){
+  for(const s of S.servers){
+    const status=await _fetchSrvStatus(s);
+    _applyStatus(s.id,status,'ss');// ss = server-status (card)
+    await new Promise(r=>setTimeout(r,300));// gentle pacing between requests
+  }
+}
+
+async function _checkModalStatus(sid){
+  const s=S.servers.find(x=>x.id===sid);if(!s)return;
+  const status=await _fetchSrvStatus(s);
+  _applyStatus(sid,status,'ms');// ms = modal-status
+}
+
+// ── Polling: real-time updates while servers page is open ──
+let _srvPollTimer=null;
+const _SRV_POLL_MS=15000;// re-ping every 15 s
+
+function _stopSrvPolling(){
+  if(_srvPollTimer){clearInterval(_srvPollTimer);_srvPollTimer=null;}
+}
+
+function _startSrvPolling(){
+  _stopSrvPolling();
+  _srvPollTimer=setInterval(async()=>{
+    if(!S.servers.length)return;
+    for(const s of S.servers){
+      // force=true bypasses the TTL so we always get a fresh ping,
+      // but we do NOT clear the cache first — the badge keeps showing
+      // the last-known status while the request is in-flight, so the
+      // user never sees a "Checking…" flicker between polls.
+      const status=await _fetchSrvStatus(s,true);
+      _applyStatus(s.id,status,'ss');
+      if(document.getElementById(`ms-${s.id}`))_applyStatus(s.id,status,'ms');
+      await new Promise(r=>setTimeout(r,500));// pace requests gently
+    }
+  },_SRV_POLL_MS);
+}
+
+function renderServers(){
+  const el=document.getElementById('server-grid');
+  if(!S.servers.length){el.innerHTML=`<div class="empty" style="grid-column:1/-1"><span class="empty-icon">🌐</span><p>No servers yet.</p></div>`;return;}
+  el.innerHTML=S.servers.map((s,i)=>`<div class="server-card rv" style="transition-delay:${i*.05}s" onclick="openServerModal(${s.id})">
+    ${s.image?`<img class="srv-img" src="${s.image}" alt="${esc(s.name)}" loading="lazy">`:`<div class="srv-placeholder">${catEmoji[s.cat]||'🌐'}</div>`}
+    <div class="srv-info"><div class="srv-name">${esc(s.name)}</div>${s.desc?`<div class="srv-desc">${esc(s.desc)}</div>`:''}
+    ${srvFieldsHtml(s)}
+    <div class="srv-tags">${_statusBadgeHtml(s.id,_srvCache[s.id]||null,'ss')}<span class="srv-badge ${srvTypeBadge[s.stype||'java']}">${srvTypeLabel[s.stype||'java']}</span><span class="srv-badge type-tag">${esc(s.cat)}</span></div>
+    <div class="srv-actions" onclick="event.stopPropagation()">${srvActionsHtml(s)}</div></div>
+  </div>`).join('');
+  setTimeout(initReveal,100);
+  _checkAllStatuses();// fire-and-forget: updates badges as results arrive
+}
+function renderAdmServers(){
+  const el=document.getElementById('adm-servers');
+  if(!S.servers.length){el.innerHTML=empty('🌐','No servers yet.');return;}
+  el.innerHTML=`<table class="dtable"><thead><tr><th>Name</th><th>IP</th><th>Type</th><th>Ver</th><th></th></tr></thead><tbody>${S.servers.map(s=>`<tr>
+    <td style="color:var(--txt);font-weight:600"><div style="display:flex;align-items:center;gap:7px">${s.image?`<img src="${s.image}" style="width:22px;height:22px;border-radius:4px;object-fit:cover;image-rendering:pixelated">`:`<span>${catEmoji[s.cat]||'🌐'}</span>`}${esc(s.name)}</div></td>
+    <td style="font-family:var(--mf);font-size:10.5px">${esc(s.ip)}</td>
+    <td><span class="badge ${s.stype==='bedrock'?'bc':s.stype==='cracked'?'ba':'bg'}">${srvTypeLabel[s.stype||'java']}</span></td>
+    <td style="font-family:var(--mf);font-size:10px;color:var(--txt3)">${s.version||'—'}</td>
+    <td><div class="tbl-actions"><button class="icon-btn" onclick="openEditServer(${s.id})">✏️</button><button class="icon-btn del" onclick="delServer(${s.id})">🗑️</button></div></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+// ═════ PLAYERS ════════════════════════════════════════
+const roleLabel={player:'Player',vip:'VIP',mod:'Moderator',admin:'Admin'};
+const genderEmoji={Male:'♂',Female:'♀','Non-binary':'⚧',Other:'○'};
+function getAvatar(p,size=64){return p.image||`https://mc-heads.net/avatar/${encodeURIComponent(p.name)}/${size}`;}
+
+function addPlayer(){
+  const name=v('pl-name');if(!name){toast('Username required.','err');return;}
+  const cpf=v('pl-contact-platform'),cpv=v('pl-contact-value');
+  S.players.push({id:Date.now(),name,role:v('pl-role'),joined:document.getElementById('pl-date').value||new Date().toISOString().split('T')[0],
+    gender:v('pl-gender')||'',playerTypes:[...(selectedTypes.adm||[])],image:plrImg||null,contact:cpf&&cpv?{platform:cpf,value:cpv}:null});
+  save();renderAdmPlayers();toast('Player added! 👾','ok');
+  set('pl-name','');document.getElementById('pl-role').value='player';document.getElementById('pl-date').value='';document.getElementById('pl-gender').value='';
+  set('pl-contact-platform','');set('pl-contact-value','');
+  const pr=document.getElementById('pl-img-preview');pr.style.display='none';pr.src='';document.getElementById('pl-img-input').value='';plrImg=null;
+  clearTypeTags('adm-type-tags','adm');
+}
+function delPlayer(id){if(!confirm('Remove this player?'))return;S.players=S.players.filter(p=>p.id!==id);save();renderAdmPlayers();toast('Player removed.','ok');}
+function openEditPlayer(id){
+  const p=S.players.find(x=>x.id===id);if(!p)return;editImg=p.image||null;window._editTypes=[...(p.playerTypes||[])];
+  document.getElementById('edit-modal-title').textContent='✏️ Edit Player';
+  document.getElementById('edit-modal-body').innerHTML=`
+    <div class="grid-2">
+      <div class="form-group"><label>Username</label><input type="text" id="epl-name" value="${esc(p.name)}"></div>
+      <div class="form-group"><label>Role</label><select id="epl-role">${Object.entries(roleLabel).map(([k,v2])=>`<option value="${k}"${p.role===k?' selected':''}>${v2}</option>`).join('')}</select></div>
+      <div class="form-group"><label>Joined</label><input type="date" id="epl-date" value="${p.joined}"></div>
+      <div class="form-group"><label>Gender</label><select id="epl-gender"><option value=""${!p.gender?' selected':''}>Prefer not to say</option><option value="Male"${p.gender==='Male'?' selected':''}>Male</option><option value="Female"${p.gender==='Female'?' selected':''}>Female</option><option value="Non-binary"${p.gender==='Non-binary'?' selected':''}>Non-binary</option><option value="Other"${p.gender==='Other'?' selected':''}>Other</option></select></div>
+    </div>
+    <div class="form-group"><label>Player Style</label>
+      <div class="type-tags-wrap" id="edit-type-tags">
+        ${[['Builder','🏗️'],['Miner','⛏️'],['PvP','⚔️'],['Adventurer','🗺️'],['Explorer','🧭'],['Redstone Builder','🔴'],['Interior Designer','🛋️'],['Resource Collector','📦'],['Collector','🗃️']].map(([n,e])=>`<button class="type-tag-btn${window._editTypes.includes(n)?' selected':''}" onclick="toggleEditType(this,'${n}')">${e} ${n}</button>`).join('')}
+      </div>
+    </div>
+    <div class="form-group"><label>Contact</label>
+      <div class="contact-group">
+        <select id="epl-cp"><option value=""${!p.contact?' selected':''}>None</option><option value="Discord"${p.contact?.platform==='Discord'?' selected':''}>Discord</option><option value="TikTok"${p.contact?.platform==='TikTok'?' selected':''}>TikTok</option><option value="Facebook"${p.contact?.platform==='Facebook'?' selected':''}>Facebook</option><option value="Messenger"${p.contact?.platform==='Messenger'?' selected':''}>Messenger</option></select>
+        <input type="text" id="epl-cv" value="${esc(p.contact?.value||'')}" placeholder="Username or handle">
+      </div>
+    </div>
+    <div class="form-group"><label>Avatar <span class="label-opt">(optional)</span></label>
+      <div class="pl-upload-area"><input type="file" id="epl-img-input" accept="image/*" onchange="handleImg(this,'epl-img-preview','editImg')">
+        <span style="font-size:16px;display:block;margin-bottom:3px">🧑‍🎤</span><span style="font-size:11.5px;color:var(--txt2)">Upload to change</span>
+        <img id="epl-img-preview" class="pl-up-preview" ${p.image?`src="${p.image}" style="display:block"`:'style="display:none"'}></div>
+      ${p.image?`<button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="editImg=null;document.getElementById('epl-img-preview').style.display='none'">Remove avatar</button>`:''}
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-primary" onclick="saveEditPlayer(${id})">Save</button><button class="btn btn-ghost" onclick="closeModal('edit-modal')">Cancel</button></div>`;
+  if(window._editTypes.length>=3)document.querySelectorAll('#edit-type-tags .type-tag-btn:not(.selected)').forEach(b=>b.classList.add('maxed'));
+  openModal('edit-modal');
+}
+function toggleEditType(btn,typeName){
+  if(!window._editTypes)window._editTypes=[];const arr=window._editTypes;
+  const idx=arr.indexOf(typeName);
+  if(idx>-1){arr.splice(idx,1);btn.classList.remove('selected');}
+  else{if(arr.length>=3){toast('Max 3 styles.','err');return;}arr.push(typeName);btn.classList.add('selected');}
+  document.querySelectorAll('#edit-type-tags .type-tag-btn').forEach(b=>{if(!b.classList.contains('selected'))b.classList.toggle('maxed',arr.length>=3);});
+}
+function saveEditPlayer(id){
+  const name=v('epl-name');if(!name){toast('Username required.','err');return;}
+  const p=S.players.find(x=>x.id===id);if(!p)return;
+  p.name=name;p.role=v('epl-role');p.joined=document.getElementById('epl-date').value||p.joined;p.gender=v('epl-gender');
+  const cpf=v('epl-cp'),cpv=v('epl-cv');p.contact=cpf&&cpv?{platform:cpf,value:cpv}:null;
+  p.playerTypes=[...(window._editTypes||[])];if(editImg!==undefined)p.image=editImg;
+  save();closeModal('edit-modal');renderAdmPlayers();toast('Player updated! ✅','ok');
+}
+
+function openPlayerModal(id){
+  const p=S.players.find(x=>x.id===id);if(!p)return;
+  const joined=new Date(p.joined+'T00:00:00').toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const types=p.playerTypes||[];
+  // Always 4 cells in 2×2 grid: [Joined][Avatar] / [Gender][Contact]
+  document.getElementById('player-modal-body').innerHTML=`
+    <div class="pm-avatar-wrap"><img class="pm-avatar" src="${getAvatar(p,96)}" alt="${esc(p.name)}" loading="lazy" onerror="this.src='https://mc-heads.net/avatar/Steve/96'"></div>
+    <div class="pm-name">${esc(p.name)}</div>
+    <div class="pm-center"><span class="pl-role ${p.role}">${roleLabel[p.role]||p.role}</span></div>
+    ${types.length?`<div class="pm-tags">${types.map(t=>`<span class="pl-type-tag">${t}</span>`).join('')}</div>`:''}
+    <div class="pm-copy-wrap"><button class="pm-copy-btn" onclick="copyUsername('${esc(p.name)}',this)">📋 Copy Username</button></div>
+    <div class="pm-info-grid">
+      <div class="pm-info-item">
+        <div class="pm-info-lbl">Joined</div>
+        <div class="pm-info-val" style="font-size:11px">${joined}</div>
+      </div>
+      <div class="pm-info-item">
+        <div class="pm-info-lbl">Avatar</div>
+        <div class="pm-info-val">${p.image?'Custom':'Auto Skin'}</div>
+      </div>
+      <div class="pm-info-item">
+        <div class="pm-info-lbl">Gender</div>
+        <div class="pm-info-val">${p.gender?`${genderEmoji[p.gender]||''} ${esc(p.gender)}`:'—'}</div>
+      </div>
+      <div class="pm-info-item">
+        <div class="pm-info-lbl">Contact</div>
+        <div style="margin-top:4px">${buildContactModalBtn(p.contact)}</div>
+      </div>
+    </div>`;
+  openModal('player-modal');
+}
+
+function copyUsername(name,btn){
+  navigator.clipboard.writeText(name).then(()=>{
+    const orig=btn.innerHTML;btn.innerHTML='✓ Copied!';btn.style.color='var(--green)';
+    setTimeout(()=>{btn.innerHTML=orig;btn.style.color='';},2000);toast(`Copied: ${name}`,'ok');
+  }).catch(()=>toast('Copy failed','err'));
+}
+
+function renderPlayers(){
+  const el=document.getElementById('players-grid');
+  if(!S.players.length){el.innerHTML=`<div class="empty" style="grid-column:1/-1"><span class="empty-icon">👾</span><p>No players listed yet.</p></div>`;return;}
+  el.innerHTML=S.players.map((p,i)=>`<div class="player-card rv" style="transition-delay:${i*.04}s" onclick="openPlayerModal(${p.id})">
+    <div class="pl-avatar-wrap"><img class="pl-avatar" src="${getAvatar(p,64)}" alt="${esc(p.name)}" loading="lazy" onerror="this.src='https://mc-heads.net/avatar/Steve/64'"></div>
+    <div class="pl-right">
+      <div class="pl-name-row"><span class="pl-name">${esc(p.name)}</span>
+        <button class="pl-copy-name" onclick="event.stopPropagation();copyUsername('${esc(p.name)}',this)">📋</button>
+      </div>
+      <div class="pl-badges"><span class="pl-role ${p.role}">${roleLabel[p.role]||p.role}</span>${(p.playerTypes||[]).map(t=>`<span class="pl-type-tag">${t}</span>`).join('')}</div>
+      <div class="pl-meta">
+        <span>📅 Joined ${new Date(p.joined+'T00:00:00').toLocaleDateString('en-US',{month:'short',year:'numeric'})}</span>
+        ${p.gender?`<span>${genderEmoji[p.gender]||''} ${esc(p.gender)}</span>`:''}
+        ${p.contact?`<span>${buildContactCardBtn(p.contact)}</span>`:''}
+      </div>
+    </div>
+  </div>`).join('');
+  setTimeout(initReveal,100);
+}
+
+function renderAdmPlayers(){
+  const el=document.getElementById('adm-players');
+  if(!S.players.length){el.innerHTML=empty('👾','No players yet.');return;}
+  const bc={player:'',vip:'bg',mod:'bc',admin:'ba'};
+  el.innerHTML=`<table class="dtable"><thead><tr><th>Player</th><th>Role</th><th>Style</th><th>Joined</th><th></th></tr></thead><tbody>${S.players.map(p=>`<tr>
+    <td style="color:var(--txt);font-weight:600"><div style="display:flex;align-items:center;gap:7px"><img src="${getAvatar(p,22)}" style="width:24px;height:24px;border-radius:4px;image-rendering:pixelated;object-fit:cover;flex-shrink:0" loading="lazy" onerror="this.src='https://mc-heads.net/avatar/Steve/22'">${esc(p.name)}</div></td>
+    <td><span class="badge ${bc[p.role]||''}">${roleLabel[p.role]||p.role}</span></td>
+    <td style="font-size:10.5px;color:var(--txt2);max-width:110px">${(p.playerTypes||[]).join(', ')||'—'}</td>
+    <td style="font-family:var(--mf);font-size:10px">${p.joined}</td>
+    <td><div class="tbl-actions"><button class="icon-btn" onclick="openEditPlayer(${p.id})">✏️</button><button class="icon-btn del" onclick="delPlayer(${p.id})">🗑️</button></div></td>
+  </tr>`).join('')}</tbody></table>`;
+}
+
+// ═════ REGISTER ═══════════════════════════════════════
+function resetRegForm(){
+  document.getElementById('reg-success').classList.remove('show');document.getElementById('reg-form-wrap').style.display='block';
+  ['r-ign','r-reason','r-contact-value'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('r-gender').value='';document.getElementById('r-contact-platform').value='';
+  const pr=document.getElementById('r-img-preview');pr.style.display='none';pr.src='';document.getElementById('r-img-input').value='';regImg=null;
+  clearTypeTags('r-type-tags','reg');const h=document.getElementById('r-type-hint');if(h)h.textContent='Select at least 1 (max 3)';
+  const wc=document.getElementById('r-word-count');if(wc)wc.textContent='0 / 300 words';
+}
+function updateWordCount(ta,cId){
+  const w=ta.value.trim()===''?0:ta.value.trim().split(/\s+/).filter(x=>x).length;
+  const el=document.getElementById(cId);if(!el)return;
+  el.textContent=`${w} / 300 words`;el.className='word-counter'+(w>280&&w<=300?' warn':'')+(w>300?' over':'');
+}
+function countWords(s){return s.trim()===''?0:s.trim().split(/\s+/).filter(x=>x).length;}
+function submitRegistration(){
+  const ign=document.getElementById('r-ign').value.trim();const reason=document.getElementById('r-reason').value.trim();
+  const cp=document.getElementById('r-contact-platform').value;const cv=document.getElementById('r-contact-value').value.trim();
+  if(!ign){toast('IGN is required.','err');return;}if(selectedTypes.reg.length<1){toast('Select at least 1 player style.','err');return;}
+  if(!reason){toast('Please write your reason.','err');return;}if(countWords(reason)>300){toast('Reason exceeds 300 words.','err');return;}
+  if(cp&&!cv){toast('Enter a contact handle.','err');return;}
+  S.requests.push({id:Date.now(),ign,gender:document.getElementById('r-gender').value||'',playerTypes:[...selectedTypes.reg],reason,avatar:regImg||null,
+    contact:cp&&cv?{platform:cp,value:cv}:null,requestedAt:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),status:'pending'});
+  save();document.getElementById('reg-form-wrap').style.display='none';document.getElementById('reg-success').classList.add('show');updateReqBadge();toast('Application submitted! 🎉','ok');
+}
+
+// ═════ ADMIN ══════════════════════════════════════════
+function showInfoPanel(){document.getElementById('admin-pre').style.display='block';document.getElementById('login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='none';renderPrePanel();setTimeout(initReveal,200);}
+function showLogin(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='flex';document.getElementById('dash-wrap').style.display='none';document.getElementById('adm-pw').value='';document.getElementById('login-err').classList.remove('show');}
+function showDash(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='block';renderAdmPosts();renderAdmServers();renderAdmPlayers();renderAdmRequests();loadCfg();updateReqBadge();}
+function renderPrePanel(){
+  const admins=S.players.filter(p=>p.role==='admin'),mods=S.players.filter(p=>p.role==='mod');
+  document.getElementById('pre-admins').innerHTML=admins.length?admins.map(p=>`<div class="aic-person"><img class="aic-avatar" src="${getAvatar(p,36)}" onerror="this.src='https://mc-heads.net/avatar/Steve/36'" loading="lazy"><div><div class="aic-pname">${esc(p.name)}</div><div class="aic-role-text">Admin</div></div></div>`).join(''):`<span class="aic-empty">No admins listed yet.</span>`;
+  document.getElementById('pre-mods').innerHTML=mods.length?mods.map(p=>`<div class="aic-person"><img class="aic-avatar" src="${getAvatar(p,36)}" onerror="this.src='https://mc-heads.net/avatar/Steve/36'" loading="lazy"><div><div class="aic-pname">${esc(p.name)}</div><div class="aic-role-text">Moderator</div></div></div>`).join(''):`<span class="aic-empty">No moderators listed yet.</span>`;
+  document.getElementById('pre-contact-text').textContent=S.cfg.adminContact||'No contact info set yet.';
+  const dw=document.getElementById('pre-discord-wrap'),dl=document.getElementById('pre-discord-link');
+  if(S.cfg.discordLink){dw.style.display='block';dl.href=S.cfg.discordLink;}else dw.style.display='none';
+}
+function updateReqBadge(){const n=S.requests.filter(r=>r.status==='pending').length;const b=document.getElementById('req-badge');if(b){b.style.display=n>0?'flex':'none';b.textContent=n;}}
+function doLogin(){
+  const pw=document.getElementById('adm-pw').value;const err=document.getElementById('login-err');const card=document.getElementById('login-card');
+  if(pw===S.cfg.pw){S.authed=true;showDash();toast('Welcome back, Admin! 🛡️','ok');}
+  else{err.classList.add('show');card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake');document.getElementById('adm-pw').value='';}
+}
+function doLogout(){S.authed=false;showInfoPanel();nav('home');toast('Signed out.','ok');}
+function togglePw(id,btn){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'👁️':'🙈';}
+function switchTab(btn,pId){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById(pId).classList.add('active');}
+
+// ═════ REQUESTS ═══════════════════════════════════════
+function openRequestModal(id){
+  const req=S.requests.find(x=>x.id===id);if(!req)return;
+  document.getElementById('req-modal-body').innerHTML=`
+    <div class="modal-title" style="text-align:center;padding-right:0">📋 Registration Preview</div>
+    <div class="req-modal-avatar"><img src="${req.avatar||`https://mc-heads.net/avatar/${encodeURIComponent(req.ign)}/90`}" alt="${esc(req.ign)}" loading="lazy" onerror="this.src='https://mc-heads.net/avatar/Steve/90'"></div>
+    <div class="req-field-row"><span class="req-field-lbl">IGN</span><span class="req-field-val" style="color:var(--txt);font-weight:700;font-size:16px">${esc(req.ign)}</span></div>
+    <div class="req-field-row"><span class="req-field-lbl">Gender</span><span class="req-field-val">${req.gender?`${genderEmoji[req.gender]||''} ${esc(req.gender)}`:'Prefer not to say'}</span></div>
+    <div class="req-field-row"><span class="req-field-lbl">Play Style</span><span class="req-field-val" style="display:flex;flex-wrap:wrap;gap:5px">${(req.playerTypes||[]).map(t=>`<span class="pl-type-tag">${t}</span>`).join('')||'—'}</span></div>
+    <div class="req-field-row"><span class="req-field-lbl">Reason</span><span class="req-field-val" style="white-space:pre-wrap">${esc(req.reason)}</span></div>
+    <div class="req-field-row"><span class="req-field-lbl">Contact</span><span class="req-field-val">${buildContactReqBtn(req.contact)}</span></div>
+    <div class="req-field-row"><span class="req-field-lbl">Requested</span><span class="req-field-val">${esc(req.requestedAt)}</span></div>
+    ${req.status==='pending'?`<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn btn-primary" style="flex:1" onclick="approveRequest(${id})">✅ Approve</button><button class="btn btn-danger" style="flex:1" onclick="denyRequest(${id})">❌ Deny</button></div>`:`<div style="text-align:center;margin-top:14px;font-family:var(--mf);font-size:12px;color:var(--txt3)">Status: ${req.status.toUpperCase()}</div>`}`;
+  openModal('req-modal');
+}
+function approveRequest(id){
+  const req=S.requests.find(x=>x.id===id);if(!req)return;req.status='approved';
+  S.players.push({id:Date.now(),name:req.ign,role:'player',joined:new Date().toISOString().split('T')[0],gender:req.gender||'',playerTypes:req.playerTypes||[],image:req.avatar||null,contact:req.contact||null});
+  save();closeModal('req-modal');renderAdmRequests();renderAdmPlayers();updateReqBadge();toast(`${req.ign} approved! ✅`,'ok');
+}
+function denyRequest(id){
+  if(!confirm('Deny this request?'))return;const req=S.requests.find(x=>x.id===id);if(!req)return;req.status='denied';save();closeModal('req-modal');renderAdmRequests();updateReqBadge();toast(`Request from ${req.ign} denied.`,'ok');
+}
+function renderAdmRequests(){
+  const el=document.getElementById('adm-requests');const pending=S.requests.filter(r=>r.status==='pending');
+  if(!pending.length){el.innerHTML=`<div class="empty" style="grid-column:1/-1"><span class="empty-icon">📋</span><p>No pending requests.</p></div>`;return;}
+  el.innerHTML=pending.map((req,i)=>`<div class="req-card rv" style="transition-delay:${i*.05}s" onclick="openRequestModal(${req.id})">
+    ${req.avatar?`<img class="req-thumb" src="${req.avatar}" alt="${esc(req.ign)}" loading="lazy">`:`<div class="req-thumb-ph">${req.ign.charAt(0).toUpperCase()}</div>`}
+    <div class="req-body"><div class="req-ign">${esc(req.ign)}</div><div class="req-gender">${req.gender?`${genderEmoji[req.gender]||''} ${esc(req.gender)}`:'No gender specified'}</div><div class="req-when">Requested ${esc(req.requestedAt)}</div></div>
+    <div class="req-actions">
+      <button class="btn btn-primary btn-sm" style="flex:1" onclick="event.stopPropagation();approveRequest(${req.id})">✅ Approve</button>
+      <button class="btn btn-danger btn-sm" style="flex:1" onclick="event.stopPropagation();denyRequest(${req.id})">❌ Deny</button>
+    </div>
+  </div>`).join('');
+  setTimeout(initReveal,100);
+}
+
+// ═════ SETTINGS ═══════════════════════════════════════
+function loadCfg(){document.getElementById('cfg-name').value=S.cfg.name||'';document.getElementById('cfg-desc').value=S.cfg.desc||'';document.getElementById('cfg-contact').value=S.cfg.adminContact||'';document.getElementById('cfg-discord').value=S.cfg.discordLink||'';}
+function saveSettings(){
+  const name=v('cfg-name'),desc=v('cfg-desc'),pw=document.getElementById('cfg-pw').value,contact=v('cfg-contact'),discord=v('cfg-discord');
+  if(name)S.cfg.name=name;if(desc)S.cfg.desc=desc;if(pw)S.cfg.pw=pw;S.cfg.adminContact=contact;S.cfg.discordLink=discord;
+  save();document.getElementById('cfg-pw').value='';toast('Settings saved ✅','ok');
+}
+function clearAll(){
+  if(!confirm('Delete ALL data? Cannot be undone.'))return;S.posts=[];S.servers=[];S.players=[];S.requests=[];save();
+  renderAdmPosts();renderAdmServers();renderAdmPlayers();renderAdmRequests();updateReqBadge();toast('All data cleared.','ok');
+}
+function updateStats(){document.getElementById('stat-srv').textContent=S.servers.length;document.getElementById('stat-pl').textContent=S.players.length;document.getElementById('stat-po').textContent=S.posts.length;}
+
+// ═════ MODALS ═════════════════════════════════════════
+function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
+function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden';}
+function closeLightbox(){document.getElementById('lightbox').classList.remove('open');document.body.style.overflow='';}
+
+// ═════ SCROLL REVEAL ══════════════════════════════════
+let rvObs=null;
+function initReveal(){
+  if(rvObs)rvObs.disconnect();
+  rvObs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){e.target.classList.add('in');seenEls.add(e.target);}
+      else if(!seenEls.has(e.target)){e.target.classList.remove('in');}
+    });
+  },{threshold:0.08,rootMargin:'0px 0px -20px 0px'});
+  document.querySelectorAll('.rv').forEach(el=>rvObs.observe(el));
+}
+
+// ═════ TOAST ══════════════════════════════════════════
+function toast(msg,type='ok'){
+  const wrap=document.getElementById('toasts');const el=document.createElement('div');el.className=`toast ${type}`;
+  if(type==='err')el.style.borderLeftColor='var(--red)';
+  el.innerHTML=`<span>${type==='ok'?'✅':'❌'}</span><span>${msg}</span>`;wrap.appendChild(el);
+  setTimeout(()=>{el.style.transition='all .3s ease';el.style.opacity='0';el.style.transform='translateX(14px)';setTimeout(()=>el.remove(),300);},3000);
+}
+
+// ═════ RIPPLE ═════════════════════════════════════════
+document.addEventListener('click',e=>{
+  const btn=e.target.closest('.btn');if(!btn)return;
+  const r=document.createElement('span');r.className='ripple';
+  const rect=btn.getBoundingClientRect(),size=Math.max(rect.width,rect.height);
+  r.style.cssText=`width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  btn.appendChild(r);setTimeout(()=>r.remove(),600);
+});
+
+// ═════ TAP SPLASH & TRAIL ════════════════════════════
+function createTapSplash(x,y){const el=document.createElement('div');el.className='tap-splash';const size=60+Math.random()*30;el.style.cssText=`left:${x-size/2}px;top:${y-size/2}px;width:${size}px;height:${size}px;background:radial-gradient(circle,rgba(74,222,128,.5) 0%,rgba(74,222,128,0) 70%)`;document.body.appendChild(el);setTimeout(()=>el.remove(),600);}
+let isDown=false,lastTrail=0;
+function createTrailDot(x,y){const el=document.createElement('div');el.className='trail-dot';const size=3+Math.random()*5;const hue=125+Math.random()*40;el.style.cssText=`left:${x}px;top:${y}px;width:${size}px;height:${size}px;background:hsla(${hue},78%,60%,.7)`;document.body.appendChild(el);setTimeout(()=>el.remove(),600);}
+
+// ── Mouse: pointer events are reliable (no pointercancel on normal mouse use) ──
+document.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;isDown=true;createTapSplash(e.clientX,e.clientY);});
+document.addEventListener('pointermove',e=>{if(e.pointerType==='touch'||!isDown)return;const now=Date.now();if(now-lastTrail<28)return;lastTrail=now;createTrailDot(e.clientX,e.clientY);});
+document.addEventListener('pointerup',()=>{isDown=false;});
+document.addEventListener('pointercancel',()=>{isDown=false;});
+
+// ── Touch: use native touch events, NOT pointer events ──
+// When the browser takes over a touch gesture for scrolling it fires pointercancel,
+// killing the pointer stream. Native touchmove keeps firing regardless, so the
+// trail is never interrupted mid-slide.
+let _touchDown=false;
+document.addEventListener('touchstart',e=>{if(!e.touches.length)return;_touchDown=true;createTapSplash(e.touches[0].clientX,e.touches[0].clientY);},{passive:true});
+document.addEventListener('touchmove',e=>{if(!_touchDown||!e.touches.length)return;const t=e.touches[0],now=Date.now();if(now-lastTrail<28)return;lastTrail=now;createTrailDot(t.clientX,t.clientY);},{passive:true});
+document.addEventListener('touchend',()=>{_touchDown=false;},{passive:true});
+document.addEventListener('touchcancel',()=>{_touchDown=false;},{passive:true});
+
+// ═════ ESC ════════════════════════════════════════════
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){['edit-modal','player-modal','server-modal','req-modal','post-detail-modal'].forEach(closeModal);closeLightbox();}});
+
+// ═════ DRAG & DROP ════════════════════════════════════
+document.querySelectorAll('.upload-area,.pl-upload-area').forEach(area=>{
+  area.addEventListener('dragover',e=>{e.preventDefault();area.classList.add('drag');});
+  area.addEventListener('dragleave',()=>area.classList.remove('drag'));
+  area.addEventListener('drop',e=>{
+    e.preventDefault();area.classList.remove('drag');
+    const files=Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));if(!files.length)return;
+    const input=area.querySelector('input[type="file"]');
+    if(input){const dt=new DataTransfer();files.forEach(f=>dt.items.add(f));input.files=dt.files;input.dispatchEvent(new Event('change'));}
+  });
+});
+
+// ═════ UTILS ══════════════════════════════════════════
+function v(id){const el=document.getElementById(id);return el?el.value.trim():'';}
+function set(id,val){const el=document.getElementById(id);if(el)el.value=val;}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function empty(icon,msg){return`<div class="empty"><span class="empty-icon">${icon}</span><p>${msg}</p></div>`;}
+
+// ═════ INIT ═══════════════════════════════════════════
+async function _init(){
+  await load();          // waits for first Firestore snapshot
+  updateStats();
+  renderHome();
+  document.getElementById('pl-date').valueAsDate=new Date();
+  setTimeout(initReveal,400);
+}
+// Firebase module dispatches 'firebase-ready' when the SDK is loaded.
+// Guard against the (unlikely) case where it fires before this script runs.
+if(window._fbReady){_init();}
+else{document.addEventListener('firebase-ready',_init,{once:true});}
+</script>
+</body>
+</html>
