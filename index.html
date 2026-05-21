@@ -890,12 +890,10 @@ function _onRemoteUpdate(key){
 }
 
 // ═════ CLOUDINARY IMAGE STORAGE ══════════════════════
-const _CL={cloud:'dj0tk30i0',key:'168743784476795',secret:'Xphjho-sYtVi4qI58trPcVKnXew',preset:'mcimgdb'};
-
-async function _clSha1(str){
-  const buf=await crypto.subtle.digest('SHA-1',new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
+// Upload uses the unsigned preset (no secret needed client-side).
+// Deletion is routed through a Cloudflare Worker that holds the API secret
+// server-side — the secret never appears in this file.
+const _CL={cloud:'dj0tk30i0',preset:'mcimgdb',worker:'https://falling-king-9662.ereynelclark.workers.dev'};
 
 async function _clUpload(file){
   const fd=new FormData();fd.append('file',file);fd.append('upload_preset',_CL.preset);
@@ -908,11 +906,11 @@ async function _clUpload(file){
 async function _clDelete(publicId){
   if(!publicId)return;
   try{
-    const ts=Math.round(Date.now()/1000);
-    const sig=await _clSha1(`public_id=${publicId}&timestamp=${ts}${_CL.secret}`);
-    const fd=new FormData();fd.append('public_id',publicId);fd.append('timestamp',ts);
-    fd.append('api_key',_CL.key);fd.append('signature',sig);
-    await fetch(`https://api.cloudinary.com/v1_1/${_CL.cloud}/image/destroy`,{method:'POST',body:fd});
+    await fetch(_CL.worker,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({publicId})
+    });
   }catch(e){console.warn('Cloudinary delete failed:',e);}
 }
 
