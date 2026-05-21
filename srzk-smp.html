@@ -193,6 +193,8 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 .img-thumb-wrap img{width:100%;height:100%;object-fit:cover}
 .img-thumb-remove{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:4px;background:rgba(0,0,0,.7);color:#fff;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:none;transition:background .2s}
 .img-thumb-remove:hover{background:var(--red)}
+.img-thumb-wrap.uploading{opacity:.55;pointer-events:none}
+.img-up-spin{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:18px;pointer-events:none}
 
 /* Post detail modal */
 .post-detail-box{max-width:700px;max-height:90vh;overflow-y:auto;padding:0;overflow:hidden}
@@ -823,6 +825,7 @@ document.dispatchEvent(new Event('firebase-ready'));
 let S={posts:[],servers:[],players:[],requests:[],
   cfg:{name:'SRZK SMP',desc:'Your Minecraft Community Hub',pw:'admin123',adminContact:'',discordLink:''},authed:false};
 let srvImg=null,plrImg=null,regImg=null,editImg=null,postImgs=[];
+let srvImgId=null,plrImgId=null,regImgId=null,editImgId=null,postImgIds=[];
 let selectedTypes={reg:[],adm:[]};
 const seenEls=new WeakSet();
 
@@ -884,6 +887,33 @@ function _onRemoteUpdate(key){
   if(key==='players'){updateStats();if(id==='page-players')renderPlayers();if(id==='page-home')renderHome();}
   if(key==='requests'&&S.authed){renderAdmRequests();}
   if(key==='cfg'){renderHome();if(S.authed&&id==='page-admin'){const ci=document.getElementById('cfg-name');if(ci)ci.value=S.cfg.name||'';}}
+}
+
+// ═════ CLOUDINARY IMAGE STORAGE ══════════════════════
+const _CL={cloud:'dj0tk30i0',key:'168743784476795',secret:'Xphjho-sYtVi4qI58trPcVKnXew',preset:'mcimgdb'};
+
+async function _clSha1(str){
+  const buf=await crypto.subtle.digest('SHA-1',new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function _clUpload(file){
+  const fd=new FormData();fd.append('file',file);fd.append('upload_preset',_CL.preset);
+  const res=await fetch(`https://api.cloudinary.com/v1_1/${_CL.cloud}/image/upload`,{method:'POST',body:fd});
+  const d=await res.json();
+  if(d.error)throw new Error(d.error.message);
+  return{url:d.secure_url,publicId:d.public_id};
+}
+
+async function _clDelete(publicId){
+  if(!publicId)return;
+  try{
+    const ts=Math.round(Date.now()/1000);
+    const sig=await _clSha1(`public_id=${publicId}&timestamp=${ts}${_CL.secret}`);
+    const fd=new FormData();fd.append('public_id',publicId);fd.append('timestamp',ts);
+    fd.append('api_key',_CL.key);fd.append('signature',sig);
+    await fetch(`https://api.cloudinary.com/v1_1/${_CL.cloud}/image/destroy`,{method:'POST',body:fd});
+  }catch(e){console.warn('Cloudinary delete failed:',e);}
 }
 
 function toggleDrawer(){const d=document.getElementById('drawer'),o=document.getElementById('drawer-overlay'),h=document.getElementById('nav-hamburger');d.classList.toggle('open');o.classList.toggle('open');h.classList.toggle('open');}
@@ -1032,46 +1062,74 @@ function openPostModal(postId){
 }
 
 // ═════ MULTI IMAGE UPLOAD ════════════════════════════
-function handleMultiImg(input){
-  Array.from(input.files).forEach(file=>{
-    const r=new FileReader();r.onload=e=>{postImgs.push(e.target.result);renderAdminThumb(e.target.result,postImgs.length-1);};r.readAsDataURL(file);
-  });input.value='';
+async function handleMultiImg(input){
+  const files=Array.from(input.files);input.value='';
+  for(const file of files){
+    const localUrl=URL.createObjectURL(file);
+    const idx=postImgs.length;
+    postImgs.push(localUrl);postImgIds.push(null);
+    renderAdminThumb(localUrl,idx,true);// show uploading state
+    try{
+      const{url,publicId}=await _clUpload(file);
+      postImgs[idx]=url;postImgIds[idx]=publicId;
+      // swap local blob preview for Cloudinary URL and remove spinner
+      const wrap=document.getElementById('p-img-thumbs');
+      if(wrap){const tw=wrap.querySelectorAll('.img-thumb-wrap')[idx];if(tw){tw.classList.remove('uploading');tw.querySelector('img').src=url;const sp=tw.querySelector('.img-up-spin');if(sp)sp.remove();const btn=tw.querySelector('button');if(btn)btn.disabled=false;}}
+    }catch(e){
+      toast('Image upload failed.','err');
+      postImgs.splice(idx,1);postImgIds.splice(idx,1);
+      const wrap=document.getElementById('p-img-thumbs');if(wrap){wrap.innerHTML='';postImgs.forEach((s,i)=>renderAdminThumb(s,i));}
+    }
+  }
 }
-function renderAdminThumb(src,idx){
+function renderAdminThumb(src,idx,uploading=false){
   const wrap=document.getElementById('p-img-thumbs');if(!wrap)return;
-  const div=document.createElement('div');div.className='img-thumb-wrap';div.dataset.idx=idx;
-  div.innerHTML=`<img src="${src}"><button class="img-thumb-remove" onclick="removePostImg(${idx})">✕</button>`;
+  const div=document.createElement('div');div.className='img-thumb-wrap'+(uploading?' uploading':'');div.dataset.idx=idx;
+  div.innerHTML=`<img src="${src}">${uploading?'<div class="img-up-spin">⏳</div>':''}<button class="img-thumb-remove" onclick="removePostImg(${idx})"${uploading?' disabled':''}>✕</button>`;
   wrap.appendChild(div);
 }
 function removePostImg(idx){
-  postImgs.splice(idx,1);
+  _clDelete(postImgIds[idx]||null);// fire-and-forget Cloudinary deletion
+  postImgs.splice(idx,1);postImgIds.splice(idx,1);
   const wrap=document.getElementById('p-img-thumbs');if(!wrap)return;
   wrap.innerHTML='';postImgs.forEach((src,i)=>renderAdminThumb(src,i));
 }
-function handleImg(input,previewId,store){
+async function handleImg(input,previewId,store){
   const file=input.files[0];if(!file)return;
-  const r=new FileReader();r.onload=e=>{
-    if(store==='srvImg')srvImg=e.target.result;
-    else if(store==='plrImg')plrImg=e.target.result;
-    else if(store==='regImg')regImg=e.target.result;
-    else if(store==='editImg')editImg=e.target.result;
-    const prev=document.getElementById(previewId);if(prev){prev.src=e.target.result;prev.style.display='block';}
-  };r.readAsDataURL(file);
+  // Show local preview immediately for instant feedback
+  const localUrl=URL.createObjectURL(file);
+  const prev=document.getElementById(previewId);if(prev){prev.src=localUrl;prev.style.display='block';}
+  try{
+    const{url,publicId}=await _clUpload(file);
+    if(store==='srvImg'){srvImg=url;srvImgId=publicId;}
+    else if(store==='plrImg'){plrImg=url;plrImgId=publicId;}
+    else if(store==='regImg'){regImg=url;regImgId=publicId;}
+    else if(store==='editImg'){editImg=url;editImgId=publicId;}
+    if(prev)prev.src=url;// swap to Cloudinary URL
+  }catch(e){
+    toast('Image upload failed: '+e.message,'err');
+    if(prev){prev.src='';prev.style.display='none';}
+  }
 }
 
 // ═════ POSTS ═════════════════════════════════════════
 function addPost(){
   const t=v('p-title'),c=v('p-content'),tag=v('p-tag');
   if(!t||!c){toast('Title and content required.','err');return;}
-  S.posts.unshift({id:Date.now(),title:t,content:c,tag,images:[...postImgs],date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})});
+  S.posts.unshift({id:Date.now(),title:t,content:c,tag,images:[...postImgs],imageIds:[...postImgIds],date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})});
   save();clearPost();renderAdmPosts();toast('Post published! 📢','ok');
 }
 function clearPost(){
   set('p-title','');set('p-content','');document.getElementById('p-tag').value='Announcement';
   const wrap=document.getElementById('p-img-thumbs');if(wrap)wrap.innerHTML='';
-  document.getElementById('p-img-input').value='';postImgs=[];
+  document.getElementById('p-img-input').value='';postImgs=[];postImgIds=[];
 }
-function delPost(id){if(!confirm('Delete this post?'))return;S.posts=S.posts.filter(p=>p.id!==id);save();renderAdmPosts();toast('Post deleted.','ok');}
+function delPost(id){
+  if(!confirm('Delete this post?'))return;
+  const p=S.posts.find(x=>x.id===id);
+  if(p)(p.imageIds||[]).forEach(pid=>_clDelete(pid));// delete all images from Cloudinary
+  S.posts=S.posts.filter(x=>x.id!==id);save();renderAdmPosts();toast('Post deleted.','ok');
+}
 function openEditPost(id){
   const p=S.posts.find(x=>x.id===id);if(!p)return;
   document.getElementById('edit-modal-title').textContent='✏️ Edit Post';
@@ -1088,21 +1146,36 @@ function openEditPost(id){
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-primary" onclick="saveEditPost(${id})">Save</button><button class="btn btn-ghost" onclick="closeModal('edit-modal')">Cancel</button></div>`;
   openModal('edit-modal');
 }
-function handleEditMultiImg(input,postId){
-  const p=S.posts.find(x=>x.id===postId);if(!p)return;if(!p.images)p.images=[];
-  Array.from(input.files).forEach(file=>{
-    const r=new FileReader();r.onload=e=>{
-      const idx=p.images.push(e.target.result)-1;
-      const wrap=document.getElementById('ep-img-thumbs');if(!wrap)return;
-      const div=document.createElement('div');div.className='img-thumb-wrap';
-      div.innerHTML=`<img src="${e.target.result}"><button class="img-thumb-remove" onclick="removeEditPostImg(${postId},${idx})">✕</button>`;
+async function handleEditMultiImg(input,postId){
+  const p=S.posts.find(x=>x.id===postId);if(!p)return;
+  if(!p.images)p.images=[];if(!p.imageIds)p.imageIds=[];
+  const files=Array.from(input.files);input.value='';
+  for(const file of files){
+    const localUrl=URL.createObjectURL(file);
+    const idx=p.images.length;
+    p.images.push(localUrl);p.imageIds.push(null);
+    const wrap=document.getElementById('ep-img-thumbs');if(wrap){
+      const div=document.createElement('div');div.className='img-thumb-wrap uploading';
+      div.innerHTML=`<img src="${localUrl}"><div class="img-up-spin">⏳</div><button class="img-thumb-remove" disabled>✕</button>`;
       wrap.appendChild(div);
-    };r.readAsDataURL(file);
-  });input.value='';
+    }
+    try{
+      const{url,publicId}=await _clUpload(file);
+      p.images[idx]=url;p.imageIds[idx]=publicId;
+      const wrap2=document.getElementById('ep-img-thumbs');
+      if(wrap2){const tws=wrap2.querySelectorAll('.img-thumb-wrap');if(tws[idx]){tws[idx].classList.remove('uploading');tws[idx].querySelector('img').src=url;const sp=tws[idx].querySelector('.img-up-spin');if(sp)sp.remove();const btn=tws[idx].querySelector('button');if(btn){btn.disabled=false;btn.setAttribute('onclick',`removeEditPostImg(${postId},${idx})`);}}
+      }
+    }catch(e){
+      toast('Image upload failed.','err');
+      p.images.splice(idx,1);p.imageIds.splice(idx,1);
+      const wrap2=document.getElementById('ep-img-thumbs');if(wrap2)wrap2.innerHTML=p.images.map((src,i)=>`<div class="img-thumb-wrap"><img src="${src}"><button class="img-thumb-remove" onclick="removeEditPostImg(${postId},${i})">✕</button></div>`).join('');
+    }
+  }
 }
 function removeEditPostImg(postId,idx){
   const p=S.posts.find(x=>x.id===postId);if(!p||!p.images)return;
-  p.images.splice(idx,1);
+  _clDelete((p.imageIds||[])[idx]||null);// delete from Cloudinary
+  p.images.splice(idx,1);if(p.imageIds)p.imageIds.splice(idx,1);
   const wrap=document.getElementById('ep-img-thumbs');if(!wrap)return;
   wrap.innerHTML=p.images.map((src,i)=>`<div class="img-thumb-wrap"><img src="${src}"><button class="img-thumb-remove" onclick="removeEditPostImg(${postId},${i})">✕</button></div>`).join('');
 }
@@ -1234,17 +1307,21 @@ function addServer(){
   const name=v('s-name'),ip=v('s-ip'),type=v('s-type'),port=document.getElementById('s-port').value.trim(),javaIp=v('s-java-ip');
   if(!name){toast('Server name required.','err');return;}if(!ip){toast('IP address required.','err');return;}
   if(type!=='java'&&!port){toast('Port is required.','err');return;}if(type==='cracked'&&!javaIp){toast('Java IP required.','err');return;}
-  S.servers.push({id:Date.now(),name,ip,port,javaIp:javaIp||'',cat:v('s-cat'),desc:v('s-desc'),stype:type,version:v('s-version'),image:srvImg||null});
+  S.servers.push({id:Date.now(),name,ip,port,javaIp:javaIp||'',cat:v('s-cat'),desc:v('s-desc'),stype:type,version:v('s-version'),image:srvImg||null,imageId:srvImgId||null});
   save();clearSrv();renderAdmServers();toast('Server added! 🌐','ok');
 }
 function clearSrv(){
   ['s-name','s-ip','s-desc','s-version','s-java-ip'].forEach(id=>set(id,''));
   document.getElementById('s-port').value='';document.getElementById('s-type').value='java';
-  const pr=document.getElementById('s-img-preview');pr.style.display='none';pr.src='';document.getElementById('s-img-input').value='';srvImg=null;onSrvTypeChange('s');
+  const pr=document.getElementById('s-img-preview');pr.style.display='none';pr.src='';document.getElementById('s-img-input').value='';srvImg=null;srvImgId=null;onSrvTypeChange('s');
 }
-function delServer(id){if(!confirm('Remove this server?'))return;S.servers=S.servers.filter(s=>s.id!==id);save();renderAdmServers();toast('Server removed.','ok');}
+function delServer(id){
+  if(!confirm('Remove this server?'))return;
+  const s=S.servers.find(x=>x.id===id);if(s&&s.imageId)_clDelete(s.imageId);
+  S.servers=S.servers.filter(x=>x.id!==id);save();renderAdmServers();toast('Server removed.','ok');
+}
 function openEditServer(id){
-  const s=S.servers.find(x=>x.id===id);if(!s)return;editImg=s.image||null;
+  const s=S.servers.find(x=>x.id===id);if(!s)return;editImg=s.image||null;editImgId=s.imageId||null;
   const t=s.stype||'java';const portVis=t!=='java';const javaVis=t==='cracked';
   document.getElementById('edit-modal-title').textContent='✏️ Edit Server';
   document.getElementById('edit-modal-body').innerHTML=`
@@ -1271,7 +1348,11 @@ function saveEditServer(id){
   const port=document.getElementById('es-port')?document.getElementById('es-port').value.trim():'';const javaIp=v('es-java-ip');
   if(type!=='java'&&!port){toast('Port required.','err');return;}if(type==='cracked'&&!javaIp){toast('Java IP required.','err');return;}
   const s=S.servers.find(x=>x.id===id);if(!s)return;
-  s.name=name;s.ip=ip;s.port=port;s.javaIp=javaIp||'';s.cat=v('es-cat');s.stype=type;s.version=v('es-version');s.desc=v('es-desc');if(editImg!==undefined)s.image=editImg;
+  s.name=name;s.ip=ip;s.port=port;s.javaIp=javaIp||'';s.cat=v('es-cat');s.stype=type;s.version=v('es-version');s.desc=v('es-desc');
+  if(editImg!==(s.image||null)){// image was changed or removed
+    if(s.imageId)_clDelete(s.imageId);// delete old from Cloudinary
+    s.image=editImg;s.imageId=editImgId||null;
+  }
   save();closeModal('edit-modal');renderAdmServers();toast('Server updated! ✅','ok');
 }
 function getCopyAllStr(s){const t=s.stype||'java';if(t==='java')return s.ip;if(t==='bedrock')return`${s.ip}:${s.port}`;return`Bedrock: ${s.ip}:${s.port} | Java: ${s.javaIp}`;}
@@ -1436,16 +1517,20 @@ function addPlayer(){
   const name=v('pl-name');if(!name){toast('Username required.','err');return;}
   const cpf=v('pl-contact-platform'),cpv=v('pl-contact-value');
   S.players.push({id:Date.now(),name,role:v('pl-role'),joined:document.getElementById('pl-date').value||new Date().toISOString().split('T')[0],
-    gender:v('pl-gender')||'',playerTypes:[...(selectedTypes.adm||[])],image:plrImg||null,contact:cpf&&cpv?{platform:cpf,value:cpv}:null});
+    gender:v('pl-gender')||'',playerTypes:[...(selectedTypes.adm||[])],image:plrImg||null,imageId:plrImgId||null,contact:cpf&&cpv?{platform:cpf,value:cpv}:null});
   save();renderAdmPlayers();toast('Player added! 👾','ok');
   set('pl-name','');document.getElementById('pl-role').value='player';document.getElementById('pl-date').value='';document.getElementById('pl-gender').value='';
   set('pl-contact-platform','');set('pl-contact-value','');
-  const pr=document.getElementById('pl-img-preview');pr.style.display='none';pr.src='';document.getElementById('pl-img-input').value='';plrImg=null;
+  const pr=document.getElementById('pl-img-preview');pr.style.display='none';pr.src='';document.getElementById('pl-img-input').value='';plrImg=null;plrImgId=null;
   clearTypeTags('adm-type-tags','adm');
 }
-function delPlayer(id){if(!confirm('Remove this player?'))return;S.players=S.players.filter(p=>p.id!==id);save();renderAdmPlayers();toast('Player removed.','ok');}
+function delPlayer(id){
+  if(!confirm('Remove this player?'))return;
+  const p=S.players.find(x=>x.id===id);if(p&&p.imageId)_clDelete(p.imageId);
+  S.players=S.players.filter(x=>x.id!==id);save();renderAdmPlayers();toast('Player removed.','ok');
+}
 function openEditPlayer(id){
-  const p=S.players.find(x=>x.id===id);if(!p)return;editImg=p.image||null;window._editTypes=[...(p.playerTypes||[])];
+  const p=S.players.find(x=>x.id===id);if(!p)return;editImg=p.image||null;editImgId=p.imageId||null;window._editTypes=[...(p.playerTypes||[])];
   document.getElementById('edit-modal-title').textContent='✏️ Edit Player';
   document.getElementById('edit-modal-body').innerHTML=`
     <div class="grid-2">
@@ -1469,7 +1554,7 @@ function openEditPlayer(id){
       <div class="pl-upload-area"><input type="file" id="epl-img-input" accept="image/*" onchange="handleImg(this,'epl-img-preview','editImg')">
         <span style="font-size:16px;display:block;margin-bottom:3px">🧑‍🎤</span><span style="font-size:11.5px;color:var(--txt2)">Upload to change</span>
         <img id="epl-img-preview" class="pl-up-preview" ${p.image?`src="${p.image}" style="display:block"`:'style="display:none"'}></div>
-      ${p.image?`<button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="editImg=null;document.getElementById('epl-img-preview').style.display='none'">Remove avatar</button>`:''}
+      ${p.image?`<button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="editImg=null;editImgId=null;document.getElementById('epl-img-preview').style.display='none'">Remove avatar</button>`:''}
     </div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-primary" onclick="saveEditPlayer(${id})">Save</button><button class="btn btn-ghost" onclick="closeModal('edit-modal')">Cancel</button></div>`;
   if(window._editTypes.length>=3)document.querySelectorAll('#edit-type-tags .type-tag-btn:not(.selected)').forEach(b=>b.classList.add('maxed'));
@@ -1487,7 +1572,11 @@ function saveEditPlayer(id){
   const p=S.players.find(x=>x.id===id);if(!p)return;
   p.name=name;p.role=v('epl-role');p.joined=document.getElementById('epl-date').value||p.joined;p.gender=v('epl-gender');
   const cpf=v('epl-cp'),cpv=v('epl-cv');p.contact=cpf&&cpv?{platform:cpf,value:cpv}:null;
-  p.playerTypes=[...(window._editTypes||[])];if(editImg!==undefined)p.image=editImg;
+  p.playerTypes=[...(window._editTypes||[])];
+  if(editImg!==(p.image||null)){// image changed or removed
+    if(p.imageId)_clDelete(p.imageId);
+    p.image=editImg;p.imageId=editImgId||null;
+  }
   save();closeModal('edit-modal');renderAdmPlayers();toast('Player updated! ✅','ok');
 }
 
@@ -1584,7 +1673,7 @@ function submitRegistration(){
   if(!ign){toast('IGN is required.','err');return;}if(selectedTypes.reg.length<1){toast('Select at least 1 player style.','err');return;}
   if(!reason){toast('Please write your reason.','err');return;}if(countWords(reason)>300){toast('Reason exceeds 300 words.','err');return;}
   if(cp&&!cv){toast('Enter a contact handle.','err');return;}
-  S.requests.push({id:Date.now(),ign,gender:document.getElementById('r-gender').value||'',playerTypes:[...selectedTypes.reg],reason,avatar:regImg||null,
+  S.requests.push({id:Date.now(),ign,gender:document.getElementById('r-gender').value||'',playerTypes:[...selectedTypes.reg],reason,avatar:regImg||null,avatarId:regImgId||null,
     contact:cp&&cv?{platform:cp,value:cv}:null,requestedAt:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),status:'pending'});
   save();document.getElementById('reg-form-wrap').style.display='none';document.getElementById('reg-success').classList.add('show');updateReqBadge();toast('Application submitted! 🎉','ok');
 }
@@ -1628,7 +1717,7 @@ function openRequestModal(id){
 }
 function approveRequest(id){
   const req=S.requests.find(x=>x.id===id);if(!req)return;req.status='approved';
-  S.players.push({id:Date.now(),name:req.ign,role:'player',joined:new Date().toISOString().split('T')[0],gender:req.gender||'',playerTypes:req.playerTypes||[],image:req.avatar||null,contact:req.contact||null});
+  S.players.push({id:Date.now(),name:req.ign,role:'player',joined:new Date().toISOString().split('T')[0],gender:req.gender||'',playerTypes:req.playerTypes||[],image:req.avatar||null,imageId:req.avatarId||null,contact:req.contact||null});
   save();closeModal('req-modal');renderAdmRequests();renderAdmPlayers();updateReqBadge();toast(`${req.ign} approved! ✅`,'ok');
 }
 function denyRequest(id){
