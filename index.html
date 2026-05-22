@@ -945,27 +945,60 @@ const _srvCache={};
 const _SRV_TTL=15000;// client-side cache: 25 s (just under the upstream cache window)
 
 function _srvApiUrl(s){
-  const t=s.stype||'java';
-  if(t==='bedrock'){
-    const ip=encodeURIComponent(s.ip);const port=s.port||19132;
-    return`https://api.mcstatus.io/v2/status/bedrock/${ip}:${port}`;
+  const t = s.stype || 'java';
+  if(t === 'bedrock'){
+    const ip = encodeURIComponent(s.ip);
+    const port = s.port || 19132;
+    return `https://api.mcstatus.io/v2/status/bedrock/${ip}:${port}`;
   }
-  // java or cracked — use java IP for cracked
-  const ip=encodeURIComponent((t==='cracked'&&s.javaIp)?s.javaIp:s.ip);
-  return`https://api.mcstatus.io/v2/status/java/${ip}`;
+  // java / cracked
+  const ip = encodeURIComponent(
+    (t === 'cracked' && s.javaIp)
+      ? s.javaIp
+      : s.ip
+  );
+  const port = s.port || 25565;
+  return `https://api.mcstatus.io/v2/status/java/${ip}:${port}`;
 }
 
-async function _fetchSrvStatus(s,force=false){
-  const hit=_srvCache[s.id];
-  if(!force&&hit&&Date.now()-hit.ts<_SRV_TTL)return hit;
-  try{
-    const res=await fetch(_srvApiUrl(s),{signal:AbortSignal.timeout(8000)});
-    const d=await res.json();
-    const r={ts:Date.now(),online:!!d.online,players:d.players||null};
-    _srvCache[s.id]=r;return r;
-  }catch{
-    if(hit)return hit;// keep last-known on error
-    return{ts:0,online:false,players:null};
+async function _fetchSrvStatus(s, force = false) {
+  const hit = _srvCache[s.id];
+  if (
+    !force &&
+    hit &&
+    Date.now() - hit.ts < _SRV_TTL
+  ) {
+    return hit;
+  }
+  try {
+    const res = await fetch(
+      _srvApiUrl(s),
+      {
+        signal: AbortSignal.timeout(8000)
+      }
+    );
+    if (!res.ok) {
+      throw new Error('API error');
+    }
+    const d = await res.json();
+    const r = {
+      ts: Date.now(),
+      online: Boolean(d.online),
+      players: d.players || null
+    };
+    _srvCache[s.id] = r;
+    return r;
+    } catch (err) {
+      console.warn('Server status fetch failed:', err);
+      // keep previous known status
+    if (hit) {
+      return hit;
+    }
+    return {
+      ts: Date.now(),
+      online: false,
+      players: null
+    };
   }
 }
 
@@ -1041,11 +1074,11 @@ async function _pollCycle(){
   }
 }
 
-function _startSrvPolling(){
-  _stopSrvPolling();
-  _srvPollTimer=setTimeout(_pollCycle,_SRV_POLL_MS);// first poll after initial delay
+async function _startSrvPolling() {
+  _stopSrvPolling(); // immediately check statuses first
+  await _checkAllStatuses(); // then start realtime polling
+  _srvPollTimer = setTimeout(_pollCycle, _SRV_POLL_MS);
 }
-
 // Manual refresh — clears cache and re-checks all servers immediately
 function refreshSrvStatuses(){
   S.servers.forEach(s=>delete _srvCache[s.id]);
