@@ -23,6 +23,7 @@
     <button class="nav-link"        id="nl-updates"  onclick="nav('updates')">Updates</button>
   </div>
   <div class="nav-end">
+    <button class="btn btn-sm" id="nl-request-post" onclick="nav('request-post')" style="background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.28)">✏️ Post</button>
     <button class="btn btn-cyan btn-sm"  id="nl-register" onclick="nav('register')">✍️ Register</button>
     <button class="btn btn-ghost btn-sm" id="nl-admin"    onclick="nav('admin')">🛡️ Admin</button>
   </div>
@@ -40,8 +41,9 @@
     <button class="drawer-link active" id="dl-home"     onclick="nav('home');closeDrawer()"><span class="dl-icon">🏠</span>Home</button>
     <button class="drawer-link"        id="dl-servers"  onclick="nav('servers');closeDrawer()"><span class="dl-icon">🌐</span>Servers</button>
     <button class="drawer-link"        id="dl-players"  onclick="nav('players');closeDrawer()"><span class="dl-icon">👥</span>Players</button>
-    <button class="drawer-link"        id="dl-updates"  onclick="nav('updates');closeDrawer()"><span class="dl-icon">📢</span>Updates</button>
-    <button class="drawer-link"        id="dl-register" onclick="nav('register');closeDrawer()"><span class="dl-icon">✍️</span>Register</button>
+    <button class="drawer-link"        id="dl-updates"       onclick="nav('updates');closeDrawer()"><span class="dl-icon">📢</span>Updates</button>
+    <button class="drawer-link"        id="dl-request-post"  onclick="nav('request-post');closeDrawer()"><span class="dl-icon">✏️</span>Request Post</button>
+    <button class="drawer-link"        id="dl-register"      onclick="nav('register');closeDrawer()"><span class="dl-icon">✍️</span>Register</button>
     <button class="drawer-link"        id="dl-admin"    onclick="nav('admin');closeDrawer()"><span class="dl-icon">🛡️</span>Admin Panel</button>
   </nav>
 </div>
@@ -87,7 +89,7 @@
 <!-- ══ SERVERS ════════════════════════════════════════ -->
 <div class="page" id="page-servers">
   <div class="section">
-    <div class="sec-hd rv"><span class="sec-label">Network</span><h2 class="sec-title">Our Servers</h2><p class="sec-sub">Click any server card for full details and copy options. Status is checked live via the server IP.<br>Note: sometimes indicator aren't always right due to the checker being blocked by the server.<br><button onclick="refreshSrvStatuses()" style="background:none;border:none;cursor:pointer;color:var(--green);font-size:13px;padding:0;vertical-align:middle" title="Refresh server statuses">🔄  Refresh</button></p></div>
+    <div class="sec-hd rv"><span class="sec-label">Network</span><h2 class="sec-title">Our Servers</h2><p class="sec-sub">Click any server card for full details and copy options. Status is checked live via the server IP. <br>Note: sometimes indicator aren't always right due to the checker being blocked by the server.<br><button onclick="refreshSrvStatuses()" style="background:none;border:none;cursor:pointer;color:var(--green);font-size:13px;padding:0;vertical-align:middle" title="Refresh server statuses">🔄  Refresh</button></p></div>
     <div class="server-grid" id="server-grid"><div class="empty" style="grid-column:1/-1"><span class="empty-icon">🌐</span><p>No servers added yet.</p></div></div>
   </div>
 </div>
@@ -105,6 +107,34 @@
   <div class="section">
     <div class="sec-hd rv"><span class="sec-label">News & Announcements</span><h2 class="sec-title">Updates</h2><p class="sec-sub">Click a post to read in full. Click an image to view it enlarged.</p></div>
     <div class="updates-list" id="updates-list"><div class="empty"><span class="empty-icon">📢</span><p>No updates yet.</p></div></div>
+  </div>
+</div>
+
+<!-- ══ REQUEST POST ════════════════════════════════════ -->
+<div class="page" id="page-request-post">
+  <div class="section">
+    <div class="sec-hd rv"><span class="sec-label">Community</span><h2 class="sec-title">Request a Post</h2><p class="sec-sub">Submit your post for admin review. Once approved it will appear in Community Updates.</p></div>
+    <div class="card-box" style="max-width:680px;margin:0 auto">
+      <div id="rp-form-wrap">
+        <div class="form-group"><label>Your Username *</label><input type="text" id="rp-username" placeholder="Your in-game or display name…"></div>
+        <div class="form-group"><label>Post Title *</label><input type="text" id="rp-title" placeholder="Give your post a title…"></div>
+        <div class="form-group"><label>Tag</label><select id="rp-tag"><option>Announcement</option><option>Update</option><option>Event</option><option>News</option><option>Other</option></select></div>
+        <div class="form-group"><label>Content *</label><textarea id="rp-content" placeholder="Write your post here…" style="min-height:130px"></textarea></div>
+        <div class="form-group"><label>Images <span class="label-opt">(optional — select multiple)</span></label>
+          <div class="upload-area"><input type="file" id="rp-img-input" accept="image/*" multiple onchange="handleReqMultiImg(this)">
+            <span class="up-icon">🖼️</span><span class="up-text">Click or drag to upload</span><span class="up-hint">PNG, JPG, GIF, WEBP</span></div>
+          <div class="img-thumbs" id="rp-img-thumbs"></div>
+        </div>
+        <p style="font-size:11.5px;color:var(--txt3);font-family:var(--mf);margin-bottom:16px">📋 Your post will be reviewed by an admin before being published.</p>
+        <button class="btn btn-primary" onclick="submitPostRequest()">📨 Submit for Review</button>
+      </div>
+      <div id="rp-success" style="display:none;text-align:center;padding:32px 0">
+        <div style="font-size:48px;margin-bottom:12px">🎉</div>
+        <div style="font-weight:700;font-size:18px;color:var(--txt);margin-bottom:8px">Post Submitted!</div>
+        <p style="color:var(--txt2);font-size:13.5px;margin-bottom:20px">Your post is pending admin review. It will appear in Community Updates once approved.</p>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('rp-success').style.display='none';document.getElementById('rp-form-wrap').style.display='block';clearReqPost()">Submit Another</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -193,6 +223,7 @@
         <button class="tab active" onclick="switchTab(this,'tab-posts')">📢 Posts</button>
         <button class="tab" onclick="switchTab(this,'tab-servers')">🌐 Servers</button>
         <button class="tab" onclick="switchTab(this,'tab-players')">👥 Players</button>
+        <button class="tab" id="tab-postreq-btn" onclick="switchTab(this,'tab-post-requests')">✏️ Post Requests<span class="tab-badge" id="postreq-badge"></span></button>
         <button class="tab" id="tab-req-btn" onclick="switchTab(this,'tab-requests')">📋 Requests<span class="tab-badge" id="req-badge">0</span></button>
         <button class="tab" onclick="switchTab(this,'tab-settings')">⚙️ Settings</button>
       </div>
@@ -273,6 +304,11 @@
       <div class="panel" id="tab-requests">
         <div class="card-box" style="background:var(--surf2);border-style:dashed;margin-bottom:18px"><p style="font-size:13px;color:var(--txt2)">📋 Review player registration requests. Click a card to preview, then approve or deny.</p></div>
         <div class="requests-grid" id="adm-requests"><div class="empty" style="grid-column:1/-1"><span class="empty-icon">📋</span><p>No pending requests.</p></div></div>
+      </div>
+      <!-- POST REQUESTS -->
+      <div class="panel" id="tab-post-requests">
+        <div class="card-box" style="background:var(--surf2);border-style:dashed;margin-bottom:18px"><p style="font-size:13px;color:var(--txt2)">✏️ Review community post requests. Approve to publish directly to Community Updates, or deny to remove.</p></div>
+        <div id="adm-post-requests"><div class="empty"><span class="empty-icon">✏️</span><p>No pending post requests.</p></div></div>
       </div>
       <!-- SETTINGS -->
       <div class="panel" id="tab-settings">
@@ -362,10 +398,11 @@ document.dispatchEvent(new Event('firebase-ready'));
 
 <script>
 // ═════ STATE ═════════════════════════════════════════
-let S={posts:[],servers:[],players:[],requests:[],
+let S={posts:[],servers:[],players:[],requests:[],postReqs:[],
   cfg:{name:'SRZK SMP',desc:'Your Minecraft Community Hub',pw:'admin123',adminContact:'',discordLink:''},authed:false};
 let srvImg=null,plrImg=null,regImg=null,editImg=null,postImgs=[];
 let srvImgId=null,plrImgId=null,regImgId=null,editImgId=null,postImgIds=[];
+let reqPostImgs=[],reqPostImgIds=[];// separate arrays for user request-post form
 let _uploading=false;// true while any single image (server/player/reg/edit) is uploading
 let selectedTypes={reg:[],adm:[]};
 const seenEls=new WeakSet();
@@ -381,11 +418,12 @@ function save(){
 async function _fsSave(){
   const D=window._fsDoc,W=window._fsSet;
   await Promise.all([
-    W(D('srzk','posts'),   {items:S.posts}),
-    W(D('srzk','servers'), {items:S.servers}),
-    W(D('srzk','players'), {items:S.players}),
-    W(D('srzk','requests'),{items:S.requests}),
-    W(D('srzk','cfg'),     {...S.cfg}),
+    W(D('srzk','posts'),    {items:S.posts}),
+    W(D('srzk','servers'),  {items:S.servers}),
+    W(D('srzk','players'),  {items:S.players}),
+    W(D('srzk','requests'), {items:S.requests}),
+    W(D('srzk','postReqs'), {items:S.postReqs}),
+    W(D('srzk','cfg'),      {...S.cfg}),
   ]);
 }
 
@@ -395,7 +433,7 @@ async function _fsSave(){
 // changes data on another device, this page updates automatically.
 async function load(){
   return new Promise(resolve=>{
-    const KEYS=['posts','servers','players','requests','cfg'];
+    const KEYS=['posts','servers','players','requests','postReqs','cfg'];
     let got=0;let done=false;
     const finish=()=>{if(!done){done=true;resolve();}};
 
@@ -426,7 +464,8 @@ function _onRemoteUpdate(key){
   if(key==='posts'){updateStats();if(id==='page-updates')renderUpdates();if(id==='page-home')renderHome();}
   if(key==='servers'){updateStats();if(id==='page-servers'){renderServers();_startSrvPolling();}if(id==='page-home')renderHome();}
   if(key==='players'){updateStats();if(id==='page-players')renderPlayers();if(id==='page-home')renderHome();}
-  if(key==='requests'&&S.authed){renderAdmRequests();}
+  if(key==='requests'&&S.authed){renderAdmRequests();updateReqBadge();}
+  if(key==='postReqs'&&S.authed){renderAdmPostReqs();updatePostReqBadge();}
   if(key==='cfg'){renderHome();if(S.authed&&id==='page-admin'){const ci=document.getElementById('cfg-name');if(ci)ci.value=S.cfg.name||'';}}
 }
 
@@ -468,11 +507,12 @@ function nav(page){
   const dl=document.getElementById('dl-'+page);if(dl)dl.classList.add('active');
   if(page!=='servers')_stopSrvPolling();// stop polling when leaving servers page
   if(page==='admin'){S.authed?showDash():showInfoPanel();}
-  if(page==='servers'){renderServers();_startSrvPolling();}// render + start 30s poll
+  if(page==='servers'){renderServers();_startSrvPolling();}
   if(page==='players')renderPlayers();
   if(page==='updates')renderUpdates();
   if(page==='home'){renderHome();updateStats();}
   if(page==='register')resetRegForm();
+  if(page==='request-post'){clearReqPost();document.getElementById('rp-form-wrap').style.display='block';document.getElementById('rp-success').style.display='none';}
   window.scrollTo({top:0,behavior:'smooth'});
   setTimeout(initReveal,200);
 }
@@ -594,7 +634,7 @@ function openPostModal(postId){
   const carHtml=imgs.length?`<div class="post-detail-carousel" style="border-radius:10px;overflow:hidden;margin-bottom:18px;background:var(--surf2)">${buildCarousel(imgs,true)}</div>`:'';
   document.getElementById('post-detail-body').innerHTML=`
     ${carHtml}
-    <div class="post-detail-meta"><span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span></div>
+    <div class="post-detail-meta"><span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span>${p.author?`<span class="post-author" style="margin-left:auto">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':'<span class="post-user-badge">Community</span>'}</span>`:''}</div>
     <div class="post-detail-title">${esc(p.title)}</div>
     <div class="post-full-content">${esc(p.content)}</div>`;
   openModal('post-detail-modal');
@@ -657,15 +697,115 @@ async function handleImg(input,previewId,store){
 
 // ═════ POSTS ═════════════════════════════════════════
 function addPost(){
+  if(postImgIds.some(id=>id===null)){toast('Please wait for images to finish uploading.','err');return;}
   const t=v('p-title'),c=v('p-content'),tag=v('p-tag');
   if(!t||!c){toast('Title and content required.','err');return;}
-  S.posts.unshift({id:Date.now(),title:t,content:c,tag,images:[...postImgs],imageIds:[...postImgIds],date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})});
+  S.posts.unshift({id:Date.now(),title:t,content:c,tag,images:[...postImgs],imageIds:[...postImgIds],
+    author:'Admin',isAdmin:true,
+    date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})});
   save();clearPost();renderAdmPosts();toast('Post published! 📢','ok');
 }
 function clearPost(){
   set('p-title','');set('p-content','');document.getElementById('p-tag').value='Announcement';
   const wrap=document.getElementById('p-img-thumbs');if(wrap)wrap.innerHTML='';
   document.getElementById('p-img-input').value='';postImgs=[];postImgIds=[];
+}
+
+// ── Request Post (user-submitted posts awaiting admin approval) ──
+function renderReqThumb(src,idx,uploading=false){
+  const wrap=document.getElementById('rp-img-thumbs');if(!wrap)return;
+  const div=document.createElement('div');div.className='img-thumb-wrap'+(uploading?' uploading':'');div.dataset.idx=idx;
+  div.innerHTML=`<img src="${src}">${uploading?'<div class="img-up-spin">⏳</div>':''}<button class="img-thumb-remove" onclick="removeReqPostImg(${idx})"${uploading?' disabled':''}>✕</button>`;
+  wrap.appendChild(div);
+}
+function removeReqPostImg(idx){
+  _clDelete(reqPostImgIds[idx]||null);
+  reqPostImgs.splice(idx,1);reqPostImgIds.splice(idx,1);
+  const wrap=document.getElementById('rp-img-thumbs');if(!wrap)return;
+  wrap.innerHTML='';reqPostImgs.forEach((src,i)=>renderReqThumb(src,i));
+}
+async function handleReqMultiImg(input){
+  const files=Array.from(input.files);input.value='';
+  for(const file of files){
+    const localUrl=URL.createObjectURL(file);
+    const idx=reqPostImgs.length;
+    reqPostImgs.push(localUrl);reqPostImgIds.push(null);
+    renderReqThumb(localUrl,idx,true);
+    try{
+      const{url,publicId}=await _clUpload(file);
+      reqPostImgs[idx]=url;reqPostImgIds[idx]=publicId;
+      const wrap=document.getElementById('rp-img-thumbs');
+      if(wrap){const tw=wrap.querySelectorAll('.img-thumb-wrap')[idx];if(tw){tw.classList.remove('uploading');tw.querySelector('img').src=url;const sp=tw.querySelector('.img-up-spin');if(sp)sp.remove();const btn=tw.querySelector('button');if(btn)btn.disabled=false;}}
+    }catch(e){
+      toast('Image upload failed.','err');
+      reqPostImgs.splice(idx,1);reqPostImgIds.splice(idx,1);
+      const wrap=document.getElementById('rp-img-thumbs');if(wrap){wrap.innerHTML='';reqPostImgs.forEach((s,i)=>renderReqThumb(s,i));}
+    }
+  }
+}
+function clearReqPost(){
+  set('rp-username','');set('rp-title','');set('rp-content','');
+  document.getElementById('rp-tag').value='Announcement';
+  const wrap=document.getElementById('rp-img-thumbs');if(wrap)wrap.innerHTML='';
+  const inp=document.getElementById('rp-img-input');if(inp)inp.value='';
+  reqPostImgs=[];reqPostImgIds=[];
+}
+function submitPostRequest(){
+  if(reqPostImgIds.some(id=>id===null)){toast('Please wait for images to finish uploading.','err');return;}
+  const username=v('rp-username'),title=v('rp-title'),content=v('rp-content'),tag=v('rp-tag');
+  if(!username){toast('Please enter your username.','err');return;}
+  if(!title){toast('Post title is required.','err');return;}
+  if(!content){toast('Post content is required.','err');return;}
+  S.postReqs.push({id:Date.now(),username,title,content,tag,
+    images:[...reqPostImgs],imageIds:[...reqPostImgIds],
+    requestedAt:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),status:'pending'});
+  save();
+  document.getElementById('rp-form-wrap').style.display='none';
+  document.getElementById('rp-success').style.display='block';
+  updatePostReqBadge();toast('Post submitted for review! 📨','ok');
+}
+
+// ── Admin: Post Requests panel ──
+function updatePostReqBadge(){
+  const n=S.postReqs.filter(r=>r.status==='pending').length;
+  const b=document.getElementById('postreq-badge');
+  if(b){b.style.display=n>0?'inline':'none';b.textContent=n;}
+}
+function renderAdmPostReqs(){
+  const el=document.getElementById('adm-post-requests');if(!el)return;
+  const pending=S.postReqs.filter(r=>r.status==='pending');
+  if(!pending.length){el.innerHTML='<div class="empty"><span class="empty-icon">✏️</span><p>No pending post requests.</p></div>';return;}
+  el.innerHTML=pending.map(r=>`<div class="post-req-card">
+    <div class="post-req-meta">
+      <span class="post-req-user">👤 ${esc(r.username)}</span>
+      <span class="post-req-tag">${esc(r.tag)}</span>
+      <span class="post-req-date">${esc(r.requestedAt)}</span>
+    </div>
+    <div class="post-req-title">${esc(r.title)}</div>
+    <div class="post-req-body">${esc(r.content)}</div>
+    ${(r.images||[]).length?`<div class="post-req-imgs">${r.images.map(src=>`<img src="${src}" loading="lazy" onclick="openLightbox('${src.replace(/'/g,"\\'")}');event.stopPropagation()">`).join('')}</div>`:''}
+    <div class="post-req-actions">
+      <button class="btn btn-primary btn-sm" onclick="approvePostReq(${r.id})">✅ Approve & Publish</button>
+      <button class="btn btn-danger btn-sm" onclick="denyPostReq(${r.id})">✕ Deny</button>
+    </div>
+  </div>`).join('');
+}
+function approvePostReq(id){
+  const r=S.postReqs.find(x=>x.id===id);if(!r)return;
+  // Publish to Community Updates with the user's name
+  S.posts.unshift({id:Date.now(),title:r.title,content:r.content,tag:r.tag,
+    images:r.images||[],imageIds:r.imageIds||[],
+    author:r.username,isAdmin:false,
+    date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})});
+  r.status='approved';
+  save();renderAdmPostReqs();updatePostReqBadge();toast(`"${r.title}" published! ✅`,'ok');
+}
+function denyPostReq(id){
+  if(!confirm('Deny and remove this post request?'))return;
+  const r=S.postReqs.find(x=>x.id===id);if(!r)return;
+  (r.imageIds||[]).forEach(pid=>_clDelete(pid));// clean up Cloudinary images
+  S.postReqs=S.postReqs.filter(x=>x.id!==id);
+  save();renderAdmPostReqs();updatePostReqBadge();toast('Request denied and removed.','ok');
 }
 function delPost(id){
   if(!confirm('Delete this post?'))return;
@@ -758,6 +898,7 @@ function renderUpdates(){
       <div class="post-body">
         <div class="post-meta"><span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span></div>
         <div class="post-title">${esc(p.title)}</div>
+        ${p.author?`<div class="post-author">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':'<span class="post-user-badge">Community</span>'}</div>`:''}
         <div class="post-content-wrap">
           <div class="post-content-preview">${esc(p.content)}</div>
         </div>
@@ -1254,7 +1395,7 @@ function submitRegistration(){
 // ═════ ADMIN ══════════════════════════════════════════
 function showInfoPanel(){document.getElementById('admin-pre').style.display='block';document.getElementById('login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='none';renderPrePanel();setTimeout(initReveal,200);}
 function showLogin(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='flex';document.getElementById('dash-wrap').style.display='none';document.getElementById('adm-pw').value='';document.getElementById('login-err').classList.remove('show');}
-function showDash(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='block';renderAdmPosts();renderAdmServers();renderAdmPlayers();renderAdmRequests();loadCfg();updateReqBadge();}
+function showDash(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='block';renderAdmPosts();renderAdmServers();renderAdmPlayers();renderAdmRequests();renderAdmPostReqs();loadCfg();updateReqBadge();updatePostReqBadge();}
 function renderPrePanel(){
   const admins=S.players.filter(p=>p.role==='admin'),mods=S.players.filter(p=>p.role==='mod');
   document.getElementById('pre-admins').innerHTML=admins.length?admins.map(p=>`<div class="aic-person"><img class="aic-avatar" src="${getAvatar(p,36)}" onerror="this.src='https://mc-heads.net/avatar/Steve/36'" loading="lazy"><div><div class="aic-pname">${esc(p.name)}</div><div class="aic-role-text">Admin</div></div></div>`).join(''):`<span class="aic-empty">No admins listed yet.</span>`;

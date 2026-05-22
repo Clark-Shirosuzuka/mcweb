@@ -71,6 +71,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;height:var(--nav-h);padding:
 .drawer.open .drawer-link:nth-child(4){animation-delay:.19s}
 .drawer.open .drawer-link:nth-child(5){animation-delay:.24s}
 .drawer.open .drawer-link:nth-child(6){animation-delay:.29s}
+.drawer.open .drawer-link:nth-child(7){animation-delay:.34s}
 
 /* ── PAGES ── */
 main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
@@ -148,6 +149,20 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 .post-content-preview{font-size:14px;color:var(--txt2);line-height:1.75;word-break:break-word;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .post-content-wrap::after{content:'';position:absolute;bottom:0;left:0;right:0;height:48px;background:linear-gradient(to bottom,transparent,var(--surf));pointer-events:none}
 .post-read-hint{font-size:11px;color:var(--txt3);margin-top:12px;font-family:var(--mf);display:flex;align-items:center;gap:4px}
+.post-author{font-size:11px;color:var(--txt3);font-family:var(--mf);margin-top:5px;display:flex;align-items:center;gap:6px}
+.post-admin-badge{background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3);font-size:9.5px;font-family:var(--mf);font-weight:700;padding:1px 7px;border-radius:100px;letter-spacing:.04em;text-transform:uppercase}
+.post-user-badge{background:rgba(99,179,237,.12);color:#63b3ed;border:1px solid rgba(99,179,237,.25);font-size:9.5px;font-family:var(--mf);font-weight:600;padding:1px 7px;border-radius:100px}
+/* Post request panel */
+.post-req-card{background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
+.post-req-meta{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.post-req-user{font-weight:700;color:var(--txt);font-size:13px}
+.post-req-tag{font-size:10.5px;font-family:var(--mf);background:var(--glow2);color:var(--txt2);border:1px solid var(--border);padding:2px 8px;border-radius:100px}
+.post-req-date{font-size:10.5px;color:var(--txt3);font-family:var(--mf);margin-left:auto}
+.post-req-title{font-weight:700;color:var(--txt);font-size:14px;margin-bottom:5px}
+.post-req-body{font-size:12.5px;color:var(--txt2);line-height:1.55;margin-bottom:10px;max-height:72px;overflow:hidden}
+.post-req-imgs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.post-req-imgs img{width:58px;height:58px;object-fit:cover;border-radius:6px;border:1px solid var(--border);cursor:zoom-in}
+.post-req-actions{display:flex;gap:8px}
 /* Full content in detail modal */
 .post-full-content{font-size:14.5px;color:var(--txt2);line-height:1.82;word-break:break-word;white-space:pre-wrap}
 @media(max-width:540px){.post-body{padding:18px}}
