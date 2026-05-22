@@ -17,10 +17,11 @@
     <span class="nav-logo-text">SRZK SMP</span>
   </div>
   <div class="nav-center">
-    <button class="nav-link active" id="nl-home"     onclick="nav('home')">Home</button>
-    <button class="nav-link"        id="nl-servers"  onclick="nav('servers')">Servers</button>
-    <button class="nav-link"        id="nl-players"  onclick="nav('players')">Players</button>
-    <button class="nav-link"        id="nl-updates"  onclick="nav('updates')">Updates</button>
+    <button class="nav-link active" id="nl-home"      onclick="nav('home')">Home</button>
+    <button class="nav-link"        id="nl-servers"   onclick="nav('servers')">Servers</button>
+    <button class="nav-link"        id="nl-players"   onclick="nav('players')">Players</button>
+    <button class="nav-link"        id="nl-updates"   onclick="nav('updates')">Updates</button>
+    <button class="nav-link"        id="nl-community" onclick="nav('community')">Community</button>
   </div>
   <div class="nav-end">
     <button class="btn btn-sm" id="nl-request-post" onclick="nav('request-post')" style="background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.28)">✏️ Post</button>
@@ -38,13 +39,14 @@
     <button class="drawer-close" onclick="closeDrawer()">✕</button>
   </div>
   <nav class="drawer-nav">
-    <button class="drawer-link active" id="dl-home"     onclick="nav('home');closeDrawer()"><span class="dl-icon">🏠</span>Home</button>
-    <button class="drawer-link"        id="dl-servers"  onclick="nav('servers');closeDrawer()"><span class="dl-icon">🌐</span>Servers</button>
-    <button class="drawer-link"        id="dl-players"  onclick="nav('players');closeDrawer()"><span class="dl-icon">👥</span>Players</button>
-    <button class="drawer-link"        id="dl-updates"       onclick="nav('updates');closeDrawer()"><span class="dl-icon">📢</span>Updates</button>
-    <button class="drawer-link"        id="dl-request-post"  onclick="nav('request-post');closeDrawer()"><span class="dl-icon">✏️</span>Request Post</button>
-    <button class="drawer-link"        id="dl-register"      onclick="nav('register');closeDrawer()"><span class="dl-icon">✍️</span>Register</button>
-    <button class="drawer-link"        id="dl-admin"    onclick="nav('admin');closeDrawer()"><span class="dl-icon">🛡️</span>Admin Panel</button>
+    <button class="drawer-link active" id="dl-home"         onclick="nav('home');closeDrawer()"><span class="dl-icon">🏠</span>Home</button>
+    <button class="drawer-link"        id="dl-servers"      onclick="nav('servers');closeDrawer()"><span class="dl-icon">🌐</span>Servers</button>
+    <button class="drawer-link"        id="dl-players"      onclick="nav('players');closeDrawer()"><span class="dl-icon">👥</span>Players</button>
+    <button class="drawer-link"        id="dl-updates"      onclick="nav('updates');closeDrawer()"><span class="dl-icon">📢</span>Updates</button>
+    <button class="drawer-link"        id="dl-community"    onclick="nav('community');closeDrawer()"><span class="dl-icon">🌿</span>Community</button>
+    <button class="drawer-link"        id="dl-request-post" onclick="nav('request-post');closeDrawer()"><span class="dl-icon">✏️</span>Request Post</button>
+    <button class="drawer-link"        id="dl-register"     onclick="nav('register');closeDrawer()"><span class="dl-icon">✍️</span>Register</button>
+    <button class="drawer-link"        id="dl-admin"        onclick="nav('admin');closeDrawer()"><span class="dl-icon">🛡️</span>Admin Panel</button>
   </nav>
 </div>
 
@@ -107,6 +109,14 @@
   <div class="section">
     <div class="sec-hd rv"><span class="sec-label">News & Announcements</span><h2 class="sec-title">Updates</h2><p class="sec-sub">Click a post to read in full. Click an image to view it enlarged.</p></div>
     <div class="updates-list" id="updates-list"><div class="empty"><span class="empty-icon">📢</span><p>No updates yet.</p></div></div>
+  </div>
+</div>
+
+<!-- ══ COMMUNITY ════════════════════════════════════════ -->
+<div class="page" id="page-community">
+  <div class="section">
+    <div class="sec-hd rv"><span class="sec-label">Community</span><h2 class="sec-title">Community Posts</h2><p class="sec-sub">Posts submitted by community members and approved by an admin.</p></div>
+    <div id="community-list"><div class="empty"><span class="empty-icon">🌿</span><p>No community posts yet.</p></div></div>
   </div>
 </div>
 
@@ -227,7 +237,6 @@
         <button class="tab" id="tab-req-btn" onclick="switchTab(this,'tab-requests')">📋 Requests<span class="tab-badge" id="req-badge">0</span></button>
         <button class="tab" onclick="switchTab(this,'tab-settings')">⚙️ Settings</button>
       </div>
-      <!-- POSTS -->
       <div class="panel active" id="tab-posts">
         <div class="card-box"><h3>📝 New Post</h3>
           <div class="form-group"><label>Title</label><input type="text" id="p-title" placeholder="Announcement title…"></div>
@@ -238,9 +247,16 @@
               <span class="up-icon">🖼️</span><span class="up-text">Click or drag to upload (select multiple)</span><span class="up-hint">PNG, JPG, GIF, WEBP</span></div>
             <div class="img-thumbs" id="p-img-thumbs"></div>
           </div>
+          <div class="form-group"><label>Post to</label>
+            <div class="post-dest-toggle">
+              <button class="post-dest-btn active" id="dest-btn-updates"   onclick="selectPostDest('updates')">📢 Updates <span style="font-size:10px;opacity:.7">(default)</span></button>
+              <button class="post-dest-btn"         id="dest-btn-community" onclick="selectPostDest('community')">🌿 Community</button>
+            </div>
+          </div>
           <div style="display:flex;gap:9px;flex-wrap:wrap"><button class="btn btn-primary" onclick="addPost()">Publish Post</button><button class="btn btn-ghost" onclick="clearPost()">Clear</button></div>
         </div>
-        <div class="card-box"><h3>📋 Published Posts</h3><div id="adm-posts"><div class="empty"><span class="empty-icon">📋</span><p>No posts yet.</p></div></div></div>
+        <div class="card-box"><h3>📢 Updates Posts</h3><div id="adm-posts"><div class="empty"><span class="empty-icon">📋</span><p>No posts yet.</p></div></div></div>
+        <div class="card-box"><h3>🌿 Community Posts</h3><div id="adm-community-posts"><div class="empty"><span class="empty-icon">🌿</span><p>No community posts yet.</p></div></div></div>
       </div>
       <!-- SERVERS -->
       <div class="panel" id="tab-servers">
@@ -398,12 +414,13 @@ document.dispatchEvent(new Event('firebase-ready'));
 
 <script>
 // ═════ STATE ═════════════════════════════════════════
-let S={posts:[],servers:[],players:[],requests:[],postReqs:[],
+let S={posts:[],communityPosts:[],servers:[],players:[],requests:[],postReqs:[],
   cfg:{name:'SRZK SMP',desc:'Your Minecraft Community Hub',pw:'admin123',adminContact:'',discordLink:''},authed:false};
 let srvImg=null,plrImg=null,regImg=null,editImg=null,postImgs=[];
 let srvImgId=null,plrImgId=null,regImgId=null,editImgId=null,postImgIds=[];
 let reqPostImgs=[],reqPostImgIds=[];// separate arrays for user request-post form
 let _uploading=false;// true while any single image (server/player/reg/edit) is uploading
+let postDest='updates';// admin post destination: 'updates' or 'community'
 let selectedTypes={reg:[],adm:[]};
 const seenEls=new WeakSet();
 
@@ -418,12 +435,13 @@ function save(){
 async function _fsSave(){
   const D=window._fsDoc,W=window._fsSet;
   await Promise.all([
-    W(D('srzk','posts'),    {items:S.posts}),
-    W(D('srzk','servers'),  {items:S.servers}),
-    W(D('srzk','players'),  {items:S.players}),
-    W(D('srzk','requests'), {items:S.requests}),
-    W(D('srzk','postReqs'), {items:S.postReqs}),
-    W(D('srzk','cfg'),      {...S.cfg}),
+    W(D('srzk','posts'),          {items:S.posts}),
+    W(D('srzk','communityPosts'), {items:S.communityPosts}),
+    W(D('srzk','servers'),        {items:S.servers}),
+    W(D('srzk','players'),        {items:S.players}),
+    W(D('srzk','requests'),       {items:S.requests}),
+    W(D('srzk','postReqs'),       {items:S.postReqs}),
+    W(D('srzk','cfg'),            {...S.cfg}),
   ]);
 }
 
@@ -433,7 +451,7 @@ async function _fsSave(){
 // changes data on another device, this page updates automatically.
 async function load(){
   return new Promise(resolve=>{
-    const KEYS=['posts','servers','players','requests','postReqs','cfg'];
+    const KEYS=['posts','communityPosts','servers','players','requests','postReqs','cfg'];
     let got=0;let done=false;
     const finish=()=>{if(!done){done=true;resolve();}};
 
@@ -462,6 +480,7 @@ function _onRemoteUpdate(key){
   const pg=document.querySelector('.page.active');
   const id=pg?pg.id:'';
   if(key==='posts'){updateStats();if(id==='page-updates')renderUpdates();if(id==='page-home')renderHome();}
+  if(key==='communityPosts'){updateStats();if(id==='page-community')renderCommunity();}
   if(key==='servers'){updateStats();if(id==='page-servers'){renderServers();_startSrvPolling();}if(id==='page-home')renderHome();}
   if(key==='players'){updateStats();if(id==='page-players')renderPlayers();if(id==='page-home')renderHome();}
   if(key==='requests'&&S.authed){renderAdmRequests();updateReqBadge();}
@@ -510,6 +529,7 @@ function nav(page){
   if(page==='servers'){renderServers();_startSrvPolling();}
   if(page==='players')renderPlayers();
   if(page==='updates')renderUpdates();
+  if(page==='community')renderCommunity();
   if(page==='home'){renderHome();updateStats();}
   if(page==='register')resetRegForm();
   if(page==='request-post'){clearReqPost();document.getElementById('rp-form-wrap').style.display='block';document.getElementById('rp-success').style.display='none';}
@@ -628,8 +648,10 @@ document.addEventListener('pointercancel',e=>{
 },true);
 
 // ═════ POST DETAIL MODAL ══════════════════════════════
-function openPostModal(postId){
-  const p=S.posts.find(x=>x.id===postId);if(!p)return;
+function openPostModal(postId,pool){
+  const arr=pool==='community'?S.communityPosts:S.posts;
+  const p=arr.find(x=>x.id===postId)||S.posts.find(x=>x.id===postId)||S.communityPosts.find(x=>x.id===postId);
+  if(!p)return;
   const imgs=p.images||[];
   const carHtml=imgs.length?`<div class="post-detail-carousel" style="border-radius:10px;overflow:hidden;margin-bottom:18px;background:var(--surf2)">${buildCarousel(imgs,true)}</div>`:'';
   document.getElementById('post-detail-body').innerHTML=`
@@ -696,14 +718,22 @@ async function handleImg(input,previewId,store){
 }
 
 // ═════ POSTS ═════════════════════════════════════════
+function selectPostDest(dest){
+  postDest=dest;
+  document.getElementById('dest-btn-updates').classList.toggle('active',dest==='updates');
+  document.getElementById('dest-btn-community').classList.toggle('active',dest==='community');
+}
 function addPost(){
   if(postImgIds.some(id=>id===null)){toast('Please wait for images to finish uploading.','err');return;}
   const t=v('p-title'),c=v('p-content'),tag=v('p-tag');
   if(!t||!c){toast('Title and content required.','err');return;}
-  S.posts.unshift({id:Date.now(),title:t,content:c,tag,images:[...postImgs],imageIds:[...postImgIds],
+  const post={id:Date.now(),title:t,content:c,tag,images:[...postImgs],imageIds:[...postImgIds],
     author:'Admin',isAdmin:true,
-    date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})});
-  save();clearPost();renderAdmPosts();toast('Post published! 📢','ok');
+    date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})};
+  if(postDest==='community'){S.communityPosts.unshift(post);}
+  else{S.posts.unshift(post);}
+  save();clearPost();renderAdmPosts();renderAdmCommunityPosts();
+  toast(postDest==='community'?'Posted to Community! 🌿':'Post published to Updates! 📢','ok');
 }
 function clearPost(){
   set('p-title','');set('p-content','');document.getElementById('p-tag').value='Announcement';
@@ -792,13 +822,12 @@ function renderAdmPostReqs(){
 }
 function approvePostReq(id){
   const r=S.postReqs.find(x=>x.id===id);if(!r)return;
-  // Publish to Community Updates with the user's name
-  S.posts.unshift({id:Date.now(),title:r.title,content:r.content,tag:r.tag,
+  S.communityPosts.unshift({id:Date.now(),title:r.title,content:r.content,tag:r.tag,
     images:r.images||[],imageIds:r.imageIds||[],
     author:r.username,isAdmin:false,
     date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})});
   r.status='approved';
-  save();renderAdmPostReqs();updatePostReqBadge();toast(`"${r.title}" published! ✅`,'ok');
+  save();renderAdmPostReqs();renderAdmCommunityPosts();updatePostReqBadge();toast(`"${r.title}" posted to Community! ✅`,'ok');
 }
 function denyPostReq(id){
   if(!confirm('Deny and remove this post request?'))return;
@@ -807,16 +836,20 @@ function denyPostReq(id){
   S.postReqs=S.postReqs.filter(x=>x.id!==id);
   save();renderAdmPostReqs();updatePostReqBadge();toast('Request denied and removed.','ok');
 }
-function delPost(id){
+function delPost(id,pool='updates'){
   if(!confirm('Delete this post?'))return;
-  const p=S.posts.find(x=>x.id===id);
-  if(p)(p.imageIds||[]).forEach(pid=>_clDelete(pid));// delete all images from Cloudinary
-  S.posts=S.posts.filter(x=>x.id!==id);save();renderAdmPosts();toast('Post deleted.','ok');
+  const arr=pool==='community'?S.communityPosts:S.posts;
+  const p=arr.find(x=>x.id===id);
+  if(p)(p.imageIds||[]).forEach(pid=>_clDelete(pid));
+  if(pool==='community'){S.communityPosts=S.communityPosts.filter(x=>x.id!==id);save();renderAdmCommunityPosts();}
+  else{S.posts=S.posts.filter(x=>x.id!==id);save();renderAdmPosts();}
+  toast('Post deleted.','ok');
 }
-function openEditPost(id){
-  const p=S.posts.find(x=>x.id===id);if(!p)return;
-  document.getElementById('edit-modal-title').textContent='✏️ Edit Post';
+function openEditPost(id,pool='updates'){
+  const arr=pool==='community'?S.communityPosts:S.posts;
+  const p=arr.find(x=>x.id===id);if(!p)return;
   const imgs=p.images||[];
+  document.getElementById('edit-modal-title').textContent='✏️ Edit Post';
   document.getElementById('edit-modal-body').innerHTML=`
     <div class="form-group"><label>Title</label><input type="text" id="ep-title" value="${esc(p.title)}"></div>
     <div class="form-group"><label>Tag</label><select id="ep-tag">${['Announcement','Update','Maintenance','Event','News'].map(t=>`<option${p.tag===t?' selected':''}>${t}</option>`).join('')}</select></div>
@@ -830,7 +863,8 @@ function openEditPost(id){
   openModal('edit-modal');
 }
 async function handleEditMultiImg(input,postId){
-  const p=S.posts.find(x=>x.id===postId);if(!p)return;
+  // search both pools
+  const p=S.posts.find(x=>x.id===postId)||S.communityPosts.find(x=>x.id===postId);if(!p)return;
   if(!p.images)p.images=[];if(!p.imageIds)p.imageIds=[];
   const files=Array.from(input.files);input.value='';
   for(const file of files){
@@ -856,7 +890,8 @@ async function handleEditMultiImg(input,postId){
   }
 }
 function removeEditPostImg(postId,idx){
-  const p=S.posts.find(x=>x.id===postId);if(!p||!p.images)return;
+  const p=S.posts.find(x=>x.id===postId)||S.communityPosts.find(x=>x.id===postId);
+  if(!p||!p.images)return;
   _clDelete((p.imageIds||[])[idx]||null);// delete from Cloudinary
   p.images.splice(idx,1);if(p.imageIds)p.imageIds.splice(idx,1);
   const wrap=document.getElementById('ep-img-thumbs');if(!wrap)return;
@@ -864,19 +899,30 @@ function removeEditPostImg(postId,idx){
 }
 function saveEditPost(id){
   const t=v('ep-title'),c=v('ep-content'),tag=v('ep-tag');if(!t||!c){toast('Title and content required.','err');return;}
-  const p=S.posts.find(x=>x.id===id);if(!p)return;
+  const p=S.posts.find(x=>x.id===id)||S.communityPosts.find(x=>x.id===id);if(!p)return;
   p.title=t;p.content=c;p.tag=tag;
-  save();closeModal('edit-modal');renderAdmPosts();toast('Post updated! ✅','ok');
+  save();closeModal('edit-modal');renderAdmPosts();renderAdmCommunityPosts();toast('Post updated! ✅','ok');
 }
 function renderAdmPosts(){
-  const el=document.getElementById('adm-posts');
-  if(!S.posts.length){el.innerHTML=empty('📋','No posts yet.');return;}
+  const el=document.getElementById('adm-posts');if(!el)return;
+  if(!S.posts.length){el.innerHTML=empty('📋','No Updates posts yet.');return;}
   el.innerHTML=`<div class="dtable-wrap"><table class="dtable"><thead><tr><th>Title</th><th>Tag</th><th>Date</th><th>Imgs</th><th></th></tr></thead><tbody>${S.posts.map(p=>`<tr>
     <td style="color:var(--txt);font-weight:600;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.title)}</td>
     <td><span class="badge bg">${esc(p.tag)}</span></td>
     <td style="font-family:var(--mf);font-size:10px;white-space:nowrap">${esc(p.date)}</td>
     <td style="font-family:var(--mf);font-size:11px;color:var(--txt2)">${(p.images||[]).length||'—'}</td>
-    <td><div class="tbl-actions"><button class="icon-btn" onclick="openEditPost(${p.id})">✏️</button><button class="icon-btn del" onclick="delPost(${p.id})">🗑️</button></div></td>
+    <td><div class="tbl-actions"><button class="icon-btn" onclick="openEditPost(${p.id},'updates')">✏️</button><button class="icon-btn del" onclick="delPost(${p.id},'updates')">🗑️</button></div></td>
+  </tr>`).join('')}</tbody></table></div>`;
+}
+function renderAdmCommunityPosts(){
+  const el=document.getElementById('adm-community-posts');if(!el)return;
+  if(!S.communityPosts.length){el.innerHTML=empty('🌿','No community posts yet.');return;}
+  el.innerHTML=`<div class="dtable-wrap"><table class="dtable"><thead><tr><th>Title</th><th>By</th><th>Tag</th><th>Date</th><th></th></tr></thead><tbody>${S.communityPosts.map(p=>`<tr>
+    <td style="color:var(--txt);font-weight:600;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.title)}</td>
+    <td style="font-family:var(--mf);font-size:11px;color:var(--txt2)">${esc(p.author||'—')}</td>
+    <td><span class="badge bg">${esc(p.tag)}</span></td>
+    <td style="font-family:var(--mf);font-size:10px;white-space:nowrap">${esc(p.date)}</td>
+    <td><div class="tbl-actions"><button class="icon-btn del" onclick="delPost(${p.id},'community')">🗑️</button></div></td>
   </tr>`).join('')}</tbody></table></div>`;
 }
 function tagEmoji(t){return{Announcement:'📢',Update:'🔧',Maintenance:'🚧',Event:'🎉',News:'📰'}[t]||'📋';}
@@ -898,10 +944,30 @@ function renderUpdates(){
       <div class="post-body">
         <div class="post-meta"><span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span></div>
         <div class="post-title">${esc(p.title)}</div>
-        ${p.author?`<div class="post-author">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':'<span class="post-user-badge">Community</span>'}</div>`:''}
         <div class="post-content-wrap">
           <div class="post-content-preview">${esc(p.content)}</div>
         </div>
+        <div class="post-read-hint">📖 Click to read full post</div>
+      </div>
+    </article>`;
+  }).join('');
+  setTimeout(initReveal,100);
+}
+function renderCommunity(){
+  const el=document.getElementById('community-list');if(!el)return;
+  if(!S.communityPosts.length){el.innerHTML=`<div class="empty"><span class="empty-icon">🌿</span><p>No community posts yet. Be the first — click <strong>✏️ Post</strong> to submit!</p></div>`;return;}
+  el.innerHTML=S.communityPosts.map(p=>{
+    const imgs=p.images||[];
+    let imgHtml='';
+    if(imgs.length>1){imgHtml=buildCarousel(imgs,false);}
+    else if(imgs.length===1){const safeS=imgs[0].replace(/\\/g,'\\\\').replace(/'/g,"\\'");imgHtml=`<div class="post-img-wrap" onclick="event.stopPropagation();openLightbox('${safeS}')"><img src="${imgs[0]}" loading="lazy" alt="${esc(p.title)}"></div>`;}
+    return`<article class="post-card rv" onclick="openPostModal(${p.id},'community')">
+      ${imgHtml}
+      <div class="post-body">
+        <div class="post-meta"><span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span></div>
+        <div class="post-title">${esc(p.title)}</div>
+        ${p.author?`<div class="post-author">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':'<span class="post-user-badge">Community</span>'}</div>`:''}
+        <div class="post-content-wrap"><div class="post-content-preview">${esc(p.content)}</div></div>
         <div class="post-read-hint">📖 Click to read full post</div>
       </div>
     </article>`;
@@ -1395,7 +1461,7 @@ function submitRegistration(){
 // ═════ ADMIN ══════════════════════════════════════════
 function showInfoPanel(){document.getElementById('admin-pre').style.display='block';document.getElementById('login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='none';renderPrePanel();setTimeout(initReveal,200);}
 function showLogin(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='flex';document.getElementById('dash-wrap').style.display='none';document.getElementById('adm-pw').value='';document.getElementById('login-err').classList.remove('show');}
-function showDash(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='block';renderAdmPosts();renderAdmServers();renderAdmPlayers();renderAdmRequests();renderAdmPostReqs();loadCfg();updateReqBadge();updatePostReqBadge();}
+function showDash(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='block';renderAdmPosts();renderAdmCommunityPosts();renderAdmServers();renderAdmPlayers();renderAdmRequests();renderAdmPostReqs();loadCfg();updateReqBadge();updatePostReqBadge();}
 function renderPrePanel(){
   const admins=S.players.filter(p=>p.role==='admin'),mods=S.players.filter(p=>p.role==='mod');
   document.getElementById('pre-admins').innerHTML=admins.length?admins.map(p=>`<div class="aic-person"><img class="aic-avatar" src="${getAvatar(p,36)}" onerror="this.src='https://mc-heads.net/avatar/Steve/36'" loading="lazy"><div><div class="aic-pname">${esc(p.name)}</div><div class="aic-role-text">Admin</div></div></div>`).join(''):`<span class="aic-empty">No admins listed yet.</span>`;
@@ -1462,7 +1528,7 @@ function clearAll(){
   if(!confirm('Delete ALL data? Cannot be undone.'))return;S.posts=[];S.servers=[];S.players=[];S.requests=[];save();
   renderAdmPosts();renderAdmServers();renderAdmPlayers();renderAdmRequests();updateReqBadge();toast('All data cleared.','ok');
 }
-function updateStats(){document.getElementById('stat-srv').textContent=S.servers.length;document.getElementById('stat-pl').textContent=S.players.length;document.getElementById('stat-po').textContent=S.posts.length;}
+function updateStats(){document.getElementById('stat-srv').textContent=S.servers.length;document.getElementById('stat-pl').textContent=S.players.length;document.getElementById('stat-po').textContent=S.posts.length+(S.communityPosts||[]).length;}
 
 // ═════ MODALS ═════════════════════════════════════════
 function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
