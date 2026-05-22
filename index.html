@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SRZK SMP — Minecraft Community</title>
-<link rel="stylesheet" href="css/style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 </head>
@@ -87,7 +86,7 @@
 <!-- ══ SERVERS ════════════════════════════════════════ -->
 <div class="page" id="page-servers">
   <div class="section">
-    <div class="sec-hd rv"><span class="sec-label">Network</span><h2 class="sec-title">Our Servers</h2><p class="sec-sub">Click any server card for full details and copy options. Status is checked live via the server IP.</p></div>
+    <div class="sec-hd rv"><span class="sec-label">Network</span><h2 class="sec-title">Our Servers</h2><p class="sec-sub">Click any server card for full details and copy options. Status is checked live via the server IP. <button onclick="refreshSrvStatuses()" style="background:none;border:none;cursor:pointer;color:var(--green);font-size:13px;padding:0;vertical-align:middle" title="Refresh server statuses">🔄 Refresh</button></p></div>
     <div class="server-grid" id="server-grid"><div class="empty" style="grid-column:1/-1"><span class="empty-icon">🌐</span><p>No servers added yet.</p></div></div>
   </div>
 </div>
@@ -939,18 +938,20 @@ function copyText(text,label,btn){
     setTimeout(()=>{btn.innerHTML=orig;btn.style.color='';},2000);toast(`Copied ${label}`,'ok');
   }).catch(()=>toast('Copy failed','err'));
 }
-// ═════ SERVER STATUS CHECK (LIVE — via mcsrvstat.us) ═══
-// Works for any Minecraft server IP including Aternos (*.aternos.me).
-// Results are cached for 60 s so navigating back doesn't re-ping immediately.
+// ═════ SERVER STATUS CHECK (LIVE) ═════════════════════
+// Uses api.mcstatus.io — ~30 s server-side cache (much fresher than mcsrvstat.us's 5 min).
 const _srvCache={};
-const _SRV_TTL=60000;
+const _SRV_TTL=25000;// client-side cache: 25 s (just under the upstream cache window)
 
 function _srvApiUrl(s){
   const t=s.stype||'java';
-  if(t==='bedrock')return`https://api.mcsrvstat.us/bedrock/3/${encodeURIComponent(s.ip)}:${s.port||19132}`;
-  // cracked = Java+Bedrock: ping the Java IP for status
-  const ip=(t==='cracked'&&s.javaIp)?s.javaIp:s.ip;
-  return`https://api.mcsrvstat.us/3/${encodeURIComponent(ip)}`;
+  if(t==='bedrock'){
+    const ip=encodeURIComponent(s.ip);const port=s.port||19132;
+    return`https://api.mcstatus.io/v2/status/bedrock/${ip}:${port}`;
+  }
+  // java or cracked — use java IP for cracked
+  const ip=encodeURIComponent((t==='cracked'&&s.javaIp)?s.javaIp:s.ip);
+  return`https://api.mcstatus.io/v2/status/java/${ip}`;
 }
 
 async function _fetchSrvStatus(s,force=false){
@@ -962,8 +963,7 @@ async function _fetchSrvStatus(s,force=false){
     const r={ts:Date.now(),online:!!d.online,players:d.players||null};
     _srvCache[s.id]=r;return r;
   }catch{
-    // network error / timeout — return last-known status so badge doesn't reset
-    if(hit)return hit;
+    if(hit)return hit;// keep last-known on error
     return{ts:0,online:false,players:null};
   }
 }
@@ -971,7 +971,6 @@ async function _fetchSrvStatus(s,force=false){
 function _statusBadgeHtml(sid,status,pfx){
   const id=`${pfx}-${sid}`;
   if(!status){
-    // only shown on very first check before any result has arrived
     return`<span class="srv-badge checking" id="${id}"><span class="dp" style="background:var(--amber);animation:none;opacity:.7"></span>Checking…</span>`;
   }
   if(status.online){
@@ -981,51 +980,76 @@ function _statusBadgeHtml(sid,status,pfx){
   return`<span class="srv-badge offline" id="${id}"><span style="width:5px;height:5px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>Offline</span>`;
 }
 
+// Direct DOM update — no tmp element, no firstChild guesswork
 function _applyStatus(sid,status,pfx){
   const el=document.getElementById(`${pfx}-${sid}`);if(!el)return;
-  const tmp=document.createElement('span');
-  tmp.innerHTML=_statusBadgeHtml(sid,status,pfx);
-  const n=tmp.firstChild;
-  el.className=n.className;el.innerHTML=n.innerHTML;
+  if(!status){
+    el.className='srv-badge checking';
+    el.innerHTML=`<span class="dp" style="background:var(--amber);animation:none;opacity:.7"></span>Checking…`;
+  } else if(status.online){
+    const pl=status.players?` · ${status.players.online}/${status.players.max}`:'';
+    el.className='srv-badge online';
+    el.innerHTML=`<span class="dp"></span>Online${pl}`;
+  } else {
+    el.className='srv-badge offline';
+    el.innerHTML=`<span style="width:5px;height:5px;border-radius:50%;background:var(--red);display:inline-block;flex-shrink:0"></span>Offline`;
+  }
 }
 
 async function _checkAllStatuses(){
   for(const s of S.servers){
-    const status=await _fetchSrvStatus(s);
-    _applyStatus(s.id,status,'ss');// ss = server-status (card)
-    await new Promise(r=>setTimeout(r,300));// gentle pacing between requests
+    try{
+      const status=await _fetchSrvStatus(s);
+      _applyStatus(s.id,status,'ss');
+    }catch(e){console.warn('Status check failed:',e);}
+    await new Promise(r=>setTimeout(r,400));
   }
 }
 
 async function _checkModalStatus(sid){
   const s=S.servers.find(x=>x.id===sid);if(!s)return;
-  const status=await _fetchSrvStatus(s);
-  _applyStatus(sid,status,'ms');// ms = modal-status
+  try{
+    const status=await _fetchSrvStatus(s);
+    _applyStatus(sid,status,'ms');
+  }catch(e){console.warn('Modal status check failed:',e);}
 }
 
-// ── Polling: real-time updates while servers page is open ──
+// ── Polling: setTimeout recursive loop — reliable with async, errors don't kill the loop ──
 let _srvPollTimer=null;
-const _SRV_POLL_MS=15000;// re-ping every 15 s
+const _SRV_POLL_MS=25000;// poll every 25 s to match upstream cache window
 
 function _stopSrvPolling(){
-  if(_srvPollTimer){clearInterval(_srvPollTimer);_srvPollTimer=null;}
+  if(_srvPollTimer){clearTimeout(_srvPollTimer);_srvPollTimer=null;}
+}
+
+async function _pollCycle(){
+  // If polling was stopped while we were awaiting, don't schedule next
+  if(_srvPollTimer===null)return;
+  for(const s of S.servers){
+    if(_srvPollTimer===null)return;// check again in case nav changed
+    try{
+      const status=await _fetchSrvStatus(s,true);// force=true: bypass local cache
+      _applyStatus(s.id,status,'ss');
+      if(document.getElementById(`ms-${s.id}`))_applyStatus(s.id,status,'ms');
+    }catch(e){console.warn('Poll failed for server',s.id,e);}
+    await new Promise(r=>setTimeout(r,400));
+  }
+  // Schedule next cycle only if still on servers page
+  if(_srvPollTimer!==null){
+    _srvPollTimer=setTimeout(_pollCycle,_SRV_POLL_MS);
+  }
 }
 
 function _startSrvPolling(){
   _stopSrvPolling();
-  _srvPollTimer=setInterval(async()=>{
-    if(!S.servers.length)return;
-    for(const s of S.servers){
-      // force=true bypasses the TTL so we always get a fresh ping,
-      // but we do NOT clear the cache first — the badge keeps showing
-      // the last-known status while the request is in-flight, so the
-      // user never sees a "Checking…" flicker between polls.
-      const status=await _fetchSrvStatus(s,true);
-      _applyStatus(s.id,status,'ss');
-      if(document.getElementById(`ms-${s.id}`))_applyStatus(s.id,status,'ms');
-      await new Promise(r=>setTimeout(r,500));// pace requests gently
-    }
-  },_SRV_POLL_MS);
+  _srvPollTimer=setTimeout(_pollCycle,_SRV_POLL_MS);// first poll after initial delay
+}
+
+// Manual refresh — clears cache and re-checks all servers immediately
+function refreshSrvStatuses(){
+  S.servers.forEach(s=>delete _srvCache[s.id]);
+  S.servers.forEach(s=>_applyStatus(s.id,null,'ss'));// show Checking… immediately
+  _checkAllStatuses();
 }
 
 function renderServers(){
