@@ -942,7 +942,7 @@ function copyText(text,label,btn){
 // ═════ SERVER STATUS CHECK (LIVE) ═════════════════════
 // Uses api.mcstatus.io — ~30 s server-side cache (much fresher than mcsrvstat.us's 5 min).
 const _srvCache={};
-const _SRV_TTL=25000;// client-side cache: 25 s (just under the upstream cache window)
+const _SRV_TTL=15000;// client-side cache: 25 s (just under the upstream cache window)
 
 function _srvApiUrl(s){
   const t=s.stype||'java';
@@ -1017,7 +1017,7 @@ async function _checkModalStatus(sid){
 
 // ── Polling: setTimeout recursive loop — reliable with async, errors don't kill the loop ──
 let _srvPollTimer=null;
-const _SRV_POLL_MS=25000;// poll every 25 s to match upstream cache window
+const _SRV_POLL_MS=15000;// poll every 25 s to match upstream cache window
 
 function _stopSrvPolling(){
   if(_srvPollTimer){clearTimeout(_srvPollTimer);_srvPollTimer=null;}
