@@ -383,6 +383,27 @@
     <div id="req-modal-body"></div>
   </div>
 </div>
+
+<!-- Confirmation dialog — replaces browser confirm() -->
+<div class="modal-overlay" id="confirm-modal" onclick="if(event.target===this)closeModal('confirm-modal')">
+  <div class="modal-box confirm-box" onclick="event.stopPropagation()">
+    <div class="confirm-icon-wrap danger" id="confirm-icon-wrap"><span id="confirm-icon">⚠️</span></div>
+    <div class="confirm-title" id="confirm-title">Are you sure?</div>
+    <p class="confirm-msg" id="confirm-msg"></p>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="closeModal('confirm-modal')">Cancel</button>
+      <button class="btn btn-danger" id="confirm-ok-btn" onclick="_confirmOk()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Post Request review modal -->
+<div class="modal-overlay" id="postreq-modal" onclick="if(event.target===this)closeModal('postreq-modal')">
+  <div class="modal-box postreq-modal-box" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('postreq-modal')">✕</button>
+    <div class="postreq-modal-scroll" id="postreq-modal-body"></div>
+  </div>
+</div>
 <div class="lightbox-overlay" id="lightbox" onclick="if(event.target===this||event.target.classList.contains('lightbox-overlay'))closeLightbox()">
   <button class="lightbox-close" onclick="closeLightbox()">✕</button>
   <img class="lightbox-img" id="lightbox-img" src="" alt="">
@@ -815,7 +836,8 @@ function renderAdmPostReqs(){
     <div class="post-req-body">${esc(r.content)}</div>
     ${(r.images||[]).length?`<div class="post-req-imgs">${r.images.map(src=>`<img src="${src}" loading="lazy" onclick="openLightbox('${src.replace(/'/g,"\\'")}');event.stopPropagation()">`).join('')}</div>`:''}
     <div class="post-req-actions">
-      <button class="btn btn-primary btn-sm" onclick="approvePostReq(${r.id})">✅ Approve & Publish</button>
+      <button class="btn btn-ghost btn-sm" onclick="openPostReqModal(${r.id})">👁️ Review</button>
+      <button class="btn btn-primary btn-sm" onclick="approvePostReq(${r.id})">✅ Approve</button>
       <button class="btn btn-danger btn-sm" onclick="denyPostReq(${r.id})">✕ Deny</button>
     </div>
   </div>`).join('');
@@ -830,20 +852,22 @@ function approvePostReq(id){
   save();renderAdmPostReqs();renderAdmCommunityPosts();updatePostReqBadge();toast(`"${r.title}" posted to Community! ✅`,'ok');
 }
 function denyPostReq(id){
-  if(!confirm('Deny and remove this post request?'))return;
-  const r=S.postReqs.find(x=>x.id===id);if(!r)return;
-  (r.imageIds||[]).forEach(pid=>_clDelete(pid));// clean up Cloudinary images
-  S.postReqs=S.postReqs.filter(x=>x.id!==id);
-  save();renderAdmPostReqs();updatePostReqBadge();toast('Request denied and removed.','ok');
+  confirmAction('This post request and any uploaded images will be permanently removed.',()=>{
+    const r=S.postReqs.find(x=>x.id===id);if(!r)return;
+    (r.imageIds||[]).forEach(pid=>_clDelete(pid));
+    S.postReqs=S.postReqs.filter(x=>x.id!==id);
+    save();renderAdmPostReqs();updatePostReqBadge();toast('Request denied and removed.','ok');
+  },{icon:'✕',iconStyle:'danger',title:'Deny Post Request?',okLabel:'Deny & Remove'});
 }
 function delPost(id,pool='updates'){
-  if(!confirm('Delete this post?'))return;
-  const arr=pool==='community'?S.communityPosts:S.posts;
-  const p=arr.find(x=>x.id===id);
-  if(p)(p.imageIds||[]).forEach(pid=>_clDelete(pid));
-  if(pool==='community'){S.communityPosts=S.communityPosts.filter(x=>x.id!==id);save();renderAdmCommunityPosts();}
-  else{S.posts=S.posts.filter(x=>x.id!==id);save();renderAdmPosts();}
-  toast('Post deleted.','ok');
+  confirmAction('This post and all its images will be permanently deleted.',()=>{
+    const arr=pool==='community'?S.communityPosts:S.posts;
+    const p=arr.find(x=>x.id===id);
+    if(p)(p.imageIds||[]).forEach(pid=>_clDelete(pid));
+    if(pool==='community'){S.communityPosts=S.communityPosts.filter(x=>x.id!==id);save();renderAdmCommunityPosts();}
+    else{S.posts=S.posts.filter(x=>x.id!==id);save();renderAdmPosts();}
+    toast('Post deleted.','ok');
+  },{icon:'🗑️',iconStyle:'danger',title:'Delete Post?',okLabel:'Delete'});
 }
 function openEditPost(id,pool='updates'){
   const arr=pool==='community'?S.communityPosts:S.posts;
@@ -1067,9 +1091,10 @@ function clearSrv(){
   const pr=document.getElementById('s-img-preview');pr.style.display='none';pr.src='';document.getElementById('s-img-input').value='';srvImg=null;srvImgId=null;onSrvTypeChange('s');
 }
 function delServer(id){
-  if(!confirm('Remove this server?'))return;
-  const s=S.servers.find(x=>x.id===id);if(s&&s.imageId)_clDelete(s.imageId);
-  S.servers=S.servers.filter(x=>x.id!==id);save();renderAdmServers();toast('Server removed.','ok');
+  confirmAction('This server will be removed from the list.',()=>{
+    const s=S.servers.find(x=>x.id===id);if(s&&s.imageId)_clDelete(s.imageId);
+    S.servers=S.servers.filter(x=>x.id!==id);save();renderAdmServers();toast('Server removed.','ok');
+  },{icon:'🌐',iconStyle:'danger',title:'Remove Server?',okLabel:'Remove',okClass:'btn-danger'});
 }
 function openEditServer(id){
   const s=S.servers.find(x=>x.id===id);if(!s)return;editImg=s.image||null;editImgId=s.imageId||null;
@@ -1303,9 +1328,10 @@ function addPlayer(){
   clearTypeTags('adm-type-tags','adm');
 }
 function delPlayer(id){
-  if(!confirm('Remove this player?'))return;
-  const p=S.players.find(x=>x.id===id);if(p&&p.imageId)_clDelete(p.imageId);
-  S.players=S.players.filter(x=>x.id!==id);save();renderAdmPlayers();toast('Player removed.','ok');
+  confirmAction('This player will be removed from the roster.',()=>{
+    const p=S.players.find(x=>x.id===id);if(p&&p.imageId)_clDelete(p.imageId);
+    S.players=S.players.filter(x=>x.id!==id);save();renderAdmPlayers();toast('Player removed.','ok');
+  },{icon:'👤',iconStyle:'danger',title:'Remove Player?',okLabel:'Remove',okClass:'btn-danger'});
 }
 function openEditPlayer(id){
   const p=S.players.find(x=>x.id===id);if(!p)return;editImg=p.image||null;editImgId=p.imageId||null;window._editTypes=[...(p.playerTypes||[])];
@@ -1501,7 +1527,10 @@ function approveRequest(id){
   save();closeModal('req-modal');renderAdmRequests();renderAdmPlayers();updateReqBadge();toast(`${req.ign} approved! ✅`,'ok');
 }
 function denyRequest(id){
-  if(!confirm('Deny this request?'))return;const req=S.requests.find(x=>x.id===id);if(!req)return;req.status='denied';save();closeModal('req-modal');renderAdmRequests();updateReqBadge();toast(`Request from ${req.ign} denied.`,'ok');
+  confirmAction('This registration application will be denied.',()=>{
+    const req=S.requests.find(x=>x.id===id);if(!req)return;
+    req.status='denied';save();closeModal('req-modal');renderAdmRequests();updateReqBadge();toast(`Request from ${req.ign} denied.`,'ok');
+  },{icon:'❌',iconStyle:'danger',title:'Deny Application?',okLabel:'Deny',okClass:'btn-danger'});
 }
 function renderAdmRequests(){
   const el=document.getElementById('adm-requests');const pending=S.requests.filter(r=>r.status==='pending');
@@ -1525,14 +1554,132 @@ function saveSettings(){
   save();document.getElementById('cfg-pw').value='';toast('Settings saved ✅','ok');
 }
 function clearAll(){
-  if(!confirm('Delete ALL data? Cannot be undone.'))return;S.posts=[];S.servers=[];S.players=[];S.requests=[];save();
+  confirmAction('This will wipe ALL posts, servers, players and requests. This cannot be undone.',()=>{S.posts=[];S.communityPosts=[];S.servers=[];S.players=[];S.requests=[];S.postReqs=[];save();renderAdmPosts();renderAdmCommunityPosts();renderAdmServers();renderAdmPlayers();renderAdmRequests();renderAdmPostReqs();updatePostReqBadge();updateReqBadge();updateStats();toast('All data cleared.','ok');},{icon:'🗑️',title:'Clear All Data?',okLabel:'Delete Everything'});
   renderAdmPosts();renderAdmServers();renderAdmPlayers();renderAdmRequests();updateReqBadge();toast('All data cleared.','ok');
 }
 function updateStats(){document.getElementById('stat-srv').textContent=S.servers.length;document.getElementById('stat-pl').textContent=S.players.length;document.getElementById('stat-po').textContent=S.posts.length+(S.communityPosts||[]).length;}
 
-// ═════ MODALS ═════════════════════════════════════════
+// ═════ CUSTOM SELECT DROPDOWNS ════════════════════════
+// Wraps every <select> with a fully styled custom dropdown that matches the site design.
+// MutationObserver handles dynamically injected selects (edit modals, etc.).
+function _wrapSel(sel){
+  if(sel._csW||!sel.parentNode)return;sel._csW=true;
+  const wrap=document.createElement('div');wrap.className='csel';
+  sel.parentNode.insertBefore(wrap,sel);wrap.appendChild(sel);
+  sel.style.cssText='position:absolute;opacity:0;pointer-events:none;width:1px;height:1px';
+
+  const btn=document.createElement('button');btn.type='button';btn.className='csel-btn';
+  const list=document.createElement('div');list.className='csel-list';
+
+  const sync=(keepOpen=false)=>{
+    const opts=Array.from(sel.options);
+    btn.textContent=sel.options[sel.selectedIndex]?.text||'Select…';
+    list.innerHTML='';
+    opts.forEach((o,i)=>{
+      const ob=document.createElement('button');
+      ob.type='button';ob.className='csel-opt'+(sel.selectedIndex===i?' sel':'');
+      ob.textContent=o.textContent;
+      ob.addEventListener('click',e=>{
+        e.stopPropagation();
+        sel.selectedIndex=i;
+        sel.dispatchEvent(new Event('change',{bubbles:true}));
+        sync();wrap.classList.remove('open');
+      });
+      list.appendChild(ob);
+    });
+    if(!keepOpen){}// placeholder for future use
+  };
+  sync();
+
+  btn.addEventListener('click',e=>{
+    e.stopPropagation();
+    // Close other open dropdowns
+    document.querySelectorAll('.csel.open').forEach(c=>{if(c!==wrap)c.classList.remove('open');});
+    wrap.classList.toggle('open');
+    // Scroll selected option into view
+    if(wrap.classList.contains('open')){
+      const sel2=list.querySelector('.sel');if(sel2)sel2.scrollIntoView({block:'nearest'});
+    }
+  });
+
+  // Keep in sync when native select value changes externally
+  sel.addEventListener('change',()=>sync());
+
+  wrap.appendChild(btn);wrap.appendChild(list);
+
+  // Reposition list above if not enough space below
+  const reposition=()=>{
+    const r=wrap.getBoundingClientRect();
+    const spaceBelow=window.innerHeight-r.bottom;
+    list.style.bottom=spaceBelow<200?`calc(100% + 5px)`:'';
+    list.style.top=spaceBelow<200?'':'';
+  };
+  btn.addEventListener('click',reposition);
+}
+
+// Close all dropdowns on outside click
+document.addEventListener('click',()=>document.querySelectorAll('.csel.open').forEach(c=>c.classList.remove('open')));
+// Close on Escape
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.querySelectorAll('.csel.open').forEach(c=>c.classList.remove('open'));});
+
+function _initSelects(){
+  document.querySelectorAll('select:not([data-csi])').forEach(s=>{s.dataset.csi='1';_wrapSel(s);});
+}
+
+// Auto-init selects injected via innerHTML (edit modals, dynamic forms)
+const _csMob=new MutationObserver(muts=>{
+  muts.forEach(m=>m.addedNodes.forEach(n=>{
+    if(!n||n.nodeType!==1)return;
+    if(n.tagName==='SELECT'&&!n.dataset.csi){n.dataset.csi='1';_wrapSel(n);}
+    n.querySelectorAll&&n.querySelectorAll('select:not([data-csi])').forEach(s=>{s.dataset.csi='1';_wrapSel(s);});
+  }));
+});
+_csMob.observe(document.body,{childList:true,subtree:true});
 function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
 function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+
+// ─── Custom confirm dialog ─────────────────────────────
+let _confirmCb=null;
+function confirmAction(msg,cb,{icon='⚠️',iconStyle='danger',title='Are you sure?',okLabel='Confirm',okClass='btn-danger'}={}){
+  _confirmCb=cb;
+  document.getElementById('confirm-icon').textContent=icon;
+  document.getElementById('confirm-icon-wrap').className=`confirm-icon-wrap ${iconStyle}`;
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-msg').textContent=msg;
+  const btn=document.getElementById('confirm-ok-btn');btn.textContent=okLabel;btn.className=`btn ${okClass}`;
+  openModal('confirm-modal');
+}
+function _confirmOk(){
+  closeModal('confirm-modal');
+  if(_confirmCb){const cb=_confirmCb;_confirmCb=null;cb();}
+}
+
+// ─── Post Request review modal ─────────────────────────
+function openPostReqModal(id){
+  const r=S.postReqs.find(x=>x.id===id);if(!r)return;
+  const imgs=r.images||[];
+  let imgHtml='';
+  if(imgs.length>1){
+    imgHtml=`<div class="postreq-modal-carousel">${buildCarousel(imgs,true)}</div>`;
+  } else if(imgs.length===1){
+    const safe=imgs[0].replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    imgHtml=`<div class="postreq-modal-single" onclick="openLightbox('${safe}')"><img src="${imgs[0]}" loading="lazy" alt="${esc(r.title)}"></div>`;
+  }
+  document.getElementById('postreq-modal-body').innerHTML=`
+    <div class="postreq-modal-header">
+      <div class="postreq-modal-user">👤 ${esc(r.username)}</div>
+      <div class="postreq-modal-date">${esc(r.requestedAt)}</div>
+    </div>
+    <div class="postreq-modal-tag"><span class="badge bg">${esc(r.tag)}</span></div>
+    ${imgHtml}
+    <div class="postreq-modal-title">${esc(r.title)}</div>
+    <div class="postreq-modal-content">${esc(r.content)}</div>
+    <div class="postreq-modal-actions">
+      <button class="btn btn-primary" onclick="approvePostReq(${r.id});closeModal('postreq-modal')">✅ Approve & Publish to Community</button>
+      <button class="btn btn-danger" onclick="closeModal('postreq-modal');denyPostReq(${r.id})">✕ Deny Request</button>
+    </div>`;
+  openModal('postreq-modal');
+}
 function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden';}
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open');document.body.style.overflow='';}
 
@@ -1611,6 +1758,7 @@ function empty(icon,msg){return`<div class="empty"><span class="empty-icon">${ic
 // ═════ INIT ═══════════════════════════════════════════
 async function _init(){
   await load();          // waits for first Firestore snapshot
+  _initSelects();        // wrap all native selects with custom dropdowns
   updateStats();
   renderHome();
   document.getElementById('pl-date').valueAsDate=new Date();
