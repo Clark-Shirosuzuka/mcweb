@@ -152,6 +152,9 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 .post-content-wrap::after{content:'';position:absolute;bottom:0;left:0;right:0;height:48px;background:linear-gradient(to bottom,transparent,var(--surf));pointer-events:none}
 .post-read-hint{font-size:11px;color:var(--txt3);margin-top:12px;font-family:var(--mf);display:flex;align-items:center;gap:4px}
 .post-author{font-size:11px;color:var(--txt3);font-family:var(--mf);margin-top:5px;display:flex;align-items:center;gap:6px}
+.post-pin-badge{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.3);font-size:9.5px;font-family:var(--mf);font-weight:700;padding:1px 7px;border-radius:100px;letter-spacing:.04em;text-transform:uppercase}
+.post-card.pinned{border-color:rgba(251,191,36,.3);box-shadow:0 0 0 1px rgba(251,191,36,.15)}
+.post-card.pinned:hover{border-color:rgba(251,191,36,.5)}
 .post-admin-badge{background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3);font-size:9.5px;font-family:var(--mf);font-weight:700;padding:1px 7px;border-radius:100px;letter-spacing:.04em;text-transform:uppercase}
 .post-mod-badge{background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3);font-size:9.5px;font-family:var(--mf);font-weight:700;padding:1px 7px;border-radius:100px;letter-spacing:.04em;text-transform:uppercase}
 .post-user-badge{background:rgba(99,179,237,.12);color:#63b3ed;border:1px solid rgba(99,179,237,.25);font-size:9.5px;font-family:var(--mf);font-weight:600;padding:1px 7px;border-radius:100px}

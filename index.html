@@ -898,7 +898,7 @@ function openPostModal(postId,pool){
   const carHtml=imgs.length?`<div class="post-detail-carousel" style="border-radius:10px;overflow:hidden;margin-bottom:18px;background:var(--surf2)">${buildCarousel(imgs,true)}</div>`:'';
   document.getElementById('post-detail-body').innerHTML=`
     ${carHtml}
-    <div class="post-detail-meta"><span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span>${p.author?`<span class="post-author" style="margin-left:auto">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>')}</span>`:''}</div>
+    <div class="post-detail-meta">${p.pinned?'<span class="post-pin-badge">📌 Pinned</span>':''}<span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span>${p.author?`<span class="post-author" style="margin-left:auto">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>')}</span>`:''}</div>
     <div class="post-detail-title">${esc(p.title)}</div>
     <div class="post-full-content">${esc(p.content)}</div>`;
   openModal('post-detail-modal');
@@ -1158,7 +1158,7 @@ function renderAdmPosts(){
     <td><span class="badge bg">${esc(p.tag)}</span>${p.isMod?'<span class="badge bp" style="margin-left:4px">Mod</span>':''}</td>
     <td style="font-family:var(--mf);font-size:10px;white-space:nowrap">${esc(p.date)}</td>
     <td style="font-family:var(--mf);font-size:11px;color:var(--txt2)">${(p.images||[]).length||'—'}</td>
-    <td><div class="tbl-actions"><button class="icon-btn" onclick="openEditPost(${p.id},'updates')">✏️</button><button class="icon-btn del" onclick="delPost(${p.id},'updates')">🗑️</button></div></td>
+    <td><div class="tbl-actions"><button class="icon-btn" title="${p.pinned?'Unpin':'Pin'}" onclick="togglePin(${p.id},'updates')">${p.pinned?'📌':'📍'}</button><button class="icon-btn" onclick="openEditPost(${p.id},'updates')">✏️</button><button class="icon-btn del" onclick="delPost(${p.id},'updates')">🗑️</button></div></td>
   </tr>`).join('')}</tbody></table></div>`;
 }
 function renderAdmCommunityPosts(){
@@ -1169,14 +1169,15 @@ function renderAdmCommunityPosts(){
     <td style="font-family:var(--mf);font-size:11px;color:var(--txt2)">${esc(p.author||'—')}</td>
     <td><span class="badge bg">${esc(p.tag)}</span></td>
     <td style="font-family:var(--mf);font-size:10px;white-space:nowrap">${esc(p.date)}</td>
-    <td><div class="tbl-actions"><button class="icon-btn del" onclick="delPost(${p.id},'community')">🗑️</button></div></td>
+    <td><div class="tbl-actions"><button class="icon-btn" title="${p.pinned?'Unpin':'Pin'}" onclick="togglePin(${p.id},'community')">${p.pinned?'📌':'📍'}</button><button class="icon-btn del" onclick="delPost(${p.id},'community')">🗑️</button></div></td>
   </tr>`).join('')}</tbody></table></div>`;
 }
 function tagEmoji(t){return{Announcement:'📢',Update:'🔧',Maintenance:'🚧',Event:'🎉',News:'📰'}[t]||'📋';}
 function renderUpdates(){
   const el=document.getElementById('updates-list');
   if(!S.posts.length){el.innerHTML=`<div class="empty"><span class="empty-icon">📢</span><p>No updates yet.</p></div>`;return;}
-  el.innerHTML=S.posts.map(p=>{
+  const sorted=[...S.posts].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+  el.innerHTML=sorted.map(p=>{
     const imgs=p.images||[];
     // Build image section: multi = carousel, single = lightbox img
     let imgHtml='';
@@ -1186,10 +1187,10 @@ function renderUpdates(){
       const safeS=imgs[0].replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       imgHtml=`<div class="post-img-wrap" onclick="event.stopPropagation();openLightbox('${safeS}')"><img src="${imgs[0]}" loading="lazy" alt="${esc(p.title)}"></div>`;
     }
-    return`<article class="post-card rv" onclick="openPostModal(${p.id})">
+    return`<article class="post-card rv${p.pinned?' pinned':''}" onclick="openPostModal(${p.id})">
       ${imgHtml}
       <div class="post-body">
-        <div class="post-meta"><span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span></div>
+        <div class="post-meta">${p.pinned?'<span class="post-pin-badge">📌 Pinned</span>':''}<span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span></div>
         <div class="post-title">${esc(p.title)}</div>
         <div class="post-content-wrap">
           <div class="post-content-preview">${esc(p.content)}</div>
@@ -1203,15 +1204,16 @@ function renderUpdates(){
 function renderCommunity(){
   const el=document.getElementById('community-list');if(!el)return;
   if(!S.communityPosts.length){el.innerHTML=`<div class="empty"><span class="empty-icon">🌿</span><p>No community posts yet. Be the first — click <strong>✏️ Post</strong> to submit!</p></div>`;return;}
-  el.innerHTML=S.communityPosts.map(p=>{
+  const sortedC=[...S.communityPosts].sort((a,b)=>(b.pinned?1:0)-(a.pinned?1:0));
+  el.innerHTML=sortedC.map(p=>{
     const imgs=p.images||[];
     let imgHtml='';
     if(imgs.length>1){imgHtml=buildCarousel(imgs,false);}
     else if(imgs.length===1){const safeS=imgs[0].replace(/\\/g,'\\\\').replace(/'/g,"\\'");imgHtml=`<div class="post-img-wrap" onclick="event.stopPropagation();openLightbox('${safeS}')"><img src="${imgs[0]}" loading="lazy" alt="${esc(p.title)}"></div>`;}
-    return`<article class="post-card rv" onclick="openPostModal(${p.id},'community')">
+    return`<article class="post-card rv${p.pinned?' pinned':''}" onclick="openPostModal(${p.id},'community')">
       ${imgHtml}
       <div class="post-body">
-        <div class="post-meta"><span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span></div>
+        <div class="post-meta">${p.pinned?'<span class="post-pin-badge">📌 Pinned</span>':''}<span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span></div>
         <div class="post-title">${esc(p.title)}</div>
         ${p.author?`<div class="post-author">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>')}</div>`:''}
         <div class="post-content-wrap"><div class="post-content-preview">${esc(p.content)}</div></div>
@@ -2181,7 +2183,7 @@ function renderModPosts(){
     <td><span class="badge bg">${esc(p.tag)}</span></td>
     <td><span class="badge ${p.isAdmin?'bg':p.isMod?'bp':'bc'}">${p.isAdmin?'Admin':p.isMod?'Mod':'Community'}</span></td>
     <td style="font-family:var(--mf);font-size:10px;white-space:nowrap">${esc(p.date)}</td>
-    <td><div class="tbl-actions"><button class="icon-btn del" title="Request deletion" onclick="modRequestPostDel(${p.id},'updates')" ${S.delReqs&&S.delReqs.some(d=>d.targetId===p.id&&d.status==='pending')?'disabled style="opacity:.4;cursor:not-allowed"':''}>🗑️</button></div></td>
+    <td><div class="tbl-actions"><button class="icon-btn" title="${p.pinned?'Unpin':'Pin'}" onclick="togglePin(${p.id},'updates')">${p.pinned?'📌':'📍'}</button><button class="icon-btn del" title="Request deletion" onclick="modRequestPostDel(${p.id},'updates')" ${S.delReqs&&S.delReqs.some(d=>d.targetId===p.id&&d.status==='pending')?'disabled style="opacity:.4;cursor:not-allowed"':''}>🗑️</button></div></td>
   </tr>`).join('')}</tbody></table></div>`;
 }
 function renderModCommunityPosts(){
@@ -2192,7 +2194,7 @@ function renderModCommunityPosts(){
     <td><span class="badge bg">${esc(p.tag)}</span></td>
     <td><span class="badge ${p.isAdmin?'bg':p.isMod?'bp':'bc'}">${p.isAdmin?'Admin':p.isMod?'Mod':'Community'}</span></td>
     <td style="font-family:var(--mf);font-size:10px;white-space:nowrap">${esc(p.date)}</td>
-    <td><div class="tbl-actions"><button class="icon-btn del" title="Request deletion" onclick="modRequestPostDel(${p.id},'community')" ${S.delReqs&&S.delReqs.some(d=>d.targetId===p.id&&d.status==='pending')?'disabled style="opacity:.4;cursor:not-allowed"':''}>🗑️</button></div></td>
+    <td><div class="tbl-actions"><button class="icon-btn" title="${p.pinned?'Unpin':'Pin'}" onclick="togglePin(${p.id},'community')">${p.pinned?'📌':'📍'}</button><button class="icon-btn del" title="Request deletion" onclick="modRequestPostDel(${p.id},'community')" ${S.delReqs&&S.delReqs.some(d=>d.targetId===p.id&&d.status==='pending')?'disabled style="opacity:.4;cursor:not-allowed"':''}>🗑️</button></div></td>
   </tr>`).join('')}</tbody></table></div>`;
 }
 
@@ -2645,6 +2647,26 @@ function admDeclineDelReq(id){
     save();renderAdmDelReqs();updateAdmDelReqBadge();
     toast('Deletion request declined. Item kept.','ok');
   },{icon:'✕',iconStyle:'warn',title:'Decline Deletion Request?',okLabel:'Decline Request',okClass:'btn-ghost'});
+}
+
+// ═════ PINNED POSTS ══════════════════════════════════
+
+function togglePin(postId, pool){
+  const arr=pool==='community'?S.communityPosts:S.posts;
+  const p=arr.find(x=>x.id===postId);if(!p)return;
+  p.pinned=!p.pinned;
+  save();
+  // Refresh all relevant views
+  if(pool==='community'){
+    renderAdmCommunityPosts();
+    renderCommunity();
+    if(S.modAuthed)renderModCommunityPosts();
+  } else {
+    renderAdmPosts();
+    renderUpdates();
+    if(S.modAuthed)renderModPosts();
+  }
+  toast(p.pinned?`"${p.title}" pinned! 📌`:`"${p.title}" unpinned.`,'ok');
 }
 
 // ═════ SCROLL REVEAL ══════════════════════════════════
