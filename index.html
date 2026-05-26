@@ -210,7 +210,10 @@
         <div id="pre-discord-wrap" style="display:none"><a id="pre-discord-link" href="#" target="_blank" class="btn btn-green-ghost btn-sm" style="text-decoration:none;display:inline-flex">💬 Message Admin</a></div>
       </div>
       <div class="pre-divider rv rv-d3">Are you staff?</div>
-      <div class="admin-pre-cta rv rv-d4"><div class="admin-pre-q">I'm the Admin</div><div class="admin-pre-hint">Sign in to manage servers, players, posts & review applications</div><button class="btn btn-primary" onclick="showLogin()">🔐 Sign In to Admin Panel</button></div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="admin-pre-cta rv rv-d4"><div class="admin-pre-q">I'm the Admin</div><div class="admin-pre-hint">Sign in to manage servers, players, posts &amp; review applications</div><button class="btn btn-primary" onclick="showLogin()">🔐 Sign In to Admin Panel</button></div>
+        <div class="admin-pre-cta rv rv-d4" style="border-color:rgba(192,132,252,.22);background:rgba(192,132,252,.04)"><div class="admin-pre-q" style="color:var(--purple)">I'm a Moderator</div><div class="admin-pre-hint">Sign in to review requests and post community updates</div><button class="btn btn-sm" style="background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3)" onclick="showModLogin()">🛡️ Sign In to Moderator Panel</button></div>
+      </div>
     </div>
   </div>
   <div class="admin-login-wrap" id="login-wrap" style="display:none">
@@ -234,6 +237,7 @@
         <button class="tab" onclick="switchTab(this,'tab-players')">👥 Players</button>
         <button class="tab" id="tab-postreq-btn" onclick="switchTab(this,'tab-post-requests')">✏️ Post Requests<span class="tab-badge" id="postreq-badge"></span></button>
         <button class="tab" id="tab-req-btn" onclick="switchTab(this,'tab-requests')">📋 Requests<span class="tab-badge" id="req-badge">0</span></button>
+        <button class="tab" id="tab-delreq-btn" onclick="switchTab(this,'tab-del-requests')">🗑️ Deletion Requests<span class="tab-badge" id="delreq-badge" style="background:rgba(248,113,113,.8)"></span></button>
         <button class="tab" onclick="switchTab(this,'tab-settings')">⚙️ Settings</button>
       </div>
       <div class="panel active" id="tab-posts">
@@ -325,6 +329,11 @@
         <div class="card-box" style="background:var(--surf2);border-style:dashed;margin-bottom:18px"><p style="font-size:13px;color:var(--txt2)">✏️ Review community post requests. Approve to publish directly to Community Updates, or deny to remove.</p></div>
         <div id="adm-post-requests"><div class="empty"><span class="empty-icon">✏️</span><p>No pending post requests.</p></div></div>
       </div>
+      <!-- DELETION REQUESTS -->
+      <div class="panel" id="tab-del-requests">
+        <div class="card-box" style="background:var(--surf2);border-style:dashed;margin-bottom:18px"><p style="font-size:13px;color:var(--txt2)">🗑️ These are deletion requests submitted by moderators. Approve to permanently delete the item, or decline to keep it.</p></div>
+        <div id="adm-del-requests"><div class="empty"><span class="empty-icon">🗑️</span><p>No pending deletion requests.</p></div></div>
+      </div>
       <!-- SETTINGS -->
       <div class="panel" id="tab-settings">
         <div class="card-box"><h3>⚙️ Community Settings</h3>
@@ -350,6 +359,18 @@
             </div>
             <p style="font-size:11.5px;color:var(--txt3);margin-top:6px">Both fields required to change the admin password.</p>
           </div>
+          <div class="form-group" style="margin-top:18px;padding-top:18px;border-top:1px solid var(--border)">
+            <label>Change Moderator Password <span style="font-size:10px;font-family:var(--mf);color:var(--purple);background:rgba(192,132,252,.12);border:1px solid rgba(192,132,252,.25);padding:1px 7px;border-radius:100px;vertical-align:middle;margin-left:4px">Moderator</span></label>
+            <div class="pw-wrap" style="margin-bottom:8px">
+              <input type="password" id="cfg-mod-pw" placeholder="New moderator password">
+              <button class="pw-toggle" type="button" onclick="togglePw('cfg-mod-pw',this)">👁️</button>
+            </div>
+            <div class="pw-wrap">
+              <input type="password" id="cfg-mod-pw-confirm" placeholder="Confirm new moderator password">
+              <button class="pw-toggle" type="button" onclick="togglePw('cfg-mod-pw-confirm',this)">👁️</button>
+            </div>
+            <p style="font-size:11.5px;color:var(--txt3);margin-top:6px">Set a new password for the Moderator Panel. Both fields must match.</p>
+          </div>
           <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
         </div>
         <div class="card-box"><h3 style="color:var(--red)">🗑️ Danger Zone</h3>
@@ -369,6 +390,84 @@
           <button class="btn btn-ghost btn-sm" style="margin-bottom:14px" onclick="saveDeletionPw()">Save Deletion Password</button>
           <div style="border-top:1px solid var(--border);padding-top:14px">
             <button class="btn btn-danger" onclick="clearAll()">Clear All Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- ── MOD LOGIN ── -->
+  <div class="admin-login-wrap" id="mod-login-wrap" style="display:none">
+    <div class="login-card" id="mod-login-card">
+      <div class="login-top"><div class="login-icon" style="background:rgba(192,132,252,.12);border-color:rgba(192,132,252,.25)">🛡️</div><h2 style="color:var(--purple)">Moderator Sign In</h2><p class="sub">Enter your moderator password to continue</p></div>
+      <div class="login-err" id="mod-login-err">Incorrect password. Please try again.</div>
+      <div class="form-group"><label>Password</label>
+        <div class="pw-wrap"><input type="password" id="mod-pw" placeholder="Enter moderator password" onkeydown="if(event.key==='Enter')doModLogin()"><button class="pw-toggle" type="button" onclick="togglePw('mod-pw',this)">👁️</button></div>
+      </div>
+      <button class="btn btn-sm" style="width:100%;background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3)" onclick="doModLogin()">Sign In as Moderator</button>
+      <button class="btn btn-ghost" style="width:100%;margin-top:9px" onclick="showInfoPanel()">← Back to Staff Info</button>
+      <p style="text-align:center;font-size:10.5px;color:var(--txt3);margin-top:14px"><span style="font-family:var(--mf);color:var(--purple)">Welcome Back Moderator!</span></p>
+    </div>
+  </div>
+  <!-- ── MOD DASHBOARD ── -->
+  <div id="mod-dash-wrap" style="display:none">
+    <div class="admin-dash">
+      <div class="dash-hd"><div><div class="dash-title" style="color:var(--purple)">🛡️ Moderator Panel</div><div class="dash-sub">Manage community posts &amp; review requests</div></div><button class="btn btn-ghost btn-sm" onclick="doModLogout()">Sign Out</button></div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchModTab(this,'mod-tab-posts')">📢 Posts</button>
+        <button class="tab" id="mod-tab-postreq-btn" onclick="switchModTab(this,'mod-tab-post-requests')">✏️ Post Requests<span class="tab-badge" id="mod-postreq-badge"></span></button>
+        <button class="tab" id="mod-tab-req-btn" onclick="switchModTab(this,'mod-tab-requests')">📋 Requests<span class="tab-badge" id="mod-req-badge"></span></button>
+        <button class="tab" onclick="switchModTab(this,'mod-tab-players')">👥 Players</button>
+        <button class="tab" onclick="switchModTab(this,'mod-tab-servers')">🌐 Servers</button>
+        <button class="tab" onclick="switchModTab(this,'mod-tab-settings')">⚙️ Settings</button>
+      </div>
+      <!-- MOD POSTS TAB -->
+      <div class="panel active" id="mod-tab-posts">
+        <div class="card-box"><h3>📝 New Post <span style="font-size:10px;font-family:var(--mf);color:var(--purple);background:rgba(192,132,252,.12);border:1px solid rgba(192,132,252,.25);padding:2px 8px;border-radius:100px;vertical-align:middle">Moderator</span></h3>
+          <div class="form-group"><label>Title</label><input type="text" id="mp-title" placeholder="Post title…"></div>
+          <div class="form-group"><label>Tag</label><select id="mp-tag"><option>Announcement</option><option>Update</option><option>Maintenance</option><option>Event</option><option>News</option></select></div>
+          <div class="form-group"><label>Content</label><textarea id="mp-content" placeholder="Write your update here…"></textarea></div>
+          <div class="form-group"><label>Images <span class="label-opt">(optional — select multiple)</span></label>
+            <div class="upload-area" id="mod-upload-area"><input type="file" id="mp-img-input" accept="image/*" multiple onchange="handleModMultiImg(this)">
+              <span class="up-icon">🖼️</span><span class="up-text">Click or drag to upload</span><span class="up-hint">PNG, JPG, GIF, WEBP</span></div>
+            <div class="img-thumbs" id="mp-img-thumbs"></div>
+          </div>
+          <div class="form-group"><label>Post to</label>
+            <div class="post-dest-toggle">
+              <button class="post-dest-btn active" id="mod-dest-btn-updates" onclick="selectModPostDest('updates')">📢 Updates</button>
+              <button class="post-dest-btn" id="mod-dest-btn-community" onclick="selectModPostDest('community')">🌿 Community</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap"><button class="btn btn-sm" style="background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3)" onclick="addModPost()">Publish Post</button><button class="btn btn-ghost btn-sm" onclick="clearModPost()">Clear</button></div>
+        </div>
+        <div class="card-box"><h3>📢 Updates Posts</h3><div id="mod-adm-posts"><div class="empty"><span class="empty-icon">📋</span><p>No posts yet.</p></div></div></div>
+        <div class="card-box"><h3>🌿 Community Posts</h3><div id="mod-adm-community-posts"><div class="empty"><span class="empty-icon">🌿</span><p>No community posts yet.</p></div></div></div>
+      </div>
+      <!-- MOD POST REQUESTS TAB -->
+      <div class="panel" id="mod-tab-post-requests">
+        <div class="card-box" style="background:var(--surf2);border-style:dashed;margin-bottom:18px"><p style="font-size:13px;color:var(--txt2)">✏️ Review community post requests. Approve to publish, or deny to remove.</p></div>
+        <div id="mod-post-requests"><div class="empty"><span class="empty-icon">✏️</span><p>No pending post requests.</p></div></div>
+      </div>
+      <!-- MOD REQUESTS TAB -->
+      <div class="panel" id="mod-tab-requests">
+        <div class="card-box" style="background:var(--surf2);border-style:dashed;margin-bottom:18px"><p style="font-size:13px;color:var(--txt2)">📋 Review player registration requests. Click a card to preview, then approve or deny.</p></div>
+        <div class="requests-grid" id="mod-requests"><div class="empty" style="grid-column:1/-1"><span class="empty-icon">📋</span><p>No pending requests.</p></div></div>
+      </div>
+      <!-- MOD PLAYERS TAB -->
+      <div class="panel" id="mod-tab-players">
+        <div class="card-box" style="background:var(--surf2);border-style:dashed;margin-bottom:18px"><p style="font-size:13px;color:var(--txt2)">👥 View the player roster. Use the 🗑️ button to request a player removal — the admin must approve before they are deleted.</p></div>
+        <div class="dtable-wrap" id="mod-players-list"><div class="empty"><span class="empty-icon">👾</span><p>No players yet.</p></div></div>
+      </div>
+      <!-- MOD SERVERS TAB -->
+      <div class="panel" id="mod-tab-servers">
+        <div class="card-box" style="background:var(--surf2);border-style:dashed;margin-bottom:18px"><p style="font-size:13px;color:var(--txt2)">🌐 View all servers. Use the 🗑️ button to request a server removal — the admin must approve before it is deleted.</p></div>
+        <div class="dtable-wrap" id="mod-servers-list"><div class="empty"><span class="empty-icon">🌐</span><p>No servers yet.</p></div></div>
+      </div>
+      <!-- MOD SETTINGS TAB -->
+      <div class="panel" id="mod-tab-settings">
+        <div class="card-box">
+          <h3>⚙️ Moderator Settings</h3>
+          <div class="card-box" style="background:var(--surf2);border-style:dashed;margin-top:4px">
+            <p style="font-size:13px;color:var(--txt2);margin:0">🔐 Password changes for the Moderator Panel can only be done by the <strong>Admin</strong>. Please contact your admin to update the moderator password.</p>
           </div>
         </div>
       </div>
@@ -482,8 +581,8 @@ document.dispatchEvent(new Event('firebase-ready'));
 
 <script>
 // ═════ STATE ═════════════════════════════════════════
-let S={posts:[],communityPosts:[],servers:[],players:[],requests:[],postReqs:[],
-  cfg:{name:'SRZK COMMUNITY',desc:'Your Minecraft Community Hub',pw:'admin123',deletePw:'',adminContact:'',contacts:[],discordLink:''},authed:false};
+let S={posts:[],communityPosts:[],servers:[],players:[],requests:[],postReqs:[],delReqs:[],
+  cfg:{name:'SRZK COMMUNITY',desc:'Your Minecraft Community Hub',pw:'admin123',modPw:'mod123',deletePw:'',adminContact:'',contacts:[],discordLink:''},authed:false,modAuthed:false};
 let srvImg=null,plrImg=null,regImg=null,editImg=null,postImgs=[];
 let srvImgId=null,plrImgId=null,regImgId=null,editImgId=null,postImgIds=[];
 let reqPostImgs=[],reqPostImgIds=[];// separate arrays for user request-post form
@@ -509,6 +608,7 @@ async function _fsSave(){
     W(D('srzk','players'),        {items:S.players}),
     W(D('srzk','requests'),       {items:S.requests}),
     W(D('srzk','postReqs'),       {items:S.postReqs}),
+    W(D('srzk','delReqs'),        {items:S.delReqs}),
     W(D('srzk','cfg'),            {...S.cfg}),
   ]);
 }
@@ -519,7 +619,7 @@ async function _fsSave(){
 // changes data on another device, this page updates automatically.
 async function load(){
   return new Promise(resolve=>{
-    const KEYS=['posts','communityPosts','servers','players','requests','postReqs','cfg'];
+    const KEYS=['posts','communityPosts','servers','players','requests','postReqs','delReqs','cfg'];
     let got=0;let done=false;
     const finish=()=>{if(!done){done=true;resolve();}};
 
@@ -549,10 +649,14 @@ function _onRemoteUpdate(key){
   const id=pg?pg.id:'';
   if(key==='posts'){updateStats();if(id==='page-updates')renderUpdates();if(id==='page-home')renderHome();}
   if(key==='communityPosts'){updateStats();if(id==='page-community')renderCommunity();}
-  if(key==='servers'){updateStats();if(id==='page-servers'){renderServers();_startSrvPolling();}if(id==='page-home')renderHome();}
-  if(key==='players'){updateStats();if(id==='page-players')renderPlayers();if(id==='page-home')renderHome();}
+  if(key==='servers'){updateStats();if(id==='page-servers'){renderServers();_startSrvPolling();}if(id==='page-home')renderHome();if(S.modAuthed)renderModServers();}
+  if(key==='players'){updateStats();if(id==='page-players')renderPlayers();if(id==='page-home')renderHome();if(S.modAuthed)renderModPlayers();}
   if(key==='requests'&&S.authed){renderAdmRequests();updateReqBadge();}
+  if(key==='requests'&&S.modAuthed){renderModRequests();updateModReqBadge();}
   if(key==='postReqs'&&S.authed){renderAdmPostReqs();updatePostReqBadge();}
+  if(key==='postReqs'&&S.modAuthed){renderModPostReqs();updateModPostReqBadge();}
+  if(key==='delReqs'&&S.authed){renderAdmDelReqs();updateAdmDelReqBadge();}
+  if(key==='delReqs'&&S.modAuthed){renderModPosts();renderModCommunityPosts();}
   if(key==='cfg'){renderHome();if(S.authed&&id==='page-admin'){const ci=document.getElementById('cfg-name');if(ci)ci.value=S.cfg.name||'';}}
 }
 
@@ -593,7 +697,7 @@ function nav(page){
   const nl=document.getElementById('nl-'+page);if(nl)nl.classList.add('active');
   const dl=document.getElementById('dl-'+page);if(dl)dl.classList.add('active');
   if(page!=='servers')_stopSrvPolling();// stop polling when leaving servers page
-  if(page==='admin'){S.authed?showDash():showInfoPanel();}
+  if(page==='admin'){if(S.authed)showDash();else if(S.modAuthed)showModDash();else showInfoPanel();}
   if(page==='servers'){renderServers();_startSrvPolling();}
   if(page==='players')renderPlayers();
   if(page==='updates')renderUpdates();
@@ -724,7 +828,7 @@ function openPostModal(postId,pool){
   const carHtml=imgs.length?`<div class="post-detail-carousel" style="border-radius:10px;overflow:hidden;margin-bottom:18px;background:var(--surf2)">${buildCarousel(imgs,true)}</div>`:'';
   document.getElementById('post-detail-body').innerHTML=`
     ${carHtml}
-    <div class="post-detail-meta"><span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span>${p.author?`<span class="post-author" style="margin-left:auto">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':'<span class="post-user-badge">Community</span>'}</span>`:''}</div>
+    <div class="post-detail-meta"><span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span>${p.author?`<span class="post-author" style="margin-left:auto">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>')}</span>`:''}</div>
     <div class="post-detail-title">${esc(p.title)}</div>
     <div class="post-full-content">${esc(p.content)}</div>`;
   openModal('post-detail-modal');
@@ -895,7 +999,7 @@ function approvePostReq(id){
     images:r.images||[],imageIds:r.imageIds||[],
     author:r.username,isAdmin:false,
     date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})});
-  r.status='approved';
+  S.postReqs=S.postReqs.filter(x=>x.id!==r.id);
   save();renderAdmPostReqs();renderAdmCommunityPosts();updatePostReqBadge();toast(`"${r.title}" posted to Community! ✅`,'ok');
 }
 function denyPostReq(id){
@@ -979,7 +1083,7 @@ function renderAdmPosts(){
   if(!S.posts.length){el.innerHTML=empty('📋','No Updates posts yet.');return;}
   el.innerHTML=`<div class="dtable-wrap"><table class="dtable"><thead><tr><th>Title</th><th>Tag</th><th>Date</th><th>Imgs</th><th></th></tr></thead><tbody>${S.posts.map(p=>`<tr>
     <td style="color:var(--txt);font-weight:600;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.title)}</td>
-    <td><span class="badge bg">${esc(p.tag)}</span></td>
+    <td><span class="badge bg">${esc(p.tag)}</span>${p.isMod?'<span class="badge bp" style="margin-left:4px">Mod</span>':''}</td>
     <td style="font-family:var(--mf);font-size:10px;white-space:nowrap">${esc(p.date)}</td>
     <td style="font-family:var(--mf);font-size:11px;color:var(--txt2)">${(p.images||[]).length||'—'}</td>
     <td><div class="tbl-actions"><button class="icon-btn" onclick="openEditPost(${p.id},'updates')">✏️</button><button class="icon-btn del" onclick="delPost(${p.id},'updates')">🗑️</button></div></td>
@@ -1037,7 +1141,7 @@ function renderCommunity(){
       <div class="post-body">
         <div class="post-meta"><span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span></div>
         <div class="post-title">${esc(p.title)}</div>
-        ${p.author?`<div class="post-author">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':'<span class="post-user-badge">Community</span>'}</div>`:''}
+        ${p.author?`<div class="post-author">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>')}</div>`:''}
         <div class="post-content-wrap"><div class="post-content-preview">${esc(p.content)}</div></div>
         <div class="post-read-hint">📖 Click to read full post</div>
       </div>
@@ -1057,7 +1161,7 @@ function renderHome(){
 }
 
 // ═════ CONTACT HELPERS ════════════════════════════════
-const contactIcon={Discord:'💬',TikTok:'🎵',Facebook:'📘',Messenger:'📩'};
+const contactIcon={Discord:'💬',TikTok:'🎵',Facebook:'📘',Messenger:'📩',Instagram:'📸',YouTube:'▶️','Twitter/X':'🐦'};
 function getContactUrl(platform,value){
   const clean=value.replace(/^@/,'');
   if(platform==='TikTok'){
@@ -1076,20 +1180,33 @@ function getContactUrl(platform,value){
     if(value.includes('discord.gg')||value.includes('discord.com')){
       return value.startsWith('http')?value:`https://${value}`;
     }
-    return`https://discord.com/users/${clean}`;
+    return null;// Discord usernames can't be linked — copy instead
+  }
+  if(platform==='Instagram'){
+    return`https://www.instagram.com/${clean}`;
+  }
+  if(platform==='YouTube'){
+    if(value.includes('youtube.com')||value.includes('youtu.be')){
+      return value.startsWith('http')?value:`https://${value}`;
+    }
+    return`https://www.youtube.com/@${clean}`;
+  }
+  if(platform==='Twitter/X'){
+    return`https://x.com/${clean}`;
   }
   return null;
 }
 // Card: show only platform name, click = redirect (or toast for Discord)
-function buildContactCardBtn(contact){
+function buildContactCardBtn(contact,pill=false){
   if(!contact)return'';
   const url=getContactUrl(contact.platform,contact.value);
   const icon=contactIcon[contact.platform]||'📨';
+  const cls='contact-platform-btn'+(pill?' pill':'');
   if(url){
-    return`<a href="${url}" target="_blank" rel="noopener noreferrer" class="contact-platform-btn" onclick="event.stopPropagation()">${icon} ${esc(contact.platform)}</a>`;
+    return`<a href="${url}" target="_blank" rel="noopener noreferrer" class="${cls}" onclick="event.stopPropagation()">${icon} ${esc(contact.platform)}</a>`;
   }
-  // Discord — copy handle
-  return`<button class="contact-platform-btn" onclick="event.stopPropagation();copyToClip('${esc(contact.value)}','Discord handle')" title="${esc(contact.value)}">${icon} ${esc(contact.platform)}</button>`;
+  // No direct URL (e.g. Discord username) — copy handle instead
+  return`<button class="${cls}" onclick="event.stopPropagation();copyToClip('${esc(contact.value)}','${esc(contact.platform)} handle')" title="${esc(contact.value)}">${icon} ${esc(contact.platform)}</button>`;
 }
 // Modal: large redirect button
 function buildContactModalBtn(contact){
@@ -1532,9 +1649,9 @@ function submitRegistration(){
 }
 
 // ═════ ADMIN ══════════════════════════════════════════
-function showInfoPanel(){document.getElementById('admin-pre').style.display='block';document.getElementById('login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='none';renderPrePanel();setTimeout(initReveal,200);}
-function showLogin(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='flex';document.getElementById('dash-wrap').style.display='none';document.getElementById('adm-pw').value='';document.getElementById('login-err').classList.remove('show');}
-function showDash(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='block';renderAdmPosts();renderAdmCommunityPosts();renderAdmServers();renderAdmPlayers();renderAdmRequests();renderAdmPostReqs();loadCfg();updateReqBadge();updatePostReqBadge();}
+function showInfoPanel(){document.getElementById('admin-pre').style.display='block';document.getElementById('login-wrap').style.display='none';document.getElementById('mod-login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='none';document.getElementById('mod-dash-wrap').style.display='none';renderPrePanel();setTimeout(initReveal,200);}
+function showLogin(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='flex';document.getElementById('mod-login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='none';document.getElementById('mod-dash-wrap').style.display='none';document.getElementById('adm-pw').value='';document.getElementById('login-err').classList.remove('show');}
+function showDash(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='none';document.getElementById('mod-login-wrap').style.display='none';document.getElementById('mod-dash-wrap').style.display='none';document.getElementById('dash-wrap').style.display='block';renderAdmPosts();renderAdmCommunityPosts();renderAdmServers();renderAdmPlayers();renderAdmRequests();renderAdmPostReqs();renderAdmDelReqs();loadCfg();updateReqBadge();updatePostReqBadge();updateAdmDelReqBadge();}
 function renderPrePanel(){
   const admins=S.players.filter(p=>p.role==='admin'),mods=S.players.filter(p=>p.role==='mod');
   document.getElementById('pre-admins').innerHTML=admins.length?admins.map(p=>`<div class="aic-person"><img class="aic-avatar" src="${getAvatar(p,36)}" onerror="this.src='https://mc-heads.net/avatar/Steve/36'" loading="lazy"><div><div class="aic-pname">${esc(p.name)}</div><div class="aic-role-text">Admin</div></div></div>`).join(''):`<span class="aic-empty">No admins listed yet.</span>`;
@@ -1543,8 +1660,7 @@ function renderPrePanel(){
   const contactEl=document.getElementById('pre-contact-text');
   if(contactEl){
     if(contacts.length){
-      const icons={Discord:'💬',Facebook:'📘',Messenger:'💙',TikTok:'🎵',Instagram:'📸',YouTube:'▶️','Twitter/X':'🐦'};
-      contactEl.innerHTML=contacts.map(c=>`<span style="display:inline-flex;align-items:center;gap:5px;background:var(--surf2);border:1px solid var(--border);border-radius:100px;padding:4px 12px;margin:3px;font-size:12.5px">${icons[c.platform]||'📬'} <strong>${esc(c.platform)}</strong>: ${esc(c.value)}</span>`).join('');
+      contactEl.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:7px">${contacts.map(c=>buildContactCardBtn(c,true)).join('')}</div>`;
     } else {
       contactEl.textContent=S.cfg.adminContact||'No contact info set yet.';
     }
@@ -1559,6 +1675,7 @@ function doLogin(){
   else{err.classList.add('show');card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake');document.getElementById('adm-pw').value='';}
 }
 function doLogout(){S.authed=false;showInfoPanel();nav('home');toast('Signed out.','ok');}
+function doModLogout(){S.modAuthed=false;showInfoPanel();nav('home');toast('Signed out.','ok');}
 function togglePw(id,btn){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'👁️':'🙈';}
 function switchTab(btn,pId){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));btn.classList.add('active');document.getElementById(pId).classList.add('active');}
 
@@ -1578,14 +1695,15 @@ function openRequestModal(id){
   openModal('req-modal');
 }
 function approveRequest(id){
-  const req=S.requests.find(x=>x.id===id);if(!req)return;req.status='approved';
+  const req=S.requests.find(x=>x.id===id);if(!req)return;
   S.players.push({id:Date.now(),name:req.ign,role:'player',joined:new Date().toISOString().split('T')[0],gender:req.gender||'',playerTypes:req.playerTypes||[],image:req.avatar||null,imageId:req.avatarId||null,contact:req.contact||null});
+  S.requests=S.requests.filter(x=>x.id!==id);
   save();closeModal('req-modal');renderAdmRequests();renderAdmPlayers();updateReqBadge();toast(`${req.ign} approved! ✅`,'ok');
 }
 function denyRequest(id){
   confirmAction('This registration application will be denied.',()=>{
     const req=S.requests.find(x=>x.id===id);if(!req)return;
-    req.status='denied';save();closeModal('req-modal');renderAdmRequests();updateReqBadge();toast(`Request from ${req.ign} denied.`,'ok');
+    S.requests=S.requests.filter(x=>x.id!==id);save();closeModal('req-modal');renderAdmRequests();updateReqBadge();toast(`Request from ${req.ign} denied.`,'ok');
   },{icon:'❌',iconStyle:'danger',title:'Deny Application?',okLabel:'Deny',okClass:'btn-danger'});
 }
 function renderAdmRequests(){
@@ -1669,6 +1787,16 @@ function saveSettings(){
     S.cfg.pw=newPw;
     document.getElementById('cfg-pw').value='';
     document.getElementById('cfg-cur-pw').value='';
+  }
+  // moderator password
+  const newModPw=document.getElementById('cfg-mod-pw').value;
+  const confirmModPw=document.getElementById('cfg-mod-pw-confirm').value;
+  if(newModPw||confirmModPw){
+    if(newModPw.length<4){toast('Moderator password must be at least 4 characters.','err');return;}
+    if(newModPw!==confirmModPw){toast('Moderator passwords do not match.','err');return;}
+    S.cfg.modPw=newModPw;
+    document.getElementById('cfg-mod-pw').value='';
+    document.getElementById('cfg-mod-pw-confirm').value='';
   }
   // contacts updated live via _cfgCc
   save();renderHome();toast('Settings saved! ✅','ok');
@@ -1836,6 +1964,512 @@ function openPostReqModal(id){
 function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').classList.add('open');document.body.style.overflow='hidden';}
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open');document.body.style.overflow='';}
 
+// ═════ MODERATOR PANEL ═══════════════════════════════
+
+let modPostDest='updates';
+let modPostImgs=[],modPostImgIds=[];
+
+function showModLogin(){
+  document.getElementById('admin-pre').style.display='none';
+  document.getElementById('login-wrap').style.display='none';
+  document.getElementById('mod-login-wrap').style.display='flex';
+  document.getElementById('dash-wrap').style.display='none';
+  document.getElementById('mod-dash-wrap').style.display='none';
+  document.getElementById('mod-pw').value='';
+  document.getElementById('mod-login-err').classList.remove('show');
+}
+
+function doModLogin(){
+  const pw=document.getElementById('mod-pw').value;
+  const err=document.getElementById('mod-login-err');
+  const card=document.getElementById('mod-login-card');
+  if(pw===(S.cfg.modPw||'mod123')){
+    S.modAuthed=true;
+    showModDash();
+    toast('Welcome, Moderator! 🛡️','ok');
+  } else {
+    err.classList.add('show');
+    card.classList.remove('shake');void card.offsetWidth;card.classList.add('shake');
+    document.getElementById('mod-pw').value='';
+  }
+}
+
+function showModDash(){
+  document.getElementById('admin-pre').style.display='none';
+  document.getElementById('login-wrap').style.display='none';
+  document.getElementById('mod-login-wrap').style.display='none';
+  document.getElementById('dash-wrap').style.display='none';
+  document.getElementById('mod-dash-wrap').style.display='block';
+  // Reset to Posts tab every time mod signs in
+  document.querySelectorAll('#mod-dash-wrap .tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#mod-dash-wrap .panel').forEach(p=>p.classList.remove('active'));
+  document.querySelector('#mod-dash-wrap .tab').classList.add('active');
+  document.getElementById('mod-tab-posts').classList.add('active');
+  renderModPosts();renderModCommunityPosts();renderModPostReqs();renderModRequests();renderModPlayers();renderModServers();
+  updateModPostReqBadge();updateModReqBadge();
+}
+
+function switchModTab(btn,pId){
+  document.querySelectorAll('#mod-dash-wrap .tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('#mod-dash-wrap .panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(pId).classList.add('active');
+}
+
+// ── Mod badge counters ──
+function updateModPostReqBadge(){
+  const n=S.postReqs.filter(r=>r.status==='pending').length;
+  const b=document.getElementById('mod-postreq-badge');
+  if(b){b.style.display=n>0?'inline':'none';b.textContent=n;}
+}
+function updateModReqBadge(){
+  const n=S.requests.filter(r=>r.status==='pending').length;
+  const b=document.getElementById('mod-req-badge');
+  if(b){b.style.display=n>0?'flex':'none';b.textContent=n;}
+}
+
+// ── Mod post image handling ──
+async function handleModMultiImg(input){
+  const files=Array.from(input.files);input.value='';
+  for(const file of files){
+    const localUrl=URL.createObjectURL(file);
+    const idx=modPostImgs.length;
+    modPostImgs.push(localUrl);modPostImgIds.push(null);
+    renderModThumb(localUrl,idx,true);
+    try{
+      const{url,publicId}=await _clUpload(file);
+      modPostImgs[idx]=url;modPostImgIds[idx]=publicId;
+      const wrap=document.getElementById('mp-img-thumbs');
+      if(wrap){const tw=wrap.querySelectorAll('.img-thumb-wrap')[idx];if(tw){tw.classList.remove('uploading');tw.querySelector('img').src=url;const sp=tw.querySelector('.img-up-spin');if(sp)sp.remove();const btn=tw.querySelector('button');if(btn)btn.disabled=false;}}
+    }catch(e){
+      toast('Image upload failed.','err');
+      modPostImgs.splice(idx,1);modPostImgIds.splice(idx,1);
+      const wrap=document.getElementById('mp-img-thumbs');if(wrap){wrap.innerHTML='';modPostImgs.forEach((s,i)=>renderModThumb(s,i));}
+    }
+  }
+}
+function renderModThumb(src,idx,uploading=false){
+  const wrap=document.getElementById('mp-img-thumbs');if(!wrap)return;
+  const div=document.createElement('div');div.className='img-thumb-wrap'+(uploading?' uploading':'');div.dataset.idx=idx;
+  div.innerHTML=`<img src="${src}">${uploading?'<div class="img-up-spin">⏳</div>':''}<button class="img-thumb-remove" onclick="removeModPostImg(${idx})"${uploading?' disabled':''}>✕</button>`;
+  wrap.appendChild(div);
+}
+function removeModPostImg(idx){
+  _clDelete(modPostImgIds[idx]||null);
+  modPostImgs.splice(idx,1);modPostImgIds.splice(idx,1);
+  const wrap=document.getElementById('mp-img-thumbs');if(!wrap)return;
+  wrap.innerHTML='';modPostImgs.forEach((src,i)=>renderModThumb(src,i));
+}
+
+// ── Mod post destination ──
+function selectModPostDest(dest){
+  modPostDest=dest;
+  document.getElementById('mod-dest-btn-updates').classList.toggle('active',dest==='updates');
+  document.getElementById('mod-dest-btn-community').classList.toggle('active',dest==='community');
+}
+
+// ── Add Mod Post ──
+function addModPost(){
+  if(modPostImgIds.some(id=>id===null)){toast('Please wait for images to finish uploading.','err');return;}
+  const t=v('mp-title'),c=v('mp-content'),tag=v('mp-tag');
+  if(!t||!c){toast('Title and content required.','err');return;}
+  const post={id:Date.now(),title:t,content:c,tag,images:[...modPostImgs],imageIds:[...modPostImgIds],
+    author:'Moderator',isAdmin:false,isMod:true,
+    date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})};
+  if(modPostDest==='community'){S.communityPosts.unshift(post);}
+  else{S.posts.unshift(post);}
+  save();clearModPost();renderModPosts();renderModCommunityPosts();
+  toast(modPostDest==='community'?'Posted to Community! 🌿':'Post published to Updates! 📢','ok');
+}
+function clearModPost(){
+  set('mp-title','');set('mp-content','');document.getElementById('mp-tag').value='Announcement';
+  const wrap=document.getElementById('mp-img-thumbs');if(wrap)wrap.innerHTML='';
+  document.getElementById('mp-img-input').value='';modPostImgs=[];modPostImgIds=[];
+}
+
+// ── Mod post lists (read-only, no edit/delete) ──
+function renderModPosts(){
+  const el=document.getElementById('mod-adm-posts');if(!el)return;
+  if(!S.posts.length){el.innerHTML=empty('📋','No Updates posts yet.');return;}
+  el.innerHTML=`<div class="dtable-wrap"><table class="dtable"><thead><tr><th>Title</th><th>Tag</th><th>By</th><th>Date</th><th></th></tr></thead><tbody>${S.posts.map(p=>`<tr>
+    <td style="color:var(--txt);font-weight:600;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.title)}</td>
+    <td><span class="badge bg">${esc(p.tag)}</span></td>
+    <td><span class="badge ${p.isAdmin?'bg':p.isMod?'bp':'bc'}">${p.isAdmin?'Admin':p.isMod?'Mod':'Community'}</span></td>
+    <td style="font-family:var(--mf);font-size:10px;white-space:nowrap">${esc(p.date)}</td>
+    <td><div class="tbl-actions"><button class="icon-btn del" title="Request deletion" onclick="modRequestPostDel(${p.id},'updates')" ${S.delReqs&&S.delReqs.some(d=>d.targetId===p.id&&d.status==='pending')?'disabled style="opacity:.4;cursor:not-allowed"':''}>🗑️</button></div></td>
+  </tr>`).join('')}</tbody></table></div>`;
+}
+function renderModCommunityPosts(){
+  const el=document.getElementById('mod-adm-community-posts');if(!el)return;
+  if(!S.communityPosts.length){el.innerHTML=empty('🌿','No community posts yet.');return;}
+  el.innerHTML=`<div class="dtable-wrap"><table class="dtable"><thead><tr><th>Title</th><th>Tag</th><th>By</th><th>Date</th><th></th></tr></thead><tbody>${S.communityPosts.map(p=>`<tr>
+    <td style="color:var(--txt);font-weight:600;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.title)}</td>
+    <td><span class="badge bg">${esc(p.tag)}</span></td>
+    <td><span class="badge ${p.isAdmin?'bg':p.isMod?'bp':'bc'}">${p.isAdmin?'Admin':p.isMod?'Mod':'Community'}</span></td>
+    <td style="font-family:var(--mf);font-size:10px;white-space:nowrap">${esc(p.date)}</td>
+    <td><div class="tbl-actions"><button class="icon-btn del" title="Request deletion" onclick="modRequestPostDel(${p.id},'community')" ${S.delReqs&&S.delReqs.some(d=>d.targetId===p.id&&d.status==='pending')?'disabled style="opacity:.4;cursor:not-allowed"':''}>🗑️</button></div></td>
+  </tr>`).join('')}</tbody></table></div>`;
+}
+
+// ── Mod: Post Requests ──
+function renderModPostReqs(){
+  const el=document.getElementById('mod-post-requests');if(!el)return;
+  const pending=S.postReqs.filter(r=>r.status==='pending');
+  if(!pending.length){el.innerHTML='<div class="empty"><span class="empty-icon">✏️</span><p>No pending post requests.</p></div>';return;}
+  el.innerHTML=pending.map(r=>`<div class="post-req-card">
+    <div class="post-req-meta">
+      <span class="post-req-user">👤 ${esc(r.username)}</span>
+      <span class="post-req-tag">${esc(r.tag)}</span>
+      <span class="post-req-date">${esc(r.requestedAt)}</span>
+    </div>
+    <div class="post-req-title">${esc(r.title)}</div>
+    <div class="post-req-body">${esc(r.content)}</div>
+    ${(r.images||[]).length?`<div class="post-req-imgs">${r.images.map(src=>`<img src="${src}" loading="lazy" onclick="openLightbox('${src.replace(/'/g,"\'")}');event.stopPropagation()">`).join('')}</div>`:''}
+    <div class="post-req-actions">
+      <button class="btn btn-ghost btn-sm" onclick="openModPostReqModal(${r.id})">👁️ Review</button>
+      <button class="btn btn-primary btn-sm" onclick="modApprovePostReq(${r.id})">✅ Approve</button>
+      <button class="btn btn-danger btn-sm" onclick="modDenyPostReq(${r.id})">✕ Deny</button>
+    </div>
+  </div>`).join('');
+}
+function openModPostReqModal(id){
+  const r=S.postReqs.find(x=>x.id===id);if(!r)return;
+  const imgs=r.images||[];
+  const imgHtml=imgs.length>1?`<div class="postreq-modal-carousel">${buildCarousel(imgs,true)}</div>`:imgs.length===1?`<div class="postreq-modal-single" onclick="openLightbox('${imgs[0].replace(/'/g,"\'")}')"><img src="${imgs[0]}" alt="Post image" loading="lazy"></div>`:'';
+  document.getElementById('postreq-modal-body').innerHTML=`
+    <div class="postreq-modal-header">
+      <div class="postreq-modal-user">👤 ${esc(r.username)}</div>
+      <div class="postreq-modal-date">${esc(r.requestedAt)}</div>
+    </div>
+    <div class="postreq-modal-tag"><span class="badge bg">${esc(r.tag)}</span></div>
+    ${imgHtml}
+    <div class="postreq-modal-title">${esc(r.title)}</div>
+    <div class="postreq-modal-content">${esc(r.content)}</div>
+    <div class="postreq-modal-actions">
+      <button class="btn btn-primary" onclick="modApprovePostReq(${r.id});closeModal('postreq-modal')">✅ Approve & Publish</button>
+      <button class="btn btn-danger" onclick="closeModal('postreq-modal');modDenyPostReq(${r.id})">✕ Deny Request</button>
+    </div>`;
+  openModal('postreq-modal');
+}
+function modApprovePostReq(id){
+  const r=S.postReqs.find(x=>x.id===id);if(!r)return;
+  S.communityPosts.unshift({id:Date.now(),title:r.title,content:r.content,tag:r.tag,
+    images:r.images||[],imageIds:r.imageIds||[],
+    author:r.username,isAdmin:false,
+    date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})});
+  S.postReqs=S.postReqs.filter(x=>x.id!==r.id);
+  save();renderModPostReqs();renderModCommunityPosts();updateModPostReqBadge();
+  updatePostReqBadge();// sync admin badge too
+  toast(`"${r.title}" posted to Community! ✅`,'ok');
+}
+function modDenyPostReq(id){
+  confirmAction('This post request and any uploaded images will be permanently removed.',()=>{
+    const r=S.postReqs.find(x=>x.id===id);if(!r)return;
+    (r.imageIds||[]).forEach(pid=>_clDelete(pid));
+    S.postReqs=S.postReqs.filter(x=>x.id!==id);
+    save();renderModPostReqs();updateModPostReqBadge();updatePostReqBadge();
+    toast('Request denied and removed.','ok');
+  },{icon:'✕',iconStyle:'danger',title:'Deny Post Request?',okLabel:'Deny & Remove'});
+}
+
+// ── Mod: Registration Requests ──
+function renderModRequests(){
+  const el=document.getElementById('mod-requests');if(!el)return;
+  const pending=S.requests.filter(r=>r.status==='pending');
+  if(!pending.length){el.innerHTML=`<div class="empty" style="grid-column:1/-1"><span class="empty-icon">📋</span><p>No pending requests.</p></div>`;return;}
+  el.innerHTML=pending.map((req,i)=>`<div class="req-card rv" style="transition-delay:${i*.05}s" onclick="openModRequestModal(${req.id})">
+    ${req.avatar?`<img class="req-thumb" src="${req.avatar}" alt="${esc(req.ign)}" loading="lazy">`:`<div class="req-thumb-ph">${req.ign.charAt(0).toUpperCase()}</div>`}
+    <div class="req-body"><div class="req-ign">${esc(req.ign)}</div><div class="req-gender">${req.gender?`${genderEmoji[req.gender]||''} ${esc(req.gender)}`:'No gender specified'}</div><div class="req-when">Requested ${esc(req.requestedAt)}</div></div>
+    <div class="req-actions">
+      <button class="btn btn-primary btn-sm" style="flex:1" onclick="event.stopPropagation();modApproveRequest(${req.id})">✅ Approve</button>
+      <button class="btn btn-danger btn-sm" style="flex:1" onclick="event.stopPropagation();modDenyRequest(${req.id})">❌ Deny</button>
+    </div>
+  </div>`).join('');
+  setTimeout(initReveal,100);
+}
+function openModRequestModal(id){
+  const req=S.requests.find(x=>x.id===id);if(!req)return;
+  document.getElementById('req-modal-body').innerHTML=`
+    <div class="modal-title" style="text-align:center;padding-right:0">📋 Registration Preview</div>
+    <div class="req-modal-avatar"><img src="${req.avatar||`https://mc-heads.net/avatar/${encodeURIComponent(req.ign)}/90`}" alt="${esc(req.ign)}" loading="lazy" onerror="this.src='https://mc-heads.net/avatar/Steve/90'"></div>
+    <div class="req-field-row"><span class="req-field-lbl">IGN</span><span class="req-field-val" style="color:var(--txt);font-weight:700;font-size:16px">${esc(req.ign)}</span></div>
+    <div class="req-field-row"><span class="req-field-lbl">Gender</span><span class="req-field-val">${req.gender?`${genderEmoji[req.gender]||''} ${esc(req.gender)}`:'Prefer not to say'}</span></div>
+    <div class="req-field-row"><span class="req-field-lbl">Play Style</span><span class="req-field-val" style="display:flex;flex-wrap:wrap;gap:5px">${(req.playerTypes||[]).map(t=>`<span class="pl-type-tag">${t}</span>`).join('')||'—'}</span></div>
+    <div class="req-field-row"><span class="req-field-lbl">Reason</span><span class="req-field-val" style="white-space:pre-wrap">${esc(req.reason)}</span></div>
+    <div class="req-field-row"><span class="req-field-lbl">Contact</span><span class="req-field-val">${buildContactReqBtn(req.contact)}</span></div>
+    <div class="req-field-row"><span class="req-field-lbl">Requested</span><span class="req-field-val">${esc(req.requestedAt)}</span></div>
+    ${req.status==='pending'?`<div style="display:flex;gap:8px;margin-top:16px;flex-wrap:wrap"><button class="btn btn-primary" style="flex:1" onclick="modApproveRequest(${id})">✅ Approve</button><button class="btn btn-danger" style="flex:1" onclick="modDenyRequest(${id})">❌ Deny</button></div>`:`<div style="text-align:center;margin-top:14px;font-family:var(--mf);font-size:12px;color:var(--txt3)">Status: ${req.status.toUpperCase()}</div>`}`;
+  openModal('req-modal');
+}
+function modApproveRequest(id){
+  const req=S.requests.find(x=>x.id===id);if(!req)return;
+  S.players.push({id:Date.now(),name:req.ign,role:'player',joined:new Date().toISOString().split('T')[0],gender:req.gender||'',playerTypes:req.playerTypes||[],image:req.avatar||null,imageId:req.avatarId||null,contact:req.contact||null});
+  S.requests=S.requests.filter(x=>x.id!==id);
+  save();closeModal('req-modal');renderModRequests();updateModReqBadge();updateReqBadge();
+  toast(`${req.ign} approved! ✅`,'ok');
+}
+function modDenyRequest(id){
+  confirmAction('This registration application will be denied.',()=>{
+    const req=S.requests.find(x=>x.id===id);if(!req)return;
+    S.requests=S.requests.filter(x=>x.id!==id);save();closeModal('req-modal');renderModRequests();updateModReqBadge();updateReqBadge();
+    toast(`Request from ${req.ign} denied.`,'ok');
+  },{icon:'❌',iconStyle:'danger',title:'Deny Application?',okLabel:'Deny',okClass:'btn-danger'});
+}
+
+// saveModSettings moved to admin panel (saveCfg)
+
+// ═════ MOD SERVERS PANEL ════════════════════════════
+
+function renderModServers(){
+  const el=document.getElementById('mod-servers-list');if(!el)return;
+  if(!S.servers.length){el.innerHTML=empty('🌐','No servers yet.');return;}
+  el.innerHTML=`<table class="dtable"><thead><tr><th>Server</th><th>Type</th><th>IP</th><th>Ver</th><th></th></tr></thead><tbody>${S.servers.map(s=>{
+    const alreadyPending=(S.delReqs||[]).some(d=>d.targetId===s.id&&d.type==='server'&&d.status==='pending');
+    const t=s.stype||'java';
+    return`<tr>
+      <td style="color:var(--txt);font-weight:600"><div style="display:flex;align-items:center;gap:7px">${s.image?`<img src="${s.image}" style="width:22px;height:22px;border-radius:4px;object-fit:cover;image-rendering:pixelated">`:`<span>${catEmoji[s.cat]||'🌐'}</span>`}${esc(s.name)}</div></td>
+      <td><span class="badge ${t==='bedrock'?'bc':t==='cracked'?'ba':'bg'}">${srvTypeLabel[t]}</span></td>
+      <td style="font-family:var(--mf);font-size:10.5px">${esc(s.ip)}</td>
+      <td style="font-family:var(--mf);font-size:10px;color:var(--txt3)">${s.version||'—'}</td>
+      <td><div class="tbl-actions"><button class="icon-btn del" title="${alreadyPending?'Deletion pending admin approval':'Request deletion'}" onclick="modRequestServerDel(${s.id})" ${alreadyPending?'disabled style="opacity:.4;cursor:not-allowed"':''}>🗑️</button></div></td>
+    </tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+function modRequestServerDel(serverId){
+  const s=S.servers.find(x=>x.id===serverId);if(!s)return;
+  if((S.delReqs||[]).some(d=>d.targetId===serverId&&d.type==='server'&&d.status==='pending')){
+    toast('A deletion request for this server is already pending admin review.','err');return;
+  }
+  confirmAction(`Request removal of server "${s.name}"? The admin must approve before it is deleted.`,()=>{
+    if(!S.delReqs)S.delReqs=[];
+    S.delReqs.push({
+      id:Date.now(),
+      type:'server',
+      targetId:serverId,
+      targetTitle:s.name,
+      targetIp:s.ip,
+      targetType:s.stype||'java',
+      targetCat:s.cat||'',
+      targetVersion:s.version||'',
+      requestedAt:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),
+      status:'pending'
+    });
+    save();
+    renderModServers();
+    updateAdmDelReqBadge();
+    toast(`Removal request for "${s.name}" sent to admin. 📨`,'ok');
+  },{icon:'🌐',iconStyle:'danger',title:'Request Server Removal?',okLabel:'Send Request',okClass:'btn-danger'});
+}
+
+// ═════ MOD PLAYERS PANEL ════════════════════════════
+
+function renderModPlayers(){
+  const el=document.getElementById('mod-players-list');if(!el)return;
+  if(!S.players.length){el.innerHTML=empty('👾','No players yet.');return;}
+  const bc={player:'',vip:'bg',mod:'bc',admin:'ba'};
+  el.innerHTML=`<table class="dtable"><thead><tr><th>Player</th><th>Role</th><th>Joined</th><th></th></tr></thead><tbody>${S.players.map(p=>{
+    const alreadyPending=(S.delReqs||[]).some(d=>d.targetId===p.id&&d.type==='player'&&d.status==='pending');
+    return`<tr>
+      <td style="color:var(--txt);font-weight:600"><div style="display:flex;align-items:center;gap:7px"><img src="${getAvatar(p,22)}" style="width:24px;height:24px;border-radius:4px;image-rendering:pixelated;object-fit:cover;flex-shrink:0" loading="lazy" onerror="this.src='https://mc-heads.net/avatar/Steve/22'">${esc(p.name)}</div></td>
+      <td><span class="badge ${bc[p.role]||''}">${roleLabel[p.role]||p.role}</span></td>
+      <td style="font-family:var(--mf);font-size:10px">${p.joined}</td>
+      <td><div class="tbl-actions"><button class="icon-btn del" title="${alreadyPending?'Deletion pending admin approval':'Request deletion'}" onclick="modRequestPlayerDel(${p.id})" ${alreadyPending?'disabled style="opacity:.4;cursor:not-allowed"':''}>🗑️</button></div></td>
+    </tr>`;
+  }).join('')}</tbody></table>`;
+}
+
+function modRequestPlayerDel(playerId){
+  const p=S.players.find(x=>x.id===playerId);if(!p)return;
+  if((S.delReqs||[]).some(d=>d.targetId===playerId&&d.type==='player'&&d.status==='pending')){
+    toast('A deletion request for this player is already pending admin review.','err');return;
+  }
+  confirmAction(`Request removal of player "${p.name}"? The admin must approve before they are removed.`,()=>{
+    if(!S.delReqs)S.delReqs=[];
+    S.delReqs.push({
+      id:Date.now(),
+      type:'player',
+      targetId:playerId,
+      targetTitle:p.name,
+      targetRole:p.role,
+      targetJoined:p.joined,
+      requestedAt:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),
+      status:'pending'
+    });
+    save();
+    renderModPlayers();
+    updateAdmDelReqBadge();
+    toast(`Removal request for "${p.name}" sent to admin. 📨`,'ok');
+  },{icon:'👤',iconStyle:'danger',title:'Request Player Removal?',okLabel:'Send Request',okClass:'btn-danger'});
+}
+
+// ═════ MOD DELETION REQUESTS ════════════════════════
+
+// Called from mod Posts panel — request a post deletion
+function modRequestPostDel(postId, pool){
+  const arr=pool==='community'?S.communityPosts:S.posts;
+  const p=arr.find(x=>x.id===postId);if(!p)return;
+  // Check if already pending
+  if(S.delReqs.some(d=>d.targetId===postId&&d.status==='pending')){
+    toast('A deletion request for this post is already pending admin review.','err');return;
+  }
+  confirmAction(`Request deletion of "${p.title}"? The admin must approve before it's removed.`,()=>{
+    S.delReqs.push({
+      id:Date.now(),
+      type:'post',
+      pool,
+      targetId:postId,
+      targetTitle:p.title,
+      targetTag:p.tag,
+      targetDate:p.date,
+      targetAuthor:p.author||'',
+      requestedAt:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),
+      status:'pending'
+    });
+    save();
+    renderModPosts();renderModCommunityPosts();
+    updateAdmDelReqBadge();
+    toast('Deletion request sent to admin for approval. 📨','ok');
+  },{icon:'🗑️',iconStyle:'danger',title:'Request Post Deletion?',okLabel:'Send Request',okClass:'btn-danger'});
+}
+
+// ── Admin: Deletion Requests panel ──
+function updateAdmDelReqBadge(){
+  const n=(S.delReqs||[]).filter(d=>d.status==='pending').length;
+  const b=document.getElementById('delreq-badge');
+  if(b){b.style.display=n>0?'inline':'none';b.textContent=n;}
+}
+function renderAdmDelReqs(){
+  const el=document.getElementById('adm-del-requests');if(!el)return;
+  const pending=(S.delReqs||[]).filter(d=>d.status==='pending');
+  if(!pending.length){el.innerHTML='<div class="empty"><span class="empty-icon">🗑️</span><p>No pending deletion requests.</p></div>';return;}
+  el.innerHTML=pending.map(d=>{
+    const isPost=d.type==='post';
+    const isPlayer=d.type==='player';
+    const isServer=d.type==='server';
+    const typeLabel=isPost?'Post Deletion':isPlayer?'Player Removal':isServer?'Server Removal':'Deletion';
+    const typeIcon=isPost?'🗑️':isPlayer?'👤':isServer?'🌐':'🗑️';
+    const subLabel=isPost?(d.pool==='community'?'Community':'Updates'):isPlayer?(roleLabel[d.targetRole]||d.targetRole||'Player'):isServer?(srvTypeLabel[d.targetType]||d.targetType||'Server'):'';
+    const detail=isPost?`Tag: ${esc(d.targetTag)} &nbsp;·&nbsp; Posted: ${esc(d.targetDate)} &nbsp;·&nbsp; By: ${esc(d.targetAuthor||'—')}`:isPlayer?`Joined: ${esc(d.targetJoined||'—')} &nbsp;·&nbsp; Role: ${esc(roleLabel[d.targetRole]||d.targetRole||'—')}`:isServer?`IP: ${esc(d.targetIp||'—')} &nbsp;·&nbsp; Category: ${esc(d.targetCat||'—')}${d.targetVersion?` &nbsp;·&nbsp; v${esc(d.targetVersion)}`:''}`:''
+    return`<div class="post-req-card" style="border-color:rgba(248,113,113,.15)">
+      <div class="post-req-meta">
+        <span class="post-req-user">${typeIcon} ${typeLabel}</span>
+        <span class="post-req-tag" style="background:rgba(248,113,113,.08);color:var(--red);border-color:rgba(248,113,113,.2)">${esc(subLabel)}</span>
+        <span class="post-req-date">${esc(d.requestedAt)}</span>
+      </div>
+      <div class="post-req-title">${esc(d.targetTitle)}</div>
+      <div class="post-req-body" style="color:var(--txt3);font-size:12px">${detail}</div>
+      <div class="post-req-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openAdmDelReqModal(${d.id})">👁️ Preview</button>
+        <button class="btn btn-danger btn-sm" onclick="admApproveDelReq(${d.id})">✅ Approve</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--green);border-color:rgba(74,222,128,.3)" onclick="admDeclineDelReq(${d.id})">✕ Decline</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function openAdmDelReqModal(id){
+  const d=(S.delReqs||[]).find(x=>x.id===id);if(!d)return;
+  let bodyHtml='';
+  if(d.type==='post'){
+    const arr=d.pool==='community'?S.communityPosts:S.posts;
+    const post=arr.find(x=>x.id===d.targetId);
+    bodyHtml=`
+      <div style="font-size:11px;color:var(--txt3);font-family:var(--mf);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">🗑️ Post Deletion Request</div>
+      <div style="background:var(--surf2);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:16px;margin-bottom:14px">
+        <div style="font-size:10px;color:var(--red);font-family:var(--mf);margin-bottom:4px">POST · ${esc((d.pool==='community'?'Community':'Updates').toUpperCase())}</div>
+        <div style="font-weight:700;color:var(--txt);font-size:16px;margin-bottom:6px">${esc(d.targetTitle)}</div>
+        <div style="font-size:11px;color:var(--txt3);margin-bottom:8px">${esc(d.targetTag)} &nbsp;·&nbsp; ${esc(d.targetDate)} &nbsp;·&nbsp; by ${esc(d.targetAuthor||'—')}</div>
+        ${post?`<div style="font-size:13px;color:var(--txt2);line-height:1.6;white-space:pre-wrap;max-height:160px;overflow-y:auto">${esc(post.content)}</div>`:'<div style="font-size:11.5px;color:var(--txt3);font-style:italic">Post content unavailable.</div>'}
+      </div>`;
+  } else if(d.type==='player'){
+    const player=S.players.find(x=>x.id===d.targetId);
+    const avatarSrc=player?getAvatar(player,64):`https://mc-heads.net/avatar/${encodeURIComponent(d.targetTitle)}/64`;
+    bodyHtml=`
+      <div style="font-size:11px;color:var(--txt3);font-family:var(--mf);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">👤 Player Removal Request</div>
+      <div style="background:var(--surf2);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:16px;margin-bottom:14px;display:flex;gap:14px;align-items:center">
+        <img src="${avatarSrc}" style="width:56px;height:56px;border-radius:10px;image-rendering:pixelated;flex-shrink:0;border:1px solid var(--border)" onerror="this.src='https://mc-heads.net/avatar/Steve/64'">
+        <div>
+          <div style="font-weight:700;color:var(--txt);font-size:16px;margin-bottom:4px">${esc(d.targetTitle)}</div>
+          <div style="font-size:11px;color:var(--txt3)">Role: ${esc(roleLabel[d.targetRole]||d.targetRole||'—')} &nbsp;·&nbsp; Joined: ${esc(d.targetJoined||'—')}</div>
+          ${!player?'<div style="font-size:11px;color:var(--amber);margin-top:4px">⚠️ Player no longer found in roster.</div>':''}
+        </div>
+      </div>`;
+  } else if(d.type==='server'){
+    const server=S.servers.find(x=>x.id===d.targetId);
+    const t=d.targetType||'java';
+    bodyHtml=`
+      <div style="font-size:11px;color:var(--txt3);font-family:var(--mf);margin-bottom:6px;text-transform:uppercase;letter-spacing:.08em">🌐 Server Removal Request</div>
+      <div style="background:var(--surf2);border:1px solid rgba(248,113,113,.2);border-radius:10px;padding:16px;margin-bottom:14px;display:flex;gap:14px;align-items:center">
+        ${server&&server.image?`<img src="${server.image}" style="width:56px;height:56px;border-radius:10px;object-fit:cover;image-rendering:pixelated;flex-shrink:0;border:1px solid var(--border)">`:`<div style="width:56px;height:56px;border-radius:10px;background:var(--surf);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">${catEmoji[d.targetCat]||'🌐'}</div>`}
+        <div>
+          <div style="font-weight:700;color:var(--txt);font-size:16px;margin-bottom:4px">${esc(d.targetTitle)}</div>
+          <div style="font-size:11px;color:var(--txt3);margin-bottom:3px">IP: ${esc(d.targetIp||'—')} &nbsp;·&nbsp; ${esc(srvTypeLabel[t]||t)}</div>
+          <div style="font-size:11px;color:var(--txt3)">Category: ${esc(d.targetCat||'—')}${d.targetVersion?` &nbsp;·&nbsp; v${esc(d.targetVersion)}`:''}</div>
+          ${!server?'<div style="font-size:11px;color:var(--amber);margin-top:4px">⚠️ Server no longer found in list.</div>':''}
+        </div>
+      </div>`;
+  }
+  document.getElementById('postreq-modal-body').innerHTML=`
+    <div style="margin-bottom:16px">
+      ${bodyHtml}
+      <div style="font-size:12px;color:var(--txt3);font-family:var(--mf)">Requested: ${esc(d.requestedAt)}</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;padding-top:16px;border-top:1px solid var(--border)">
+      <button class="btn btn-danger" style="flex:1" onclick="admApproveDelReq(${d.id});closeModal('postreq-modal')">✅ Approve</button>
+      <button class="btn btn-ghost" style="flex:1;color:var(--green);border-color:rgba(74,222,128,.3)" onclick="admDeclineDelReq(${d.id});closeModal('postreq-modal')">✕ Decline</button>
+    </div>`;
+  openModal('postreq-modal');
+}
+function admApproveDelReq(id){
+  const d=(S.delReqs||[]).find(x=>x.id===id);if(!d)return;
+  const isPlayer=d.type==='player';
+  const isServer=d.type==='server';
+  const msg=isPlayer?`Permanently remove player "${d.targetTitle}" from the roster.`:isServer?`Permanently remove server "${d.targetTitle}" from the server list.`:'This will permanently delete the post and all its images.';
+  const title=isPlayer?'Confirm Player Removal?':isServer?'Confirm Server Removal?':'Confirm Post Deletion?';
+  const okLabel=isPlayer?'Remove Player':isServer?'Remove Server':'Delete Post';
+  confirmAction(msg,()=>{
+    const d2=(S.delReqs||[]).find(x=>x.id===id);if(!d2)return;
+    if(d2.type==='player'){
+      const pl=S.players.find(x=>x.id===d2.targetId);
+      if(pl&&pl.imageId)_clDelete(pl.imageId);
+      S.players=S.players.filter(x=>x.id!==d2.targetId);
+      S.delReqs=S.delReqs.filter(x=>x.id!==d2.id);
+      save();renderAdmDelReqs();updateAdmDelReqBadge();
+      renderAdmPlayers();
+      if(S.modAuthed)renderModPlayers();
+      toast(`Player "${d2.targetTitle}" removed.`,'ok');
+    } else if(d2.type==='server'){
+      const srv=S.servers.find(x=>x.id===d2.targetId);
+      if(srv&&srv.imageId)_clDelete(srv.imageId);
+      S.servers=S.servers.filter(x=>x.id!==d2.targetId);
+      S.delReqs=S.delReqs.filter(x=>x.id!==d2.id);
+      save();renderAdmDelReqs();updateAdmDelReqBadge();
+      renderAdmServers();
+      if(S.modAuthed)renderModServers();
+      toast(`Server "${d2.targetTitle}" removed.`,'ok');
+    } else {
+      const arr=d2.pool==='community'?S.communityPosts:S.posts;
+      const post=arr.find(x=>x.id===d2.targetId);
+      if(post)(post.imageIds||[]).forEach(pid=>_clDelete(pid));
+      if(d2.pool==='community'){S.communityPosts=S.communityPosts.filter(x=>x.id!==d2.targetId);}
+      else{S.posts=S.posts.filter(x=>x.id!==d2.targetId);}
+      S.delReqs=S.delReqs.filter(x=>x.id!==d2.id);
+      save();renderAdmDelReqs();updateAdmDelReqBadge();
+      renderAdmPosts();renderAdmCommunityPosts();
+      if(S.modAuthed){renderModPosts();renderModCommunityPosts();}
+      toast('Post deleted as requested by moderator.','ok');
+    }
+  },{icon:isPlayer?'👤':isServer?'🌐':'🗑️',iconStyle:'danger',title,okLabel,okClass:'btn-danger'});
+}
+function admDeclineDelReq(id){
+  confirmAction('The moderator deletion request will be cancelled. The post will remain.',()=>{
+    const d=(S.delReqs||[]).find(x=>x.id===id);if(!d)return;
+    S.delReqs=S.delReqs.filter(x=>x.id!==id);
+    save();renderAdmDelReqs();updateAdmDelReqBadge();
+    toast('Deletion request declined. Item kept.','ok');
+  },{icon:'✕',iconStyle:'warn',title:'Decline Deletion Request?',okLabel:'Decline Request',okClass:'btn-ghost'});
+}
+
 // ═════ SCROLL REVEAL ══════════════════════════════════
 let rvObs=null;
 function initReveal(){
@@ -1888,7 +2522,7 @@ document.addEventListener('touchend',()=>{_touchDown=false;},{passive:true});
 document.addEventListener('touchcancel',()=>{_touchDown=false;},{passive:true});
 
 // ═════ ESC ════════════════════════════════════════════
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){['edit-modal','player-modal','server-modal','req-modal','post-detail-modal'].forEach(closeModal);closeLightbox();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){['edit-modal','player-modal','server-modal','req-modal','post-detail-modal','confirm-modal','postreq-modal'].forEach(closeModal);closeLightbox();}});
 
 // ═════ DRAG & DROP ════════════════════════════════════
 document.querySelectorAll('.upload-area,.pl-upload-area').forEach(area=>{

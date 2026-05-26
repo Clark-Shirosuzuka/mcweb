@@ -153,6 +153,7 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 .post-read-hint{font-size:11px;color:var(--txt3);margin-top:12px;font-family:var(--mf);display:flex;align-items:center;gap:4px}
 .post-author{font-size:11px;color:var(--txt3);font-family:var(--mf);margin-top:5px;display:flex;align-items:center;gap:6px}
 .post-admin-badge{background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3);font-size:9.5px;font-family:var(--mf);font-weight:700;padding:1px 7px;border-radius:100px;letter-spacing:.04em;text-transform:uppercase}
+.post-mod-badge{background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3);font-size:9.5px;font-family:var(--mf);font-weight:700;padding:1px 7px;border-radius:100px;letter-spacing:.04em;text-transform:uppercase}
 .post-user-badge{background:rgba(99,179,237,.12);color:#63b3ed;border:1px solid rgba(99,179,237,.25);font-size:9.5px;font-family:var(--mf);font-weight:600;padding:1px 7px;border-radius:100px}
 /* Post request panel */
 .post-req-card{background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
@@ -290,6 +291,9 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 /* Contact — platform-name-only redirect button in card */
 .contact-platform-btn{display:inline-flex;align-items:center;gap:4px;color:var(--cyan);background:none;border:none;cursor:pointer;font-family:var(--mf);font-size:10.5px;padding:0;text-decoration:none;transition:color .18s}
 .contact-platform-btn:hover{color:#fff}
+/* Contact — pill button variant used in admin info panel */
+.contact-platform-btn.pill{padding:5px 14px;border-radius:100px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.22);font-size:12.5px;font-family:var(--bf);font-weight:600;transition:all .22s var(--ease)}
+.contact-platform-btn.pill:hover{background:rgba(34,211,238,.2);transform:translateY(-1px);color:#fff}
 /* Contact — large button in modal */
 .modal-contact-redirect{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:9px;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.22);color:var(--cyan);text-decoration:none;font-family:var(--bf);font-size:13px;font-weight:600;cursor:pointer;transition:all .22s var(--ease)}
 .modal-contact-redirect:hover{background:rgba(34,211,238,.18);color:#fff;transform:translateY(-1px)}
