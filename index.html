@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SRZK COMMUNITY — Minecraft Community</title>
+<title>SRZK COMMUNITY</title>
 <link rel="stylesheet" href="css/style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
@@ -205,9 +205,12 @@
         <div class="admin-info-card"><span class="aic-label">👑 Admins</span><div id="pre-admins"><span class="aic-empty">No admins listed yet.</span></div></div>
         <div class="admin-info-card"><span class="aic-label">🛡️ Moderators</span><div id="pre-mods"><span class="aic-empty">No moderators listed yet.</span></div></div>
       </div>
-      <div class="admin-contact-card rv rv-d2"><span class="aic-label">📬 Contact & Support</span>
+      <div class="admin-contact-card rv rv-d2"><span class="aic-label">📬 Admin Contact & Support</span>
         <div class="contact-text-pre" id="pre-contact-text">No contact info set yet.</div>
         <div id="pre-discord-wrap" style="display:none"><a id="pre-discord-link" href="#" target="_blank" class="btn btn-green-ghost btn-sm" style="text-decoration:none;display:inline-flex">💬 Message Admin</a></div>
+      </div>
+      <div class="admin-contact-card rv rv-d2" id="pre-mod-contact-card" style="display:none;border-color:rgba(192,132,252,.2);background:rgba(192,132,252,.03)"><span class="aic-label" style="color:var(--purple)">🛡️ Moderator Contact</span>
+        <div class="contact-text-pre" id="pre-mod-contact-text">No moderator contact info set yet.</div>
       </div>
       <div class="pre-divider rv rv-d3">Are you staff?</div>
       <div style="display:flex;flex-direction:column;gap:12px">
@@ -403,7 +406,7 @@
       <div class="form-group"><label>Password</label>
         <div class="pw-wrap"><input type="password" id="mod-pw" placeholder="Enter moderator password" onkeydown="if(event.key==='Enter')doModLogin()"><button class="pw-toggle" type="button" onclick="togglePw('mod-pw',this)">👁️</button></div>
       </div>
-      <button class="btn btn-sm" style="width:100%;background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3)" onclick="doModLogin()">Sign In as Moderator</button>
+      <button class="btn btn-sm" style="width:100%;background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3)" onclick="doModLogin()">Sign In</button>
       <button class="btn btn-ghost" style="width:100%;margin-top:9px" onclick="showInfoPanel()">← Back to Staff Info</button>
       <p style="text-align:center;font-size:10.5px;color:var(--txt3);margin-top:14px"><span style="font-family:var(--mf);color:var(--purple)">Welcome Back Moderator!</span></p>
     </div>
@@ -454,21 +457,88 @@
       </div>
       <!-- MOD PLAYERS TAB -->
       <div class="panel" id="mod-tab-players">
-        <div class="card-box" style="background:var(--surf2);border-style:dashed;margin-bottom:18px"><p style="font-size:13px;color:var(--txt2)">👥 View the player roster. Use the 🗑️ button to request a player removal — the admin must approve before they are deleted.</p></div>
-        <div class="dtable-wrap" id="mod-players-list"><div class="empty"><span class="empty-icon">👾</span><p>No players yet.</p></div></div>
+        <div class="card-box"><h3>👤 Add Player</h3>
+          <div class="grid-2">
+            <div class="form-group"><label>Username *</label><input type="text" id="mpl-name" placeholder="Notch"></div>
+            <div class="form-group"><label>Role</label><select id="mpl-role"><option value="player">Player</option><option value="vip">VIP</option><option value="mod">Moderator</option><option value="admin">Admin</option></select></div>
+            <div class="form-group"><label>Joined Date</label><input type="date" id="mpl-date"></div>
+            <div class="form-group"><label>Gender <span class="label-opt">(optional)</span></label><select id="mpl-gender"><option value="">Prefer not to say</option><option value="Male">Male</option><option value="Female">Female</option><option value="Non-binary">Non-binary</option><option value="Other">Other</option></select></div>
+          </div>
+          <div class="form-group"><label>Player Style <span class="label-opt">(1–3, optional)</span></label>
+            <div class="type-tags-wrap" id="mpl-type-tags">
+              <button class="type-tag-btn" onclick="toggleType(this,'Builder','mpl')">🏗️ Builder</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Miner','mpl')">⛏️ Miner</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'PvP','mpl')">⚔️ PvP</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Adventurer','mpl')">🗺️ Adventurer</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Explorer','mpl')">🧭 Explorer</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Redstone Builder','mpl')">🔴 Redstone Builder</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Interior Designer','mpl')">🛋️ Interior Designer</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Resource Collector','mpl')">📦 Resource Collector</button>
+              <button class="type-tag-btn" onclick="toggleType(this,'Collector','mpl')">🗃️ Collector</button>
+            </div>
+          </div>
+          <div class="form-group"><label>Contact <span class="label-opt">(optional)</span></label>
+            <div class="contact-group">
+              <select id="mpl-contact-platform"><option value="">None</option><option value="Discord">Discord</option><option value="TikTok">TikTok</option><option value="Facebook">Facebook</option><option value="Messenger">Messenger</option></select>
+              <input type="text" id="mpl-contact-value" placeholder="Username or handle">
+            </div>
+          </div>
+          <div class="form-group"><label>Custom Avatar <span class="label-opt">(optional)</span></label>
+            <div class="pl-upload-area"><input type="file" id="mpl-img-input" accept="image/*" onchange="handleImg(this,'mpl-img-preview','mplImg')">
+              <span style="font-size:17px;display:block;margin-bottom:4px">🧑‍🎤</span><span style="font-size:12px;color:var(--txt2)">Upload avatar or leave blank for MC skin</span>
+              <img id="mpl-img-preview" class="pl-up-preview"></div>
+          </div>
+          <button class="btn btn-sm" style="background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3)" onclick="addModPlayer()">Add Player</button>
+        </div>
+        <div class="card-box"><h3>👥 Player Roster <span style="font-size:10.5px;color:var(--txt3);font-weight:400;font-family:var(--mf)">— 🗑️ requests go to admin for approval</span></h3>
+          <div class="dtable-wrap" id="mod-players-list"><div class="empty"><span class="empty-icon">👾</span><p>No players yet.</p></div></div>
+        </div>
       </div>
       <!-- MOD SERVERS TAB -->
       <div class="panel" id="mod-tab-servers">
-        <div class="card-box" style="background:var(--surf2);border-style:dashed;margin-bottom:18px"><p style="font-size:13px;color:var(--txt2)">🌐 View all servers. Use the 🗑️ button to request a server removal — the admin must approve before it is deleted.</p></div>
-        <div class="dtable-wrap" id="mod-servers-list"><div class="empty"><span class="empty-icon">🌐</span><p>No servers yet.</p></div></div>
+        <div class="card-box"><h3>➕ Add Server</h3>
+          <div class="grid-2" style="margin-bottom:12px">
+            <div class="form-group" style="margin-bottom:0"><label>Server Name *</label><input type="text" id="ms-name" placeholder="My Minecraft Server"></div>
+            <div class="form-group" style="margin-bottom:0"><label>Category</label><select id="ms-cat"><option>Survival</option><option>Creative</option><option>Minigames</option><option>Skyblock</option><option>Factions</option><option>Roleplay</option><option>Other</option></select></div>
+            <div class="form-group" style="margin-bottom:0"><label>Server Type</label><select id="ms-type" onchange="onSrvTypeChange('ms')"><option value="java">Java Edition</option><option value="bedrock">Bedrock Edition</option><option value="cracked">Java &amp; Bedrock (Cracked)</option></select></div>
+            <div class="form-group" style="margin-bottom:0"><label>Version <span class="label-opt">(optional)</span></label><input type="text" id="ms-version" placeholder="e.g. 1.21.4"></div>
+          </div>
+          <div class="form-group"><label id="ms-ip-label">IP Address *</label><input type="text" id="ms-ip" placeholder="play.example.com"></div>
+          <div class="form-group" id="ms-port-group" style="display:none"><label>Port *</label><input type="number" id="ms-port" placeholder="19132"></div>
+          <div class="form-group" id="ms-java-ip-group" style="display:none"><label>Java IP Address *</label><input type="text" id="ms-java-ip" placeholder="java.example.com"></div>
+          <div class="form-group"><label>Description <span class="label-opt">(optional)</span></label><input type="text" id="ms-desc" placeholder="A short description…"></div>
+          <div class="form-group"><label>Server Image <span class="label-opt">(optional)</span></label>
+            <div class="upload-area"><input type="file" id="ms-img-input" accept="image/*" onchange="handleImg(this,'ms-img-preview','msSrvImg')">
+              <span class="up-icon">🖼️</span><span class="up-text">Click or drag to upload icon</span><img id="ms-img-preview" class="up-preview" style="max-height:90px"></div>
+          </div>
+          <button class="btn btn-sm" style="background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3)" onclick="addModServer()">Add Server</button>
+        </div>
+        <div class="card-box"><h3>🌐 Server List <span style="font-size:10.5px;color:var(--txt3);font-weight:400;font-family:var(--mf)">— 🗑️ requests go to admin for approval</span></h3>
+          <div class="dtable-wrap" id="mod-servers-list"><div class="empty"><span class="empty-icon">🌐</span><p>No servers yet.</p></div></div>
+        </div>
       </div>
       <!-- MOD SETTINGS TAB -->
       <div class="panel" id="mod-tab-settings">
-        <div class="card-box">
-          <h3>⚙️ Moderator Settings</h3>
-          <div class="card-box" style="background:var(--surf2);border-style:dashed;margin-top:4px">
-            <p style="font-size:13px;color:var(--txt2);margin:0">🔐 Password changes for the Moderator Panel can only be done by the <strong>Admin</strong>. Please contact your admin to update the moderator password.</p>
+        <div class="card-box"><h3>⚙️ Moderator Settings</h3>
+          <!-- Admin contact -->
+          <div class="form-group">
+            <label>Admin Contact</label>
+            <p style="font-size:12px;color:var(--txt3);margin-bottom:9px">Need to change the moderator password or get help? Reach out to the admin directly.</p>
+            <div id="mod-admin-contact-btns"><span style="font-size:12px;color:var(--txt3)">No admin contact info set yet.</span></div>
           </div>
+          <div style="border-top:1px solid var(--border);margin:16px 0"></div>
+          <!-- Mod own contacts -->
+          <div class="form-group">
+            <label>Your Contact / Social Links <span class="label-opt">(shown on the staff info page)</span></label>
+            <div id="mod-cfg-contacts-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px"></div>
+            <button class="btn btn-ghost btn-sm" type="button" onclick="addModCfgContact()">+ Add Contact</button>
+          </div>
+          <div style="border-top:1px solid var(--border);margin:16px 0"></div>
+          <!-- Password notice -->
+          <div class="card-box" style="background:var(--surf2);border-style:dashed;margin:0">
+            <p style="font-size:13px;color:var(--txt2);margin:0">🔐 Moderator Panel password can only be changed by the <strong>Admin</strong> via their Settings tab.</p>
+          </div>
+          <button class="btn btn-sm" style="background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3);margin-top:16px" onclick="saveModCfgContacts()">Save Settings</button>
         </div>
       </div>
     </div>
@@ -582,13 +652,13 @@ document.dispatchEvent(new Event('firebase-ready'));
 <script>
 // ═════ STATE ═════════════════════════════════════════
 let S={posts:[],communityPosts:[],servers:[],players:[],requests:[],postReqs:[],delReqs:[],
-  cfg:{name:'SRZK COMMUNITY',desc:'Your Minecraft Community Hub',pw:'admin123',modPw:'mod123',deletePw:'',adminContact:'',contacts:[],discordLink:''},authed:false,modAuthed:false};
-let srvImg=null,plrImg=null,regImg=null,editImg=null,postImgs=[];
-let srvImgId=null,plrImgId=null,regImgId=null,editImgId=null,postImgIds=[];
+  cfg:{name:'SRZK COMMUNITY',desc:'Your Minecraft Community Hub',pw:'admin123',modPw:'mod123',deletePw:'',adminContact:'',contacts:[],modContacts:[],discordLink:''},authed:false,modAuthed:false};
+let srvImg=null,plrImg=null,regImg=null,editImg=null,postImgs=[],msSrvImg=null,mplImg=null;
+let srvImgId=null,plrImgId=null,regImgId=null,editImgId=null,postImgIds=[],msSrvImgId=null,mplImgId=null;
 let reqPostImgs=[],reqPostImgIds=[];// separate arrays for user request-post form
 let _uploading=false;// true while any single image (server/player/reg/edit) is uploading
 let postDest='updates';// admin post destination: 'updates' or 'community'
-let selectedTypes={reg:[],adm:[]};
+let selectedTypes={reg:[],adm:[],mpl:[]};
 const seenEls=new WeakSet();
 
 // save() is still called the same way everywhere — fire-and-forget write to Firestore.
@@ -657,7 +727,7 @@ function _onRemoteUpdate(key){
   if(key==='postReqs'&&S.modAuthed){renderModPostReqs();updateModPostReqBadge();}
   if(key==='delReqs'&&S.authed){renderAdmDelReqs();updateAdmDelReqBadge();}
   if(key==='delReqs'&&S.modAuthed){renderModPosts();renderModCommunityPosts();}
-  if(key==='cfg'){renderHome();if(S.authed&&id==='page-admin'){const ci=document.getElementById('cfg-name');if(ci)ci.value=S.cfg.name||'';}}
+  if(key==='cfg'){renderHome();renderPrePanel();if(S.authed&&id==='page-admin'){const ci=document.getElementById('cfg-name');if(ci)ci.value=S.cfg.name||'';}if(S.modAuthed)loadModCfg();}
 }
 
 // ═════ CLOUDINARY IMAGE STORAGE ══════════════════════
@@ -880,6 +950,8 @@ async function handleImg(input,previewId,store){
     else if(store==='plrImg'){plrImg=url;plrImgId=publicId;}
     else if(store==='regImg'){regImg=url;regImgId=publicId;}
     else if(store==='editImg'){editImg=url;editImgId=publicId;}
+    else if(store==='msSrvImg'){msSrvImg=url;msSrvImgId=publicId;}
+    else if(store==='mplImg'){mplImg=url;mplImgId=publicId;}
     if(prev){prev.src=url;prev.style.opacity='';}
   }catch(e){
     toast('Image upload failed: '+e.message,'err');
@@ -1667,6 +1739,18 @@ function renderPrePanel(){
   }
   const dw=document.getElementById('pre-discord-wrap'),dl=document.getElementById('pre-discord-link');
   if(S.cfg.discordLink){dw.style.display='block';dl.href=S.cfg.discordLink;}else dw.style.display='none';
+  // Mod contacts
+  const modContacts=S.cfg.modContacts||[];
+  const modCard=document.getElementById('pre-mod-contact-card');
+  const modContactEl=document.getElementById('pre-mod-contact-text');
+  if(modCard&&modContactEl){
+    if(modContacts.length){
+      modCard.style.display='block';
+      modContactEl.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:7px">${modContacts.map(c=>buildContactCardBtn(c,true)).join('')}</div>`;
+    } else {
+      modCard.style.display='none';
+    }
+  }
 }
 function updateReqBadge(){const n=S.requests.filter(r=>r.status==='pending').length;const b=document.getElementById('req-badge');if(b){b.style.display=n>0?'flex':'none';b.textContent=n;}}
 function doLogin(){
@@ -2007,6 +2091,7 @@ function showModDash(){
   document.getElementById('mod-tab-posts').classList.add('active');
   renderModPosts();renderModCommunityPosts();renderModPostReqs();renderModRequests();renderModPlayers();renderModServers();
   updateModPostReqBadge();updateModReqBadge();
+  loadModCfg();
 }
 
 function switchModTab(btn,pId){
@@ -2217,6 +2302,98 @@ function modDenyRequest(id){
 }
 
 // saveModSettings moved to admin panel (saveCfg)
+
+// ═════ MOD ADD SERVER ════════════════════════════════
+
+function addModServer(){
+  if(_uploading){toast('Please wait for the image to finish uploading.','err');return;}
+  const name=v('ms-name'),ip=v('ms-ip'),type=v('ms-type');
+  const port=document.getElementById('ms-port').value.trim();
+  const javaIp=v('ms-java-ip');
+  if(!name){toast('Server name required.','err');return;}
+  if(!ip){toast('IP address required.','err');return;}
+  if(type!=='java'&&!port){toast('Port is required.','err');return;}
+  if(type==='cracked'&&!javaIp){toast('Java IP required.','err');return;}
+  S.servers.push({id:Date.now(),name,ip,port,javaIp:javaIp||'',cat:v('ms-cat'),desc:v('ms-desc'),stype:type,version:v('ms-version'),image:msSrvImg||null,imageId:msSrvImgId||null});
+  save();clearModSrv();renderModServers();renderAdmServers();toast('Server added! 🌐','ok');
+}
+function clearModSrv(){
+  ['ms-name','ms-ip','ms-desc','ms-version','ms-java-ip'].forEach(id=>set(id,''));
+  document.getElementById('ms-cat').value='Survival';
+  document.getElementById('ms-type').value='java';
+  const prev=document.getElementById('ms-img-preview');if(prev){prev.src='';prev.style.display='none';}
+  document.getElementById('ms-img-input').value='';
+  msSrvImg=null;msSrvImgId=null;
+  // reset conditional fields
+  const pg=document.getElementById('ms-port-group');if(pg)pg.style.display='none';
+  const jg=document.getElementById('ms-java-ip-group');if(jg)jg.style.display='none';
+  const il=document.getElementById('ms-ip-label');if(il)il.textContent='IP Address *';
+}
+
+// ═════ MOD ADD PLAYER ════════════════════════════════
+
+function addModPlayer(){
+  if(_uploading){toast('Please wait for the image to finish uploading.','err');return;}
+  const name=v('mpl-name');if(!name){toast('Username required.','err');return;}
+  const cpf=v('mpl-contact-platform'),cpv=v('mpl-contact-value');
+  S.players.push({id:Date.now(),name,role:v('mpl-role'),
+    joined:document.getElementById('mpl-date').value||new Date().toISOString().split('T')[0],
+    gender:v('mpl-gender')||'',playerTypes:[...(selectedTypes.mpl||[])],
+    image:mplImg||null,imageId:mplImgId||null,
+    contact:cpf&&cpv?{platform:cpf,value:cpv}:null});
+  save();renderModPlayers();renderAdmPlayers();toast('Player added! 👾','ok');
+  set('mpl-name','');document.getElementById('mpl-role').value='player';
+  document.getElementById('mpl-date').value='';
+  document.getElementById('mpl-gender').value='';
+  set('mpl-contact-platform','');set('mpl-contact-value','');
+  const prev=document.getElementById('mpl-img-preview');if(prev){prev.src='';prev.style.display='none';}
+  document.getElementById('mpl-img-input').value='';
+  mplImg=null;mplImgId=null;
+  selectedTypes.mpl=[];
+  document.querySelectorAll('#mpl-type-tags .type-tag-btn').forEach(b=>b.classList.remove('selected','disabled'));
+}
+
+// ═════ MOD SETTINGS CONTACTS ══════════════════════════
+
+function _renderModCfgContacts(){
+  const list=document.getElementById('mod-cfg-contacts-list');if(!list)return;
+  const contacts=S.cfg.modContacts||[];
+  list.innerHTML=contacts.length?contacts.map((c,i)=>`
+    <div class="contact-group" style="gap:8px;align-items:center">
+      <select data-csi="skip" style="flex:0 0 140px" onchange="_modCfgCc(${i},'platform',this.value)">
+        ${_cfgPlatforms.map(p=>`<option${c.platform===p?' selected':''}>${p}</option>`).join('')}
+      </select>
+      <input type="text" value="${esc(c.value)}" placeholder="@username or link" style="flex:1" oninput="_modCfgCc(${i},'value',this.value)">
+      <button class="btn btn-ghost btn-sm" onclick="removeModCfgContact(${i})" style="flex:0 0 auto;color:var(--red);border-color:rgba(248,113,113,.3)">✕</button>
+    </div>`).join(''):'<p style="font-size:12px;color:var(--txt3);margin:0">No contacts added yet.</p>';
+}
+function addModCfgContact(){
+  if(!S.cfg.modContacts)S.cfg.modContacts=[];
+  S.cfg.modContacts.push({platform:'Discord',value:''});
+  _renderModCfgContacts();
+}
+function removeModCfgContact(i){
+  (S.cfg.modContacts||[]).splice(i,1);_renderModCfgContacts();
+}
+function _modCfgCc(i,key,val){
+  if(S.cfg.modContacts&&S.cfg.modContacts[i])S.cfg.modContacts[i][key]=val;
+}
+function saveModCfgContacts(){
+  save();
+  renderPrePanel();
+  toast('Moderator contact info saved! ✅','ok');
+}
+function loadModCfg(){
+  _renderModCfgContacts();
+  // Render admin contacts inline in mod settings
+  const el=document.getElementById('mod-admin-contact-btns');if(!el)return;
+  const contacts=S.cfg.contacts||[];
+  if(contacts.length){
+    el.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:8px">${contacts.map(c=>buildContactCardBtn(c,true)).join('')}</div>`;
+  } else {
+    el.innerHTML='<span style="font-size:12px;color:var(--txt3)">No admin contact info set yet.</span>';
+  }
+}
 
 // ═════ MOD SERVERS PANEL ════════════════════════════
 
