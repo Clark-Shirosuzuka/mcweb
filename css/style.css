@@ -73,10 +73,11 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;height:var(--nav-h);padding:
 .drawer.open .drawer-link:nth-child(6){animation-delay:.29s}
 .drawer.open .drawer-link:nth-child(7){animation-delay:.34s}
 .drawer.open .drawer-link:nth-child(8){animation-delay:.39s}
-.drawer.open .drawer-link:nth-child(8){animation-delay:.39s}
+.drawer.open .drawer-link:nth-child(9){animation-delay:.44s}
 
 /* ── PAGES ── */
 main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
+#page-clips.active{overflow:hidden;height:calc(100vh - var(--nav-h))}
 .page{display:none}
 .page.active{display:block;animation:pgIn .38s var(--ease)}
 @keyframes pgIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
@@ -159,10 +160,37 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 .post-vid-section{margin:14px 0;display:flex;flex-direction:column;gap:10px}
 .post-vid-player{width:100%;border-radius:10px;background:#000;max-height:340px;display:block}
 .post-vid-indicator{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-family:var(--mf);color:var(--txt3);background:rgba(0,0,0,.4);padding:2px 8px;border-radius:100px;vertical-align:middle;margin-left:6px}
-.clips-page{background:#000;min-height:100vh}
+/* ── Inline mini video player on post cards ── */
+.post-vid-mini{position:relative;background:#000;overflow:hidden;border-bottom:1px solid var(--border)}
+.post-vid-mini .pvm-vid{width:100%;max-height:280px;display:block;object-fit:contain;cursor:pointer}
+.pvm-ctrl-bar{display:flex;align-items:center;gap:6px;padding:7px 12px;background:rgba(0,0,0,.78);backdrop-filter:blur(8px)}
+.pvm-btn{background:none;border:none;color:#fff;cursor:pointer;font-size:11px;font-family:var(--mf);padding:4px 8px;border-radius:5px;transition:background .15s;display:inline-flex;align-items:center;gap:3px;flex-shrink:0;line-height:1}
+.pvm-btn:hover{background:rgba(255,255,255,.13)}
+.pvm-play-btn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.1);justify-content:center;font-size:14px;padding:0}
+.pvm-play-btn:hover{background:rgba(255,255,255,.22)}
+.pvm-prog-outer{flex:1;height:3px;background:rgba(255,255,255,.2);border-radius:2px;cursor:pointer;position:relative;margin:0 4px}
+.pvm-prog-inner{height:100%;background:var(--green);border-radius:2px;width:0%;transition:width .1s linear;pointer-events:none}
+.pvm-time{font-size:9px;font-family:var(--mf);color:rgba(255,255,255,.45);flex-shrink:0}
+/* ── Custom inline post-card video player ── */
+.post-card-vid-wrap{position:relative;width:100%;background:#000;overflow:hidden;user-select:none;border-bottom:1px solid var(--border)}
+.post-card-vid{width:100%;max-height:55vh;min-height:160px;display:block;object-fit:contain;background:#000;cursor:pointer}
+/* Centre overlay: backward | play/pause | forward */
+.pcv-centre{position:absolute;inset:0 0 38px 0;display:flex;align-items:center;justify-content:center;gap:28px;pointer-events:none}
+.pcv-centre button{pointer-events:auto}
+.pcv-ov-btn{background:rgba(0,0,0,.48);border:none;color:#fff;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:background .15s;backdrop-filter:blur(4px);flex-shrink:0;line-height:1;font-family:var(--mf)}
+.pcv-ov-btn:hover{background:rgba(0,0,0,.72)}
+.pcv-ov-play{width:50px;height:50px;font-size:22px}
+/* Bottom bar: progress + time + Clips button */
+.pcv-bottom-bar{position:absolute;bottom:0;left:0;right:0;display:flex;align-items:center;gap:7px;padding:6px 10px;background:rgba(0,0,0,.75);backdrop-filter:blur(6px)}
+.pcv-progress-wrap{flex:1;height:3px;background:rgba(255,255,255,.28);border-radius:2px;cursor:pointer;position:relative;min-width:40px}
+.pcv-progress-bar{height:100%;background:var(--green);border-radius:2px;width:0%;transition:width .1s linear;pointer-events:none}
+.pcv-time{font-size:9px;font-family:var(--mf);color:rgba(255,255,255,.6);white-space:nowrap;flex-shrink:0}
+.pcv-fullview-btn{font-size:10.5px;padding:2px 8px;border-radius:5px;background:rgba(255,255,255,.12);border:none;color:#fff;cursor:pointer;font-family:var(--mf);transition:background .15s;flex-shrink:0;line-height:1.4}
+.pcv-fullview-btn:hover{background:rgba(255,255,255,.24)}
+.clips-page{background:#000;height:calc(100vh - var(--nav-h));overflow-y:scroll;scroll-snap-type:y mandatory;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
 .clips-feed{display:flex;flex-direction:column;align-items:center;gap:0;padding:0}
-.clip-item{position:relative;width:100%;max-width:480px;margin:0 auto;height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;scroll-snap-align:start;background:#000;border-bottom:1px solid rgba(255,255,255,.06);user-select:none}
-.clip-vid{width:100%;height:100%;object-fit:contain;background:#000;display:block}
+.clip-item{position:relative;width:100%;max-width:480px;margin:0 auto;height:calc(100vh - var(--nav-h));display:flex;flex-direction:column;justify-content:center;align-items:center;scroll-snap-align:start;scroll-snap-stop:always;background:#000;border-bottom:1px solid rgba(255,255,255,.06);user-select:none;overflow:hidden}
+.clip-vid{width:100%;height:100%;max-width:100%;max-height:100%;object-fit:contain;background:#000;display:block}
 .clip-overlay{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:flex-end;padding:22px 18px 52px;background:linear-gradient(0deg,rgba(0,0,0,.7) 0%,transparent 52%)}
 .clip-info{pointer-events:auto;position:relative;z-index:10}
 .clip-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:5px;text-shadow:0 1px 6px rgba(0,0,0,.7);line-height:1.35}
