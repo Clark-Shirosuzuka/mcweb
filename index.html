@@ -21,6 +21,7 @@
     <button class="nav-link"        id="nl-players"   onclick="nav('players')">Players</button>
     <button class="nav-link"        id="nl-updates"   onclick="nav('updates')">Updates</button>
     <button class="nav-link"        id="nl-community" onclick="nav('community')">Community</button>
+    <button class="nav-link"        id="nl-clips"     onclick="nav('clips')">Clips</button>
   </div>
   <div class="nav-end">
     <button class="btn btn-sm" id="nl-request-post" onclick="nav('request-post')" style="background:rgba(74,222,128,.12);color:var(--green);border:1px solid rgba(74,222,128,.28)">✏️ Post</button>
@@ -43,6 +44,7 @@
     <button class="drawer-link"        id="dl-players"      onclick="nav('players');closeDrawer()"><span class="dl-icon">👥</span>Players</button>
     <button class="drawer-link"        id="dl-updates"      onclick="nav('updates');closeDrawer()"><span class="dl-icon">📢</span>Updates</button>
     <button class="drawer-link"        id="dl-community"    onclick="nav('community');closeDrawer()"><span class="dl-icon">🌿</span>Community</button>
+    <button class="drawer-link"        id="dl-clips"        onclick="nav('clips');closeDrawer()"><span class="dl-icon">🎬</span>Clips</button>
     <button class="drawer-link"        id="dl-request-post" onclick="nav('request-post');closeDrawer()"><span class="dl-icon">✏️</span>Request Post</button>
     <button class="drawer-link"        id="dl-register"     onclick="nav('register');closeDrawer()"><span class="dl-icon">✍️</span>Register</button>
     <button class="drawer-link"        id="dl-admin"        onclick="nav('admin');closeDrawer()"><span class="dl-icon">🛡️</span>Admin Panel</button>
@@ -120,6 +122,12 @@
 </div>
 
 <!-- ══ REQUEST POST ════════════════════════════════════ -->
+<div class="page" id="page-clips">
+  <div class="clips-page">
+    <div id="clips-feed" class="clips-feed"></div>
+    <div id="clips-scroll-dots" class="clips-scroll-hint"></div>
+  </div>
+</div>
 <div class="page" id="page-request-post">
   <div class="section">
     <div class="sec-hd rv"><span class="sec-label">Community</span><h2 class="sec-title">Request a Post</h2><p class="sec-sub">Submit your post for admin review. Once approved it will appear in Community Updates.</p></div>
@@ -133,6 +141,11 @@
           <div class="upload-area"><input type="file" id="rp-img-input" accept="image/*" multiple onchange="handleReqMultiImg(this)">
             <span class="up-icon">🖼️</span><span class="up-text">Click or drag to upload</span><span class="up-hint">PNG, JPG, GIF, WEBP</span></div>
           <div class="img-thumbs" id="rp-img-thumbs"></div>
+        </div>
+        <div class="form-group"><label>Video <span class="label-opt">(optional — select one or more)</span></label>
+          <div class="upload-area"><input type="file" id="rp-vid-input" accept="video/*" multiple onchange="handleReqMultiVid(this)">
+            <span class="up-icon">🎬</span><span class="up-text">Click or drag to upload video</span><span class="up-hint">MP4, MOV, WEBM — max recommended 100 MB each</span></div>
+          <div class="img-thumbs" id="rp-vid-thumbs"></div>
         </div>
         <p style="font-size:11.5px;color:var(--txt3);font-family:var(--mf);margin-bottom:16px">📋 Your post will be reviewed by an admin before being published.</p>
         <button class="btn btn-primary" onclick="submitPostRequest()">📨 Submit for Review</button>
@@ -253,6 +266,11 @@
               <span class="up-icon">🖼️</span><span class="up-text">Click or drag to upload (select multiple)</span><span class="up-hint">PNG, JPG, GIF, WEBP</span></div>
             <div class="img-thumbs" id="p-img-thumbs"></div>
           </div>
+          <div class="form-group"><label>🎬 Videos <span class="label-opt">(optional — MP4, WEBM, MOV)</span></label>
+            <div class="upload-area"><input type="file" id="p-vid-input" accept="video/*" multiple onchange="handleMultiVid(this,'p-vid-thumbs','adm')">
+              <span class="up-icon">🎬</span><span class="up-text">Click or drag to upload videos</span><span class="up-hint">MP4, WEBM, MOV — max 100MB each</span></div>
+            <div class="img-thumbs" id="p-vid-thumbs"></div>
+          </div>
           <div class="form-group"><label>Post to</label>
             <div class="post-dest-toggle">
               <button class="post-dest-btn active" id="dest-btn-updates"   onclick="selectPostDest('updates')">📢 Updates <span style="font-size:10px;opacity:.7"></span></button>
@@ -342,7 +360,7 @@
         <div class="card-box"><h3>⚙️ Community Settings</h3>
           <div class="grid-2">
             <div class="form-group"><label>Community Name</label><input type="text" id="cfg-name" placeholder="SRZK COMMUNITY"></div>
-            <div class="form-group"><label>Tagline</label><input type="text" id="cfg-desc" placeholder="Your Minecraft community…"></div>
+            <div class="form-group"><label>Tagline</label><input type="text" id="cfg-desc" placeholder="Your SRZK community…"></div>
           </div>
           <div class="form-group">
             <label>Contact / Social Links <span class="label-opt">(shown on home page)</span></label>
@@ -406,7 +424,7 @@
       <div class="form-group"><label>Password</label>
         <div class="pw-wrap"><input type="password" id="mod-pw" placeholder="Enter moderator password" onkeydown="if(event.key==='Enter')doModLogin()"><button class="pw-toggle" type="button" onclick="togglePw('mod-pw',this)">👁️</button></div>
       </div>
-      <button class="btn btn-sm" style="width:100%;background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3)" onclick="doModLogin()">Sign In</button>
+      <button class="btn btn-sm" style="width:100%;background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3)" onclick="doModLogin()">Sign In as Moderator</button>
       <button class="btn btn-ghost" style="width:100%;margin-top:9px" onclick="showInfoPanel()">← Back to Staff Info</button>
       <p style="text-align:center;font-size:10.5px;color:var(--txt3);margin-top:14px"><span style="font-family:var(--mf);color:var(--purple)">Welcome Back Moderator!</span></p>
     </div>
@@ -433,6 +451,11 @@
             <div class="upload-area" id="mod-upload-area"><input type="file" id="mp-img-input" accept="image/*" multiple onchange="handleModMultiImg(this)">
               <span class="up-icon">🖼️</span><span class="up-text">Click or drag to upload</span><span class="up-hint">PNG, JPG, GIF, WEBP</span></div>
             <div class="img-thumbs" id="mp-img-thumbs"></div>
+          </div>
+          <div class="form-group"><label>🎬 Videos <span class="label-opt">(optional — MP4, WEBM, MOV)</span></label>
+            <div class="upload-area"><input type="file" id="mp-vid-input" accept="video/*" multiple onchange="handleMultiVid(this,'mp-vid-thumbs','mod')">
+              <span class="up-icon">🎬</span><span class="up-text">Click or drag to upload videos</span><span class="up-hint">MP4, WEBM, MOV — max 100MB each</span></div>
+            <div class="img-thumbs" id="mp-vid-thumbs"></div>
           </div>
           <div class="form-group"><label>Post to</label>
             <div class="post-dest-toggle">
@@ -655,7 +678,9 @@ let S={posts:[],communityPosts:[],servers:[],players:[],requests:[],postReqs:[],
   cfg:{name:'SRZK COMMUNITY',desc:'Your Minecraft Community Hub',pw:'admin123',modPw:'mod123',deletePw:'',adminContact:'',contacts:[],modContacts:[],discordLink:''},authed:false,modAuthed:false};
 let srvImg=null,plrImg=null,regImg=null,editImg=null,postImgs=[],msSrvImg=null,mplImg=null;
 let srvImgId=null,plrImgId=null,regImgId=null,editImgId=null,postImgIds=[],msSrvImgId=null,mplImgId=null;
+let postVideos=[],postVideoIds=[],modPostVideos=[],modPostVideoIds=[];
 let reqPostImgs=[],reqPostImgIds=[];// separate arrays for user request-post form
+let reqPostVideos=[],reqPostVideoIds=[];// video arrays for user request-post form
 let _uploading=false;// true while any single image (server/player/reg/edit) is uploading
 let postDest='updates';// admin post destination: 'updates' or 'community'
 let selectedTypes={reg:[],adm:[],mpl:[]};
@@ -738,7 +763,7 @@ const _CL={cloud:'dj0tk30i0',preset:'mcimgdb',worker:'https://falling-king-9662.
 
 async function _clUpload(file){
   const fd=new FormData();fd.append('file',file);fd.append('upload_preset',_CL.preset);
-  const res=await fetch(`https://api.cloudinary.com/v1_1/${_CL.cloud}/image/upload`,{method:'POST',body:fd});
+  const res=await fetch(`https://api.cloudinary.com/v1_1/${_CL.cloud}/auto/upload`,{method:'POST',body:fd});
   const d=await res.json();
   if(d.error)throw new Error(d.error.message);
   return{url:d.secure_url,publicId:d.public_id};
@@ -767,11 +792,16 @@ function nav(page){
   const nl=document.getElementById('nl-'+page);if(nl)nl.classList.add('active');
   const dl=document.getElementById('dl-'+page);if(dl)dl.classList.add('active');
   if(page!=='servers')_stopSrvPolling();// stop polling when leaving servers page
+  if(page!=='clips'){// pause clips videos when leaving clips page
+    if(_clipsObserver){_clipsObserver.disconnect();_clipsObserver=null;}
+    (_clipsVideos||[]).forEach(v=>{if(v&&!v.paused)v.pause();});
+  }
   if(page==='admin'){if(S.authed)showDash();else if(S.modAuthed)showModDash();else showInfoPanel();}
   if(page==='servers'){renderServers();_startSrvPolling();}
   if(page==='players')renderPlayers();
   if(page==='updates')renderUpdates();
   if(page==='community')renderCommunity();
+  if(page==='clips'){renderClips();}
   if(page==='home'){renderHome();updateStats();}
   if(page==='register')resetRegForm();
   if(page==='request-post'){clearReqPost();document.getElementById('rp-form-wrap').style.display='block';document.getElementById('rp-success').style.display='none';}
@@ -895,9 +925,12 @@ function openPostModal(postId,pool){
   const p=arr.find(x=>x.id===postId)||S.posts.find(x=>x.id===postId)||S.communityPosts.find(x=>x.id===postId);
   if(!p)return;
   const imgs=p.images||[];
+  const vids=p.videos||[];
   const carHtml=imgs.length?`<div class="post-detail-carousel" style="border-radius:10px;overflow:hidden;margin-bottom:18px;background:var(--surf2)">${buildCarousel(imgs,true)}</div>`:'';
+  const vidHtml=buildVideoSection(vids);
   document.getElementById('post-detail-body').innerHTML=`
     ${carHtml}
+    ${vidHtml}
     <div class="post-detail-meta">${p.pinned?'<span class="post-pin-badge">📌 Pinned</span>':''}<span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span>${p.author?`<span class="post-author" style="margin-left:auto">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>')}</span>`:''}</div>
     <div class="post-detail-title">${esc(p.title)}</div>
     <div class="post-full-content">${esc(p.content)}</div>`;
@@ -968,10 +1001,11 @@ function selectPostDest(dest){
   document.getElementById('dest-btn-community').classList.toggle('active',dest==='community');
 }
 function addPost(){
-  if(postImgIds.some(id=>id===null)){toast('Please wait for images to finish uploading.','err');return;}
+  if(postImgIds.some(id=>id===null)||postVideoIds.some(id=>id===null)){toast('Please wait for uploads to finish.','err');return;}
   const t=v('p-title'),c=v('p-content'),tag=v('p-tag');
   if(!t||!c){toast('Title and content required.','err');return;}
   const post={id:Date.now(),title:t,content:c,tag,images:[...postImgs],imageIds:[...postImgIds],
+    videos:[...postVideos],videoIds:[...postVideoIds],
     author:'Admin',isAdmin:true,
     date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})};
   if(postDest==='community'){S.communityPosts.unshift(post);}
@@ -982,7 +1016,10 @@ function addPost(){
 function clearPost(){
   set('p-title','');set('p-content','');document.getElementById('p-tag').value='Announcement';
   const wrap=document.getElementById('p-img-thumbs');if(wrap)wrap.innerHTML='';
-  document.getElementById('p-img-input').value='';postImgs=[];postImgIds=[];
+  const vwrap=document.getElementById('p-vid-thumbs');if(vwrap)vwrap.innerHTML='';
+  document.getElementById('p-img-input').value='';
+  const vi=document.getElementById('p-vid-input');if(vi)vi.value='';
+  postImgs=[];postImgIds=[];postVideos=[];postVideoIds=[];
 }
 
 // ── Request Post (user-submitted posts awaiting admin approval) ──
@@ -1017,21 +1054,57 @@ async function handleReqMultiImg(input){
     }
   }
 }
+async function handleReqMultiVid(input){
+  const files=Array.from(input.files);input.value='';
+  for(const file of files){
+    if(!file.type.startsWith('video/')){toast('Only video files are accepted here.','err');continue;}
+    const localUrl=URL.createObjectURL(file);
+    const idx=reqPostVideos.length;
+    reqPostVideos.push(localUrl);reqPostVideoIds.push(null);
+    _renderReqVidThumb(localUrl,idx,true);
+    try{
+      const{url,publicId}=await _clUpload(file);
+      reqPostVideos[idx]=url;reqPostVideoIds[idx]=publicId;
+      const wrap=document.getElementById('rp-vid-thumbs');
+      if(wrap){const tw=wrap.querySelectorAll('.vid-thumb-wrap')[idx];if(tw){tw.classList.remove('uploading');const sp=tw.querySelector('.img-up-spin');if(sp)sp.remove();const btn=tw.querySelector('.img-thumb-remove');if(btn)btn.disabled=false;const vid=tw.querySelector('video');if(vid)vid.src=url;}}
+    }catch(e){
+      toast('Video upload failed.','err');
+      reqPostVideos.splice(idx,1);reqPostVideoIds.splice(idx,1);
+      const wrap=document.getElementById('rp-vid-thumbs');if(wrap){wrap.innerHTML='';reqPostVideos.forEach((s,i)=>_renderReqVidThumb(s,i));}
+    }
+  }
+}
+function _renderReqVidThumb(src,idx,uploading=false){
+  const wrap=document.getElementById('rp-vid-thumbs');if(!wrap)return;
+  const div=document.createElement('div');
+  div.className='vid-thumb-wrap'+(uploading?' uploading':'');
+  div.innerHTML=`<video src="${src}" muted preload="metadata"></video><div class="vid-play-icon">▶️</div>${uploading?'<div class="img-up-spin" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);font-size:18px">⏳</div>':''}<button class="img-thumb-remove" onclick="removeReqVid(${idx})"${uploading?' disabled':''}>✕</button>`;
+  wrap.appendChild(div);
+}
+function removeReqVid(idx){
+  _clDelete(reqPostVideoIds[idx]||null);
+  reqPostVideos.splice(idx,1);reqPostVideoIds.splice(idx,1);
+  const wrap=document.getElementById('rp-vid-thumbs');if(!wrap)return;
+  wrap.innerHTML='';reqPostVideos.forEach((src,i)=>_renderReqVidThumb(src,i));
+}
 function clearReqPost(){
   set('rp-username','');set('rp-title','');set('rp-content','');
   document.getElementById('rp-tag').value='Announcement';
   const wrap=document.getElementById('rp-img-thumbs');if(wrap)wrap.innerHTML='';
+  const vwrap=document.getElementById('rp-vid-thumbs');if(vwrap)vwrap.innerHTML='';
   const inp=document.getElementById('rp-img-input');if(inp)inp.value='';
-  reqPostImgs=[];reqPostImgIds=[];
+  const vinp=document.getElementById('rp-vid-input');if(vinp)vinp.value='';
+  reqPostImgs=[];reqPostImgIds=[];reqPostVideos=[];reqPostVideoIds=[];
 }
 function submitPostRequest(){
-  if(reqPostImgIds.some(id=>id===null)){toast('Please wait for images to finish uploading.','err');return;}
+  if(reqPostImgIds.some(id=>id===null)||reqPostVideoIds.some(id=>id===null)){toast('Please wait for uploads to finish.','err');return;}
   const username=v('rp-username'),title=v('rp-title'),content=v('rp-content'),tag=v('rp-tag');
   if(!username){toast('Please enter your username.','err');return;}
   if(!title){toast('Post title is required.','err');return;}
   if(!content){toast('Post content is required.','err');return;}
   S.postReqs.push({id:Date.now(),username,title,content,tag,
     images:[...reqPostImgs],imageIds:[...reqPostImgIds],
+    videos:[...reqPostVideos],videoIds:[...reqPostVideoIds],
     requestedAt:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}),status:'pending'});
   save();
   document.getElementById('rp-form-wrap').style.display='none';
@@ -1069,6 +1142,7 @@ function approvePostReq(id){
   const r=S.postReqs.find(x=>x.id===id);if(!r)return;
   S.communityPosts.unshift({id:Date.now(),title:r.title,content:r.content,tag:r.tag,
     images:r.images||[],imageIds:r.imageIds||[],
+    videos:r.videos||[],videoIds:r.videoIds||[],
     author:r.username,isAdmin:false,
     date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})});
   S.postReqs=S.postReqs.filter(x=>x.id!==r.id);
@@ -1078,6 +1152,7 @@ function denyPostReq(id){
   confirmAction('This post request and any uploaded images will be permanently removed.',()=>{
     const r=S.postReqs.find(x=>x.id===id);if(!r)return;
     (r.imageIds||[]).forEach(pid=>_clDelete(pid));
+    (r.videoIds||[]).forEach(pid=>_clDelete(pid));
     S.postReqs=S.postReqs.filter(x=>x.id!==id);
     save();renderAdmPostReqs();updatePostReqBadge();toast('Request denied and removed.','ok');
   },{icon:'✕',iconStyle:'danger',title:'Deny Post Request?',okLabel:'Deny & Remove'});
@@ -1187,10 +1262,15 @@ function renderUpdates(){
       const safeS=imgs[0].replace(/\\/g,'\\\\').replace(/'/g,"\\'");
       imgHtml=`<div class="post-img-wrap" onclick="event.stopPropagation();openLightbox('${safeS}')"><img src="${imgs[0]}" loading="lazy" alt="${esc(p.title)}"></div>`;
     }
+    const vids=p.videos||[];
+    // If solo video with no other media, embed the player directly on the card
+    const soloVideo=vids.length===1&&imgs.length===0;
+    const vidCardHtml=soloVideo?`<div class="post-vid-section" style="margin:0;padding:0" onclick="event.stopPropagation()"><video class="post-vid-player" src="${vids[0]}" controls preload="metadata" playsinline style="border-radius:0;max-height:280px" onplay="pauseOtherVids(this)">Your browser does not support video.</video></div>`:'';
     return`<article class="post-card rv${p.pinned?' pinned':''}" onclick="openPostModal(${p.id})">
       ${imgHtml}
+      ${vidCardHtml}
       <div class="post-body">
-        <div class="post-meta">${p.pinned?'<span class="post-pin-badge">📌 Pinned</span>':''}<span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span></div>
+        <div class="post-meta">${p.pinned?'<span class="post-pin-badge">📌 Pinned</span>':''}<span class="post-tag">${esc(p.tag)}</span>${vids.length&&!soloVideo?'<span class="post-vid-indicator">🎬 '+vids.length+'</span>':''}<span class="post-date">${esc(p.date)}</span></div>
         <div class="post-title">${esc(p.title)}</div>
         <div class="post-content-wrap">
           <div class="post-content-preview">${esc(p.content)}</div>
@@ -1210,10 +1290,14 @@ function renderCommunity(){
     let imgHtml='';
     if(imgs.length>1){imgHtml=buildCarousel(imgs,false);}
     else if(imgs.length===1){const safeS=imgs[0].replace(/\\/g,'\\\\').replace(/'/g,"\\'");imgHtml=`<div class="post-img-wrap" onclick="event.stopPropagation();openLightbox('${safeS}')"><img src="${imgs[0]}" loading="lazy" alt="${esc(p.title)}"></div>`;}
+    const vids=p.videos||[];
+    const soloVideo=vids.length===1&&imgs.length===0;
+    const vidCardHtml=soloVideo?`<div class="post-vid-section" style="margin:0;padding:0" onclick="event.stopPropagation()"><video class="post-vid-player" src="${vids[0]}" controls preload="metadata" playsinline style="border-radius:0;max-height:280px" onplay="pauseOtherVids(this)">Your browser does not support video.</video></div>`:'';
     return`<article class="post-card rv${p.pinned?' pinned':''}" onclick="openPostModal(${p.id},'community')">
       ${imgHtml}
+      ${vidCardHtml}
       <div class="post-body">
-        <div class="post-meta">${p.pinned?'<span class="post-pin-badge">📌 Pinned</span>':''}<span class="post-tag">${esc(p.tag)}</span><span class="post-date">${esc(p.date)}</span></div>
+        <div class="post-meta">${p.pinned?'<span class="post-pin-badge">📌 Pinned</span>':''}<span class="post-tag">${esc(p.tag)}</span>${vids.length&&!soloVideo?'<span class="post-vid-indicator">🎬 '+vids.length+'</span>':''}<span class="post-date">${esc(p.date)}</span></div>
         <div class="post-title">${esc(p.title)}</div>
         ${p.author?`<div class="post-author">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>')}</div>`:''}
         <div class="post-content-wrap"><div class="post-content-preview">${esc(p.content)}</div></div>
@@ -2157,10 +2241,11 @@ function selectModPostDest(dest){
 
 // ── Add Mod Post ──
 function addModPost(){
-  if(modPostImgIds.some(id=>id===null)){toast('Please wait for images to finish uploading.','err');return;}
+  if(modPostImgIds.some(id=>id===null)||modPostVideoIds.some(id=>id===null)){toast('Please wait for uploads to finish.','err');return;}
   const t=v('mp-title'),c=v('mp-content'),tag=v('mp-tag');
   if(!t||!c){toast('Title and content required.','err');return;}
   const post={id:Date.now(),title:t,content:c,tag,images:[...modPostImgs],imageIds:[...modPostImgIds],
+    videos:[...modPostVideos],videoIds:[...modPostVideoIds],
     author:'Moderator',isAdmin:false,isMod:true,
     date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})};
   if(modPostDest==='community'){S.communityPosts.unshift(post);}
@@ -2171,7 +2256,10 @@ function addModPost(){
 function clearModPost(){
   set('mp-title','');set('mp-content','');document.getElementById('mp-tag').value='Announcement';
   const wrap=document.getElementById('mp-img-thumbs');if(wrap)wrap.innerHTML='';
-  document.getElementById('mp-img-input').value='';modPostImgs=[];modPostImgIds=[];
+  document.getElementById('mp-img-input').value='';
+  const mvi=document.getElementById('mp-vid-input');if(mvi)mvi.value='';
+  const mvw=document.getElementById('mp-vid-thumbs');if(mvw)mvw.innerHTML='';
+  modPostImgs=[];modPostImgIds=[];modPostVideos=[];modPostVideoIds=[];
 }
 
 // ── Mod post lists (read-only, no edit/delete) ──
@@ -2242,6 +2330,7 @@ function modApprovePostReq(id){
   const r=S.postReqs.find(x=>x.id===id);if(!r)return;
   S.communityPosts.unshift({id:Date.now(),title:r.title,content:r.content,tag:r.tag,
     images:r.images||[],imageIds:r.imageIds||[],
+    videos:r.videos||[],videoIds:r.videoIds||[],
     author:r.username,isAdmin:false,
     date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})});
   S.postReqs=S.postReqs.filter(x=>x.id!==r.id);
@@ -2253,6 +2342,7 @@ function modDenyPostReq(id){
   confirmAction('This post request and any uploaded images will be permanently removed.',()=>{
     const r=S.postReqs.find(x=>x.id===id);if(!r)return;
     (r.imageIds||[]).forEach(pid=>_clDelete(pid));
+    (r.videoIds||[]).forEach(pid=>_clDelete(pid));
     S.postReqs=S.postReqs.filter(x=>x.id!==id);
     save();renderModPostReqs();updateModPostReqBadge();updatePostReqBadge();
     toast('Request denied and removed.','ok');
@@ -2649,6 +2739,71 @@ function admDeclineDelReq(id){
   },{icon:'✕',iconStyle:'warn',title:'Decline Deletion Request?',okLabel:'Decline Request',okClass:'btn-ghost'});
 }
 
+// ═════ VIDEO UPLOAD ══════════════════════════════════
+
+async function handleMultiVid(input, thumbsId, who){
+  const files=Array.from(input.files);input.value='';
+  for(const file of files){
+    // validate type
+    if(!file.type.startsWith('video/')){toast('Only video files are accepted here.','err');continue;}
+    const localUrl=URL.createObjectURL(file);
+    const arr=who==='adm'?postVideos:modPostVideos;
+    const ids=who==='adm'?postVideoIds:modPostVideoIds;
+    const idx=arr.length;
+    arr.push(localUrl);ids.push(null);
+    _renderVidThumb(localUrl,idx,thumbsId,who,true);
+    try{
+      const{url,publicId}=await _clUpload(file);
+      arr[idx]=url;ids[idx]=publicId;
+      const wrap=document.getElementById(thumbsId);
+      if(wrap){
+        const tw=wrap.querySelectorAll('.vid-thumb-wrap')[idx];
+        if(tw){
+          tw.classList.remove('uploading');
+          const sp=tw.querySelector('.img-up-spin');if(sp)sp.remove();
+          const btn=tw.querySelector('.img-thumb-remove');if(btn)btn.disabled=false;
+          // swap blob for cloudinary url in video src
+          const vid=tw.querySelector('video');if(vid){vid.src=url;}
+        }
+      }
+    }catch(e){
+      toast('Video upload failed.','err');
+      arr.splice(idx,1);ids.splice(idx,1);
+      const wrap=document.getElementById(thumbsId);
+      if(wrap){wrap.innerHTML='';arr.forEach((s,i)=>_renderVidThumb(s,i,thumbsId,who));}
+    }
+  }
+}
+function _renderVidThumb(src,idx,thumbsId,who,uploading=false){
+  const wrap=document.getElementById(thumbsId);if(!wrap)return;
+  const div=document.createElement('div');
+  div.className='vid-thumb-wrap'+(uploading?' uploading':'');
+  div.innerHTML=`<video src="${src}" muted preload="metadata"></video><div class="vid-play-icon">▶️</div>${uploading?'<div class="img-up-spin" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.5);font-size:18px">⏳</div>':''}<button class="img-thumb-remove" onclick="removeVid(${idx},'${thumbsId}','${who}')"${uploading?' disabled':''}>✕</button>`;
+  wrap.appendChild(div);
+}
+function removeVid(idx,thumbsId,who){
+  const arr=who==='adm'?postVideos:modPostVideos;
+  const ids=who==='adm'?postVideoIds:modPostVideoIds;
+  _clDelete(ids[idx]||null);
+  arr.splice(idx,1);ids.splice(idx,1);
+  const wrap=document.getElementById(thumbsId);if(!wrap)return;
+  wrap.innerHTML='';arr.forEach((src,i)=>_renderVidThumb(src,i,thumbsId,who));
+}
+
+// Build video player HTML for post cards / modals
+function buildVideoSection(videos){
+  if(!videos||!videos.length)return'';
+  return`<div class="post-vid-section">${videos.map(v=>`
+    <video class="post-vid-player" src="${v}" controls preload="metadata" playsinline
+      onclick="event.stopPropagation()"
+      onplay="pauseOtherVids(this)">
+      Your browser does not support video.
+    </video>`).join('')}</div>`;
+}
+function pauseOtherVids(current){
+  document.querySelectorAll('.post-vid-player,.clips-vid').forEach(v=>{if(v!==current&&!v.paused)v.pause();});
+}
+
 // ═════ PINNED POSTS ══════════════════════════════════
 
 function togglePin(postId, pool){
@@ -2668,6 +2823,209 @@ function togglePin(postId, pool){
   }
   toast(p.pinned?`"${p.title}" pinned! 📌`:`"${p.title}" unpinned.`,'ok');
 }
+
+// ═════ CLIPS PAGE ════════════════════════════════════
+
+let _clipsObserver=null;
+let _clipsVideos=[];
+let _clipsCurrentIdx=0;
+
+function renderClips(){
+  const feed=document.getElementById('clips-feed');
+  const dots=document.getElementById('clips-scroll-dots');
+  if(!feed)return;
+
+  // Gather all posts (updates + community) that have videos
+  const allPosts=[...S.posts,...S.communityPosts];
+  const clipsData=[];
+  allPosts.forEach(p=>{
+    (p.videos||[]).forEach((vurl,vi)=>{
+      clipsData.push({vurl,post:p,vidIdx:vi});
+    });
+  });
+
+  if(!clipsData.length){
+    feed.innerHTML=`<div class="clips-empty"><span class="empty-icon">🎬</span><p>No clips yet.</p><p style="font-size:13px;color:var(--txt3)">Admin or moderators can add videos when creating posts.</p></div>`;
+    if(dots)dots.innerHTML='';
+    return;
+  }
+
+  _clipsVideos=[];
+  feed.innerHTML=clipsData.map((c,i)=>{
+    const p=c.post;
+    const authorBadge=p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>');
+    return`<div class="clip-item" id="clip-${i}" data-idx="${i}"><video class="clip-vid clips-vid" id="clip-vid-${i}" src="${c.vurl}" playsinline preload="metadata" loop></video><div class="clip-tap-zone" id="clip-tap-${i}" onclick="_onClipTap(event,${i})"></div><div class="clip-seek-zone left"><span class="clip-seek-ripple" id="clip-rpl-left-${i}">↺ 5s</span></div><div class="clip-seek-zone right"><span class="clip-seek-ripple" id="clip-rpl-right-${i}">5s ↻</span></div><div class="clip-centre-controls" id="clip-ctrls-${i}"><span class="clip-ctrl-icon">↺</span><span class="clip-ctrl-icon play-icon" id="clip-play-icon-${i}">▶</span><span class="clip-ctrl-icon">↻</span></div><div class="clip-progress-wrap" id="clip-prog-wrap-${i}" onclick="event.stopPropagation();seekClipByClick(event,${i})"><div class="clip-progress-bar" id="clip-prog-${i}"></div></div><span class="clip-time" id="clip-time-${i}">0:00 / 0:00</span><div class="clip-overlay"><div class="clip-info"><div class="clip-meta"><span class="clip-tag">${esc(p.tag)}</span>${p.author?`<span class='clip-author'>by ${esc(p.author)} ${authorBadge}</span>`:''}${p.pinned?'<span class="post-pin-badge">📌</span>':''}</div><div class="clip-title">${esc(p.title)}</div>${p.content?`<div class='clip-desc clip-desc-collapsed' id='clip-desc-${i}' onclick='event.stopPropagation();toggleClipDesc(${i})'>${esc(p.content)}</div><span class='clip-desc-toggle' id='clip-desc-btn-${i}' onclick='event.stopPropagation();toggleClipDesc(${i})'>... more</span>`:''}<span class='clip-post-link' onclick='event.stopPropagation();_openClipPost(${p.id},${S.communityPosts.includes(p)?1:0})'>📖 View full post</span></div></div></div>`;
+  }).join('');
+
+  // Collect video elements
+  _clipsVideos=clipsData.map((_,i)=>document.getElementById('clip-vid-'+i));
+
+  // Wire up timeupdate for progress bar + time display
+  _clipsVideos.forEach((vid,i)=>{
+    if(!vid)return;
+    vid.addEventListener('timeupdate',()=>_updateClipProgress(i));
+    vid.addEventListener('loadedmetadata',()=>_updateClipProgress(i));
+  });
+
+  // Hide "...more" toggle for descriptions that are short enough to not need clamping
+  requestAnimationFrame(()=>{
+    clipsData.forEach((_,i)=>{
+      const desc=document.getElementById('clip-desc-'+i);
+      const btn=document.getElementById('clip-desc-btn-'+i);
+      if(!desc||!btn)return;
+      // scrollHeight > clientHeight means the text is actually clamped
+      if(desc.scrollHeight<=desc.clientHeight+2)btn.style.display='none';
+    });
+  });
+
+  // Scroll-snap dots
+  if(dots){
+    dots.innerHTML=clipsData.map((_,i)=>`<div class="clips-scroll-dot${i===0?' active':''}" id="cdot-${i}"></div>`).join('');
+  }
+
+  // Set up IntersectionObserver to autoplay on scroll
+  if(_clipsObserver)_clipsObserver.disconnect();
+  _clipsObserver=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      const idx=parseInt(e.target.dataset.idx);
+      const vid=_clipsVideos[idx];
+      if(!vid)return;
+      if(e.isIntersecting){
+        _clipsCurrentIdx=idx;
+        // pause all others
+        _clipsVideos.forEach((v,i)=>{if(i!==idx&&!v.paused)v.pause();});
+        vid.play().catch(()=>{});
+        _updateClipUI(idx,true);
+        // update dots
+        document.querySelectorAll('.clips-scroll-dot').forEach((d,i)=>{
+          d.classList.toggle('active',i===idx);
+        });
+      } else {
+        if(!vid.paused)vid.pause();
+      }
+    });
+  },{threshold:0.65});
+
+  document.querySelectorAll('.clip-item').forEach(item=>_clipsObserver.observe(item));
+
+  // Autoplay first clip after a short delay
+  setTimeout(()=>{
+    const first=_clipsVideos[0];
+    if(first){first.play().catch(()=>{});_updateClipUI(0,true);}
+  },300);
+}
+
+function toggleClipPlay(idx){
+  const vid=_clipsVideos[idx];if(!vid)return;
+  if(vid.paused){vid.play().catch(()=>{});_updateClipUI(idx,true);}
+  else{vid.pause();_updateClipUI(idx,false);}
+}
+
+function seekClip(idx,secs){
+  const vid=_clipsVideos[idx];if(!vid)return;
+  vid.currentTime=Math.max(0,Math.min(vid.duration||0,vid.currentTime+secs));
+}
+
+// Per-clip tap tracking for double-tap detection
+const _tapTimers={};
+const _tapCounts={};
+const _tapZones={};
+
+function _onClipTap(e,idx){
+  if(e.target.closest('.clip-progress-wrap')||
+     e.target.closest('.clip-post-link')||
+     e.target.closest('.clip-desc')||
+     e.target.closest('.clip-desc-toggle')||
+     e.target.closest('.clip-overlay'))return;
+  const item=document.getElementById('clip-'+idx);
+  if(!item)return;
+  const rect=item.getBoundingClientRect();
+  const x=e.clientX-rect.left;
+  const w=rect.width;
+  const zone=x<w*0.35?'left':x>w*0.65?'right':'center';
+  _tapCounts[idx]=(_tapCounts[idx]||0)+1;
+  _tapZones[idx]=zone;
+  clearTimeout(_tapTimers[idx]);
+  _tapTimers[idx]=setTimeout(()=>{
+    const taps=_tapCounts[idx];
+    const z=_tapZones[idx];
+    _tapCounts[idx]=0;_tapZones[idx]=null;
+    if(taps>=2){
+      if(z==='left'){seekClip(idx,-5);_showSeekRipple(idx,'left');}
+      else if(z==='right'){seekClip(idx,5);_showSeekRipple(idx,'right');}
+      else toggleClipPlay(idx);
+    } else {
+      toggleClipPlay(idx);
+    }
+  },240);
+}
+
+function _showSeekRipple(idx,side){
+  const el=document.getElementById('clip-rpl-'+side+'-'+idx);
+  if(!el)return;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),750);
+}
+
+let _ctrlTimers={};
+function _showCentreControls(idx){
+  const el=document.getElementById('clip-ctrls-'+idx);if(!el)return;
+  el.classList.add('visible');
+  clearTimeout(_ctrlTimers[idx]);
+  _ctrlTimers[idx]=setTimeout(()=>el.classList.remove('visible'),1200);
+}
+
+function _updateClipUI(idx,playing){
+  const ctrls=document.getElementById('clip-ctrls-'+idx);if(!ctrls)return;
+  if(playing){
+    ctrls.classList.remove('visible');
+    clearTimeout(_ctrlTimers[idx]);
+  } else {
+    ctrls.classList.add('visible');
+    clearTimeout(_ctrlTimers[idx]);
+  }
+  const icon=document.getElementById('clip-play-icon-'+idx);
+  if(icon)icon.textContent=playing?'':'▶';
+}
+
+function _openClipPost(postId,isCommunity){
+  openPostModal(postId,isCommunity?'community':'');
+}
+
+const _descExpanded={};
+function toggleClipDesc(idx){
+  const desc=document.getElementById('clip-desc-'+idx);
+  const btn=document.getElementById('clip-desc-btn-'+idx);
+  if(!desc||!btn)return;
+  _descExpanded[idx]=!_descExpanded[idx];
+  if(_descExpanded[idx]){desc.classList.remove('clip-desc-collapsed');btn.textContent='Show less';}
+  else{desc.classList.add('clip-desc-collapsed');btn.textContent='... more';}
+}
+
+
+function _updateClipProgress(idx){
+  const vid=_clipsVideos[idx];if(!vid)return;
+  const bar=document.getElementById('clip-prog-'+idx);
+  const timeEl=document.getElementById('clip-time-'+idx);
+  const dur=vid.duration||0;
+  const cur=vid.currentTime||0;
+  if(bar)bar.style.width=dur?(cur/dur*100)+'%':'0%';
+  if(timeEl)timeEl.textContent=_fmtTime(cur)+' / '+_fmtTime(dur);
+}
+function _fmtTime(s){
+  if(!isFinite(s))return'0:00';
+  const m=Math.floor(s/60),sec=Math.floor(s%60);
+  return m+':'+(sec<10?'0':'')+sec;
+}
+function seekClipByClick(e,idx){
+  const vid=_clipsVideos[idx];if(!vid||!vid.duration)return;
+  const wrap=e.currentTarget;
+  const rect=wrap.getBoundingClientRect();
+  const pct=(e.clientX-rect.left)/rect.width;
+  vid.currentTime=pct*vid.duration;
+}
+
+// Stop all clip videos when leaving clips page (handled in nav())
 
 // ═════ SCROLL REVEAL ══════════════════════════════════
 let rvObs=null;
