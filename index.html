@@ -2955,7 +2955,7 @@ function _pcvProgress(postId){
 }
 function _pcvUpdateUI(postId,playing){
   const btn=document.getElementById('pcv-play-'+postId);
-  if(btn)btn.textContent=playing?'⏸':'▶';
+  if(btn)btn.textContent=playing?' ':'▶';
 }
 
 // ── Full View: navigate to Clips, scroll to matching clip, sync time ──
