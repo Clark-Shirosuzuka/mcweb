@@ -140,6 +140,7 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 
 /* ── UPDATES ── */
 .updates-list{display:flex;flex-direction:column;gap:24px;max-width:760px;margin:0 auto}
+.community-list{display:flex;flex-direction:column;gap:24px;max-width:760px;margin:0 auto}
 .post-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:all .3s var(--ease);cursor:pointer}
 .post-card:hover{border-color:var(--border2);box-shadow:0 10px 32px rgba(0,0,0,.3);transform:translateY(-1px)}
 .post-body{padding:22px 26px}

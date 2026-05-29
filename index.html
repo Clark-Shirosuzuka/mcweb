@@ -361,7 +361,7 @@
         <div class="card-box"><h3>⚙️ Community Settings</h3>
           <div class="grid-2">
             <div class="form-group"><label>Community Name</label><input type="text" id="cfg-name" placeholder="SRZK COMMUNITY"></div>
-            <div class="form-group"><label>Tagline</label><input type="text" id="cfg-desc" placeholder="Your Minecraft community…"></div>
+            <div class="form-group"><label>Tagline</label><input type="text" id="cfg-desc" placeholder="Your SRZK community…"></div>
           </div>
           <div class="form-group">
             <label>Contact / Social Links <span class="label-opt">(shown on home page)</span></label>
@@ -923,6 +923,23 @@ document.addEventListener('pointercancel',e=>{
   _activeCar=null;
 },true);
 
+let _cardVidObserver=null;
+function _initCardVidObserver(){
+  if(_cardVidObserver)_cardVidObserver.disconnect();
+  _cardVidObserver=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      // When the card video wrapper leaves the viewport, pause its video
+      if(!e.isIntersecting){
+        const vid=e.target.querySelector('.post-card-vid');
+        if(vid&&!vid.paused)vid.pause();
+      }
+    });
+  },{threshold:0.15});
+  document.querySelectorAll('.post-card-vid-wrap').forEach(wrap=>{
+    _cardVidObserver.observe(wrap);
+  });
+}
+
 // ═════ POST DETAIL MODAL ══════════════════════════════
 function openPostModal(postId,pool){
   const arr=pool==='community'?S.communityPosts:S.posts;
@@ -1320,6 +1337,7 @@ function renderUpdates(){
     </article>`;
   }).join('');
   setTimeout(initReveal,100);
+  _initCardVidObserver();
 }
 function renderCommunity(){
   const el=document.getElementById('community-list');if(!el)return;
@@ -1366,6 +1384,7 @@ function renderCommunity(){
     </article>`;
   }).join('');
   setTimeout(initReveal,100);
+  _initCardVidObserver();
 }
 function renderHome(){
   const el=document.getElementById('home-posts');const latest=S.posts.slice(0,4);
@@ -3085,6 +3104,10 @@ function renderClips(){
         });
       } else {
         if(!vid.paused)vid.pause();
+        // Reset to start so the clip plays fresh next time the user returns to it
+        vid.currentTime=0;
+        _updateClipProgress(idx);
+        _updateClipUI(idx,false);
       }
     });
   },{root:_clipsContainer||null,threshold:0.65});
