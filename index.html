@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style></style>
 </head>
 <body>
 <!-- ══ NAV ══════════════════════════════════════════ -->
@@ -59,7 +60,7 @@
     <svg class="hero-land" viewBox="0 0 1440 200" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="150" width="1440" height="50" fill="#1a2820"/><rect x="0" y="168" width="1440" height="32" fill="#0d1812"/><rect x="0" y="134" width="1440" height="16" fill="#243e2c" opacity=".6"/><rect x="90" y="78" width="14" height="56" fill="#1a1408"/><rect x="74" y="56" width="46" height="34" fill="#1a3820"/><rect x="82" y="38" width="30" height="24" fill="#142a18"/><rect x="90" y="20" width="14" height="22" fill="#0f2014"/><rect x="210" y="94" width="14" height="40" fill="#1a1408"/><rect x="194" y="74" width="46" height="30" fill="#1a3820"/><rect x="202" y="56" width="30" height="24" fill="#142a18"/><rect x="360" y="62" width="16" height="72" fill="#1a1408"/><rect x="340" y="36" width="56" height="40" fill="#1a3820"/><rect x="348" y="18" width="40" height="24" fill="#142a18"/><rect x="356" y="4" width="24" height="18" fill="#0f2014"/><rect x="520" y="88" width="14" height="46" fill="#1a1408"/><rect x="504" y="68" width="46" height="30" fill="#1a3820"/><rect x="512" y="50" width="30" height="24" fill="#142a18"/><rect x="670" y="55" width="16" height="79" fill="#1a1408"/><rect x="650" y="28" width="56" height="42" fill="#1a3820"/><rect x="658" y="10" width="40" height="24" fill="#142a18"/><rect x="820" y="82" width="14" height="52" fill="#1a1408"/><rect x="802" y="60" width="48" height="34" fill="#1a3820"/><rect x="810" y="42" width="32" height="24" fill="#142a18"/><rect x="970" y="64" width="16" height="70" fill="#1a1408"/><rect x="950" y="38" width="56" height="40" fill="#1a3820"/><rect x="958" y="20" width="40" height="24" fill="#142a18"/><rect x="1120" y="90" width="14" height="44" fill="#1a1408"/><rect x="1104" y="68" width="46" height="32" fill="#1a3820"/><rect x="1112" y="50" width="30" height="24" fill="#142a18"/><rect x="1280" y="74" width="14" height="60" fill="#1a1408"/><rect x="1262" y="50" width="50" height="36" fill="#1a3820"/><rect x="1270" y="32" width="34" height="24" fill="#142a18"/></svg>
     <div class="hero-content">
       <div class="hero-badge"><span class="dp"></span>Network Online</div>
-      <h1 class="hero-title">Your SRZK<br><em>Community Hub.</em></h1>
+      <h1 class="hero-title">Your Minecraft<br><em>Community Hub.</em></h1>
       <p class="hero-desc">Browse servers, discover players, and stay updated with everything happening in our community.</p>
       <div class="hero-ctas">
         <button class="btn btn-primary" onclick="nav('servers')">Browse Servers</button>
@@ -360,7 +361,7 @@
         <div class="card-box"><h3>⚙️ Community Settings</h3>
           <div class="grid-2">
             <div class="form-group"><label>Community Name</label><input type="text" id="cfg-name" placeholder="SRZK COMMUNITY"></div>
-            <div class="form-group"><label>Tagline</label><input type="text" id="cfg-desc" placeholder="Your SRZK Community…"></div>
+            <div class="form-group"><label>Tagline</label><input type="text" id="cfg-desc" placeholder="Your Minecraft community…"></div>
           </div>
           <div class="form-group">
             <label>Contact / Social Links <span class="label-opt">(shown on home page)</span></label>
@@ -675,7 +676,7 @@ document.dispatchEvent(new Event('firebase-ready'));
 <script>
 // ═════ STATE ═════════════════════════════════════════
 let S={posts:[],communityPosts:[],servers:[],players:[],requests:[],postReqs:[],delReqs:[],
-  cfg:{name:'SRZK COMMUNITY',desc:'Your Minecraft Community Hub.',pw:'admin123',modPw:'mod123',deletePw:'',adminContact:'',contacts:[],modContacts:[],discordLink:''},authed:false,modAuthed:false};
+  cfg:{name:'SRZK COMMUNITY',desc:'Your Minecraft Community Hub',pw:'admin123',modPw:'mod123',deletePw:'',adminContact:'',contacts:[],modContacts:[],discordLink:''},authed:false,modAuthed:false};
 let srvImg=null,plrImg=null,regImg=null,editImg=null,postImgs=[],msSrvImg=null,mplImg=null;
 let srvImgId=null,plrImgId=null,regImgId=null,editImgId=null,postImgIds=[],msSrvImgId=null,mplImgId=null;
 let postVideos=[],postVideoIds=[],modPostVideos=[],modPostVideoIds=[];
@@ -1305,7 +1306,7 @@ function renderUpdates(){
     <button class="pcv-fullview-btn" onclick="event.stopPropagation();_openClipFromPost(${p.id})" title="View in Clips">⛶ Clips</button>
   </div>
 </div>`:'';
-    return`<article class="post-card rv${p.pinned?' pinned':''}" onclick="${soloVideo?`openPostModal(${p.id})`:`openPostModal(${p.id})`}">
+    return`<article id="post-card-${p.id}" class="post-card rv${p.pinned?' pinned':''}" onclick="${soloVideo?`openPostModal(${p.id})`:`openPostModal(${p.id})`}">
       ${imgHtml}
       ${vidCardHtml}
       <div class="post-body">
@@ -1352,7 +1353,7 @@ function renderCommunity(){
     <button class="pcv-fullview-btn" onclick="event.stopPropagation();_openClipFromPost(${p.id})" title="View in Clips">⛶ Clips</button>
   </div>
 </div>`:'';
-    return`<article class="post-card rv${p.pinned?' pinned':''}" onclick="${soloVideo?`openPostModal(${p.id},'community')`:`openPostModal(${p.id},'community')`}">
+    return`<article id="post-card-${p.id}" class="post-card rv${p.pinned?' pinned':''}" onclick="${soloVideo?`openPostModal(${p.id},'community')`:`openPostModal(${p.id},'community')`}">
       ${imgHtml}
       ${vidCardHtml}
       <div class="post-body">
@@ -2146,7 +2147,36 @@ const _csMob=new MutationObserver(muts=>{
 });
 _csMob.observe(document.body,{childList:true,subtree:true});
 function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
-function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow='';}
+function closeModal(id){
+  // If closing the post-detail modal, pause the modal video and sync time back to the card video
+  if(id==='post-detail-modal'){
+    const body=document.getElementById('post-detail-body');
+    if(body){
+      const modalVid=body.querySelector('.post-vid-player');
+      if(modalVid&&!modalVid.paused){
+        const t=modalVid.currentTime;
+        modalVid.pause();
+        // Find the matching card video by scanning post IDs
+        // The card video id is pcv-{postId}; find it via the src match
+        document.querySelectorAll('.post-card-vid').forEach(cardVid=>{
+          if(cardVid.src===modalVid.src||cardVid.currentSrc===modalVid.currentSrc){
+            cardVid.currentTime=t;
+          }
+        });
+      }else if(modalVid){
+        // Even if already paused, sync position back to card video
+        const t=modalVid.currentTime;
+        document.querySelectorAll('.post-card-vid').forEach(cardVid=>{
+          if(cardVid.src===modalVid.src||cardVid.currentSrc===modalVid.currentSrc){
+            cardVid.currentTime=t;
+          }
+        });
+      }
+    }
+  }
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow='';
+}
 
 // ─── Custom confirm dialog ─────────────────────────────
 let _confirmCb=null;
@@ -2906,7 +2936,7 @@ function _pcvProgress(postId){
 }
 function _pcvUpdateUI(postId,playing){
   const btn=document.getElementById('pcv-play-'+postId);
-  if(btn)btn.textContent=playing?'▐▐':'▶';
+  if(btn)btn.textContent=playing?'⏸':'▶';
 }
 
 // ── Full View: navigate to Clips, scroll to matching clip, sync time ──
@@ -3061,6 +3091,26 @@ function renderClips(){
 
   document.querySelectorAll('.clip-item').forEach(item=>_clipsObserver.observe(item));
 
+  // ── Desktop mouse-wheel: jump exactly one clip per scroll gesture ──
+  // CSS snap fights tiny wheel deltas and gets stuck; intercept and drive it ourselves
+  const _clipsEl=document.querySelector('.clips-page');
+  if(_clipsEl){
+    // Remove any previous listener before adding (re-render safe)
+    if(_clipsEl._wheelHandler)_clipsEl.removeEventListener('wheel',_clipsEl._wheelHandler,{passive:false});
+    let _wheelLocked=false;
+    _clipsEl._wheelHandler=function(e){
+      e.preventDefault();
+      if(_wheelLocked)return;
+      _wheelLocked=true;
+      const dir=e.deltaY>0?1:-1;
+      const next=Math.max(0,Math.min(_clipsVideos.length-1,_clipsCurrentIdx+dir));
+      const target=document.getElementById('clip-'+next);
+      if(target)_clipsEl.scrollTo({top:target.offsetTop,behavior:'smooth'});
+      setTimeout(()=>{_wheelLocked=false;},520);
+    };
+    _clipsEl.addEventListener('wheel',_clipsEl._wheelHandler,{passive:false});
+  }
+
   // Autoplay first clip after a short delay
   setTimeout(()=>{
     const first=_clipsVideos[0];
@@ -3142,7 +3192,23 @@ function _updateClipUI(idx,playing){
 }
 
 function _openClipPost(postId,isCommunity){
-  openPostModal(postId,isCommunity?'community':'');
+  const targetPage=isCommunity?'community':'updates';
+  // Pause current clip while navigating
+  const curVid=_clipsVideos[_clipsCurrentIdx];
+  if(curVid&&!curVid.paused)curVid.pause();
+
+  nav(targetPage);
+
+  // After nav + render settle, scroll to the post card and flash-highlight it
+  setTimeout(()=>{
+    const card=document.getElementById('post-card-'+postId);
+    if(!card)return;
+    card.scrollIntoView({behavior:'smooth',block:'center'});
+    // Brief highlight flash so user knows exactly which post
+    card.style.transition='box-shadow .25s';
+    card.style.boxShadow='0 0 0 3px var(--green)';
+    setTimeout(()=>{card.style.boxShadow='';},1400);
+  },320);
 }
 
 const _descExpanded={};
