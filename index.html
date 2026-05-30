@@ -125,7 +125,6 @@
 <div class="page" id="page-clips">
   <div class="clips-page">
     <div id="clips-feed" class="clips-feed"></div>
-    <div id="clips-scroll-dots" class="clips-scroll-hint"></div>
   </div>
 </div>
 <div class="page" id="page-request-post">
@@ -360,7 +359,7 @@
         <div class="card-box"><h3>⚙️ Community Settings</h3>
           <div class="grid-2">
             <div class="form-group"><label>Community Name</label><input type="text" id="cfg-name" placeholder="SRZK COMMUNITY"></div>
-            <div class="form-group"><label>Tagline</label><input type="text" id="cfg-desc" placeholder="Your Minecraft community…"></div>
+            <div class="form-group"><label>Tagline</label><input type="text" id="cfg-desc" placeholder="Your SRZK community…"></div>
           </div>
           <div class="form-group">
             <label>Contact / Social Links <span class="label-opt">(shown on home page)</span></label>
@@ -785,6 +784,7 @@ function closeDrawer(){document.getElementById('drawer').classList.remove('open'
 
 // ═════ NAV ═══════════════════════════════════════════
 function nav(page){
+  _heartStopAll();// always tear down listeners; each render restarts them for the new DOM
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach(a=>a.classList.remove('active'));
   document.querySelectorAll('.drawer-link').forEach(a=>a.classList.remove('active'));
@@ -3150,7 +3150,6 @@ let _clipsCurrentIdx=0;
 
 function renderClips(forceTop=false){
   const feed=document.getElementById('clips-feed');
-  const dots=document.getElementById('clips-scroll-dots');
   if(!feed)return;
 
   // Gather all posts (updates + community) that have videos
@@ -3164,7 +3163,6 @@ function renderClips(forceTop=false){
 
   if(!clipsData.length){
     feed.innerHTML=`<div class="clips-empty"><span class="empty-icon">🎬</span><p>No clips yet.</p><p style="font-size:13px;color:var(--txt3)">Admin or moderators can add videos when creating posts.</p></div>`;
-    if(dots)dots.innerHTML='';
     return;
   }
 
@@ -3189,11 +3187,6 @@ function renderClips(forceTop=false){
     vid.addEventListener('timeupdate',()=>_updateClipProgress(i));
     vid.addEventListener('loadedmetadata',()=>_updateClipProgress(i));
   });
-
-  // Scroll-snap dots
-  if(dots){
-    dots.innerHTML=clipsData.map((_,i)=>`<div class="clips-scroll-dot${i===0?' active':''}" id="cdot-${i}"></div>`).join('');
-  }
 
   // ── All post-layout work in rAF so browser finishes its scroll reset first ──
   requestAnimationFrame(()=>{
@@ -3222,9 +3215,6 @@ function renderClips(forceTop=false){
           _clipsVideos.forEach((v,i)=>{if(i!==idx&&!v.paused)v.pause();});
           vid.play().catch(()=>{});
           _updateClipUI(idx,true);
-          document.querySelectorAll('.clips-scroll-dot').forEach((d,i)=>{
-            d.classList.toggle('active',i===idx);
-          });
         }else{
           if(!vid.paused)vid.pause();
           vid.currentTime=0;
@@ -3486,27 +3476,32 @@ function _getUserId(){
 
 // Active heart listeners keyed by postId so we can unsubscribe
 const _heartUnsubs={};
+const _heartCache={};// stores {count,liked} per postId so re-rendered buttons get state instantly
+
+function _heartApply(postId){
+  // Apply cached state to all current DOM buttons for this post
+  const uid=_getUserId();
+  const d=_heartCache[postId]||{count:0,likedBy:[]};
+  const liked=(d.likedBy||[]).includes(uid);
+  const count=d.count||0;
+  document.querySelectorAll(`.heart-btn[data-pid="${postId}"]`).forEach(btn=>{
+    btn.classList.toggle('liked',liked);
+    const hi=btn.querySelector('.hi');
+    const hc=btn.querySelector('.hcount');
+    const hl=btn.querySelector('.hlabel');
+    if(hi)hi.textContent=liked?'♥️':'🤍';
+    if(hc)hc.textContent=count>0?count:'';
+    if(hl)hl.style.display=(count>0||liked)?'none':'';
+  });
+}
 
 function _heartListen(postId){
-  if(_heartUnsubs[postId])return;// already listening
+  if(_heartUnsubs[postId])return;// guard against double-call within same render
   if(!window._fsDoc||!window._fsSnap)return;
   const ref=window._fsDoc('reactions',String(postId));
-  const uid=_getUserId();
   const unsub=window._fsSnap(ref,snap=>{
-    const d=snap.exists()?snap.data():{count:0,likedBy:[]};
-    const liked=(d.likedBy||[]).includes(uid);
-    const count=d.count||0;
-    // Update every heart button for this post on the page
-    document.querySelectorAll(`.heart-btn[data-pid="${postId}"]`).forEach(btn=>{
-      btn.classList.toggle('liked',liked);
-      const hi=btn.querySelector('.hi');
-      const hc=btn.querySelector('.hcount');
-      const hl=btn.querySelector('.hlabel');
-      if(hi)hi.textContent=liked?'♥️️':'🤍';
-      if(hc)hc.textContent=count>0?count:'';
-      // Hide "Like" label once there's a count or it's already liked
-      if(hl)hl.style.display=(count>0||liked)?'none':'';
-    });
+    _heartCache[postId]=snap.exists()?snap.data():{count:0,likedBy:[]};
+    _heartApply(postId);
   },()=>{});
   _heartUnsubs[postId]=unsub;
 }
@@ -3529,7 +3524,7 @@ async function _heartToggle(e,postId){
   const hl=btn.querySelector('.hlabel');
   const curCount=parseInt(hc?.textContent||'0')||0;
   btn.classList.toggle('liked',!wasLiked);
-  if(hi)hi.textContent=wasLiked?'🤍':'♥️️';
+  if(hi)hi.textContent=wasLiked?'🤍':'♥️';
   const newCount=wasLiked?(curCount>1?curCount-1:0):(curCount+1);
   if(hc)hc.textContent=newCount>0?newCount:'';
   if(hl)hl.style.display=newCount>0?'none':'';
@@ -3549,7 +3544,7 @@ async function _heartToggle(e,postId){
   }catch(err){
     // Revert optimistic update on failure
     btn.classList.toggle('liked',wasLiked);
-    if(hi)hi.textContent=wasLiked?'♥️️':'🤍';
+    if(hi)hi.textContent=wasLiked?'♥️':'🤍';
     if(hc)hc.textContent=curCount>0?curCount:'';
     console.warn('Heart toggle failed:',err);
   }

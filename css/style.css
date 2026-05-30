@@ -273,9 +273,7 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 .clip-time{position:absolute;bottom:8px;right:14px;font-size:10px;font-family:var(--mf);color:rgba(255,255,255,.5);pointer-events:none;z-index:10}
 .clips-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:70vh;gap:14px;color:var(--txt3)}
 .clips-empty .empty-icon{font-size:52px}
-.clips-scroll-hint{position:fixed;right:52px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:7px;z-index:50;pointer-events:none}
-.clips-scroll-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .2s}
-.clips-scroll-dot.active{background:#fff;height:16px;border-radius:3px}
+
 .post-pin-badge{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.3);font-size:9.5px;font-family:var(--mf);font-weight:700;padding:1px 7px;border-radius:100px;letter-spacing:.04em;text-transform:uppercase}
 .post-card.pinned{border-color:rgba(251,191,36,.3);box-shadow:0 0 0 1px rgba(251,191,36,.15)}
 .post-card.pinned:hover{border-color:rgba(251,191,36,.5)}
