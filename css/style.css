@@ -7,7 +7,9 @@
   --pf:'Press Start 2P',monospace;--bf:'Outfit',sans-serif;--mf:'DM Mono',monospace;
   --r:14px;--rs:9px;--ease:cubic-bezier(.4,0,.2,1);--nav-h:64px;
 }
-*{margin:0;padding:0;box-sizing:border-box}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;tap-highlight-color:transparent}
+*:focus{outline:none}
+*:focus-visible{outline:2px solid var(--green);outline-offset:2px}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--txt);font-family:var(--bf);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
 body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9998;opacity:.5;mix-blend-mode:overlay}
@@ -139,8 +141,8 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 .hlp-date{font-size:10px;color:var(--txt3);font-family:var(--mf)}
 
 /* ── UPDATES ── */
-.updates-list{display:flex;flex-direction:column;gap:24px;max-width:760px;margin:0 auto}
-.community-list{display:flex;flex-direction:column;gap:24px;max-width:760px;margin:0 auto}
+.updates-list,#updates-list,#community-list{display:flex;flex-direction:column;gap:24px;max-width:760px;margin:0 auto}
+@media(max-width:600px){#updates-list,#community-list{gap:16px;padding:0 2px}}
 .post-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:all .3s var(--ease);cursor:pointer}
 .post-card:hover{border-color:var(--border2);box-shadow:0 10px 32px rgba(0,0,0,.3);transform:translateY(-1px)}
 .post-body{padding:22px 26px}
@@ -160,6 +162,28 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 .vid-thumb-wrap .img-thumb-remove{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.7);border:none;color:#fff;border-radius:50%;width:18px;height:18px;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 .post-vid-section{margin:14px 0;display:flex;flex-direction:column;gap:10px}
 .post-vid-player{width:100%;border-radius:10px;background:#000;max-height:340px;display:block}
+/* ── Modal custom video player (same look as post card player) ── */
+.mpv-wrap{position:relative;background:#000;border-radius:10px;overflow:hidden;margin-bottom:14px;user-select:none}
+.mpv-vid{width:100%;max-height:62vh;min-height:140px;display:block;object-fit:contain;background:#000}
+.mpv-tap-zone{position:absolute;inset:0 0 38px 0;z-index:1;cursor:pointer}
+.mpv-centre{position:absolute;inset:0 0 38px 0;z-index:2;display:flex;align-items:center;justify-content:center;gap:28px;pointer-events:none;transition:opacity .2s}
+.mpv-centre button{pointer-events:auto}
+.mpv-ov-btn{background:none;border:none;color:#fff;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:opacity .15s;flex-shrink:0;line-height:1;font-family:var(--mf);text-shadow:0 1px 6px rgba(0,0,0,.9);opacity:.9}
+.mpv-ov-btn:hover{opacity:1;background:rgba(255,255,255,.12)}
+.mpv-ov-play{width:52px;height:52px;font-size:24px}
+.mpv-bottom-bar{position:absolute;bottom:0;left:0;right:0;display:flex;align-items:center;gap:7px;padding:6px 10px;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);transition:opacity .2s}
+.mpv-progress-wrap{flex:1;height:3px;background:rgba(255,255,255,.28);border-radius:2px;cursor:pointer;position:relative;min-width:40px}
+.mpv-progress-bar{height:100%;background:var(--green);border-radius:2px;width:0%;transition:width .1s linear;pointer-events:none}
+.mpv-time{font-size:9px;font-family:var(--mf);color:rgba(255,255,255,.6);white-space:nowrap;flex-shrink:0}
+.mpv-fs-btn{font-size:10.5px;padding:2px 8px;border-radius:5px;background:rgba(255,255,255,.12);border:none;color:#fff;cursor:pointer;font-family:var(--mf);transition:background .15s;flex-shrink:0;line-height:1.4}
+.mpv-fs-btn:hover{background:rgba(255,255,255,.24)}
+/* Hide controls while modal video is playing */
+.mpv-wrap[data-playing="true"] .mpv-centre{opacity:0}
+.mpv-wrap[data-playing="true"] .mpv-centre button{pointer-events:none}
+.mpv-wrap[data-playing="true"] .mpv-bottom-bar{opacity:0;pointer-events:none}
+.mpv-wrap[data-playing="true"]:hover .mpv-centre{opacity:1}
+.mpv-wrap[data-playing="true"]:hover .mpv-centre button{pointer-events:auto}
+.mpv-wrap[data-playing="true"]:hover .mpv-bottom-bar{opacity:1;pointer-events:auto}
 .post-vid-indicator{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-family:var(--mf);color:var(--txt3);background:rgba(0,0,0,.4);padding:2px 8px;border-radius:100px;vertical-align:middle;margin-left:6px}
 /* ── Inline mini video player on post cards ── */
 .post-vid-mini{position:relative;background:#000;overflow:hidden;border-bottom:1px solid var(--border)}
@@ -176,8 +200,18 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 .post-card-vid-wrap{position:relative;width:100%;background:#000;overflow:hidden;user-select:none;border-bottom:1px solid var(--border)}
 .post-card-vid{width:100%;max-height:55vh;min-height:160px;display:block;object-fit:contain;background:#000;cursor:pointer}
 /* Centre overlay: backward | play/pause | forward */
-.pcv-centre{position:absolute;inset:0 0 38px 0;display:flex;align-items:center;justify-content:center;gap:28px;pointer-events:none}
+/* Transparent tap zone covering the whole video - handles single tap (toggle) and double tap (seek) */
+.pcv-tap-zone{position:absolute;inset:0 0 38px 0;z-index:1;cursor:pointer}
+.pcv-centre{position:absolute;inset:0 0 38px 0;z-index:2;display:flex;align-items:center;justify-content:center;gap:28px;pointer-events:none;transition:opacity .2s}
 .pcv-centre button{pointer-events:auto}
+/* Hide centre controls AND bottom bar while playing; show on pause or hover */
+.post-card-vid-wrap[data-playing="true"] .pcv-centre{opacity:0}
+.post-card-vid-wrap[data-playing="true"] .pcv-centre button{pointer-events:none}
+.post-card-vid-wrap[data-playing="true"] .pcv-bottom-bar{opacity:0;pointer-events:none}
+.post-card-vid-wrap[data-playing="true"]:hover .pcv-centre{opacity:1}
+.post-card-vid-wrap[data-playing="true"]:hover .pcv-centre button{pointer-events:auto}
+.post-card-vid-wrap[data-playing="true"]:hover .pcv-bottom-bar{opacity:1;pointer-events:auto}
+.pcv-bottom-bar{transition:opacity .2s}
 .pcv-ov-btn{background:none;border:none;color:#fff;width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:opacity .15s;flex-shrink:0;line-height:1;font-family:var(--mf);text-shadow:0 1px 6px rgba(0,0,0,.8);opacity:.9}
 .pcv-ov-btn:hover{opacity:1;background:rgba(255,255,255,.12)}
 .pcv-ov-play{width:52px;height:52px;font-size:24px}

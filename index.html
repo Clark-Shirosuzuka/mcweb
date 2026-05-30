@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-<style></style>
 </head>
 <body>
 <!-- ══ NAV ══════════════════════════════════════════ -->
@@ -805,7 +804,10 @@ function nav(page){
   if(page==='players')renderPlayers();
   if(page==='updates')renderUpdates();
   if(page==='community')renderCommunity();
-  if(page==='clips'){renderClips();}
+  if(page==='clips'){
+    const alreadyOnClips=document.getElementById('page-clips')?.classList.contains('active');
+    renderClips(alreadyOnClips);
+  }
   if(page==='home'){renderHome();updateStats();}
   if(page==='register')resetRegForm();
   if(page==='request-post'){clearReqPost();document.getElementById('rp-form-wrap').style.display='block';document.getElementById('rp-success').style.display='none';}
@@ -954,7 +956,7 @@ function openPostModal(postId,pool){
   const imgs=p.images||[];
   const vids=p.videos||[];
   const carHtml=imgs.length?`<div class="post-detail-carousel" style="border-radius:10px;overflow:hidden;margin-bottom:18px;background:var(--surf2)">${buildCarousel(imgs,true)}</div>`:'';
-  const vidHtml=buildVideoSection(vids);
+  const vidHtml=buildModalVideoPlayer(vids,postId);
   document.getElementById('post-detail-body').innerHTML=`
     ${carHtml}
     ${vidHtml}
@@ -963,11 +965,11 @@ function openPostModal(postId,pool){
     <div class="post-full-content">${esc(p.content)}</div>`;
   openModal('post-detail-modal');
 
-  // If there was an inline card video playing, sync the modal video to the same time
-  if(syncTime>0&&vids.length){
-    const modalVid=document.getElementById('post-detail-body').querySelector('.post-vid-player');
+  // Sync card video's current time into the modal video on load
+  if(vids.length){
+    const modalVid=document.getElementById(`mpv-${postId}-0`);
     if(modalVid){
-      const doSync=()=>{modalVid.currentTime=syncTime;};
+      const doSync=()=>{if(syncTime>0)modalVid.currentTime=syncTime;};
       if(modalVid.readyState>=1){doSync();}
       else{modalVid.addEventListener('loadedmetadata',doSync,{once:true});}
     }
@@ -1307,9 +1309,9 @@ function renderUpdates(){
     onplay="pauseOtherVids(this);_pcvUpdateUI(${p.id},true)"
     onpause="_pcvUpdateUI(${p.id},false)"
     ontimeupdate="_pcvProgress(${p.id})"
-    onloadedmetadata="_pcvProgress(${p.id})"
-    onclick="event.stopPropagation();_pcvToggle(${p.id})">
+    onloadedmetadata="_pcvProgress(${p.id})">
   </video>
+  <div class="pcv-tap-zone" onclick="event.stopPropagation();_pcvTap(event,${p.id})"></div>
   <div class="pcv-centre">
     <button class="pcv-ov-btn" onclick="event.stopPropagation();_pcvSeek(${p.id},-5)" title="Back 5s">↺</button>
     <button class="pcv-ov-btn pcv-ov-play" id="pcv-play-${p.id}" onclick="event.stopPropagation();_pcvToggle(${p.id})">▶</button>
@@ -1355,9 +1357,9 @@ function renderCommunity(){
     onplay="pauseOtherVids(this);_pcvUpdateUI(${p.id},true)"
     onpause="_pcvUpdateUI(${p.id},false)"
     ontimeupdate="_pcvProgress(${p.id})"
-    onloadedmetadata="_pcvProgress(${p.id})"
-    onclick="event.stopPropagation();_pcvToggle(${p.id})">
+    onloadedmetadata="_pcvProgress(${p.id})">
   </video>
+  <div class="pcv-tap-zone" onclick="event.stopPropagation();_pcvTap(event,${p.id})"></div>
   <div class="pcv-centre">
     <button class="pcv-ov-btn" onclick="event.stopPropagation();_pcvSeek(${p.id},-5)" title="Back 5s">↺</button>
     <button class="pcv-ov-btn pcv-ov-play" id="pcv-play-${p.id}" onclick="event.stopPropagation();_pcvToggle(${p.id})">▶</button>
@@ -2171,20 +2173,12 @@ function closeModal(id){
   if(id==='post-detail-modal'){
     const body=document.getElementById('post-detail-body');
     if(body){
-      const modalVid=body.querySelector('.post-vid-player');
-      if(modalVid&&!modalVid.paused){
+      // Find the first modal video (mpv-* element)
+      const modalVid=body.querySelector('.mpv-vid');
+      if(modalVid){
         const t=modalVid.currentTime;
-        modalVid.pause();
-        // Find the matching card video by scanning post IDs
-        // The card video id is pcv-{postId}; find it via the src match
-        document.querySelectorAll('.post-card-vid').forEach(cardVid=>{
-          if(cardVid.src===modalVid.src||cardVid.currentSrc===modalVid.currentSrc){
-            cardVid.currentTime=t;
-          }
-        });
-      }else if(modalVid){
-        // Even if already paused, sync position back to card video
-        const t=modalVid.currentTime;
+        if(!modalVid.paused)modalVid.pause();
+        // Sync time back to the matching card video by src
         document.querySelectorAll('.post-card-vid').forEach(cardVid=>{
           if(cardVid.src===modalVid.src||cardVid.currentSrc===modalVid.currentSrc){
             cardVid.currentTime=t;
@@ -2926,11 +2920,104 @@ function buildVideoSection(videos){
       Your browser does not support video.
     </video>`).join('')}</div>`;
 }
+// ── Modal custom video player (replaces buildVideoSection for the post detail modal) ──
+function buildModalVideoPlayer(videos,postId){
+  if(!videos||!videos.length)return'';
+  return videos.map((src,i)=>{
+    const vid=`mpv-${postId}-${i}`;
+    return`<div class="mpv-wrap" id="mpv-wrap-${vid}">
+  <video id="${vid}" class="mpv-vid" src="${src}" preload="metadata" playsinline
+    onplay="pauseOtherVids(this);_mpvUI('${vid}',true)"
+    onpause="_mpvUI('${vid}',false)"
+    ontimeupdate="_mpvProg('${vid}')"
+    onloadedmetadata="_mpvProg('${vid}')">
+  </video>
+  <div class="mpv-tap-zone" onclick="event.stopPropagation();_mpvTap(event,'${vid}')"></div>
+  <div class="mpv-centre">
+    <button class="mpv-ov-btn" onclick="event.stopPropagation();_mpvSeek('${vid}',-5)">↺</button>
+    <button class="mpv-ov-btn mpv-ov-play" id="mpv-play-${vid}" onclick="event.stopPropagation();_mpvToggle('${vid}')">▶</button>
+    <button class="mpv-ov-btn" onclick="event.stopPropagation();_mpvSeek('${vid}',5)">↻</button>
+  </div>
+  <div class="mpv-bottom-bar" onclick="event.stopPropagation()">
+    <div class="mpv-progress-wrap" onclick="_mpvSeekClick(event,'${vid}')">
+      <div class="mpv-progress-bar" id="mpv-bar-${vid}"></div>
+    </div>
+    <span class="mpv-time" id="mpv-time-${vid}">0:00 / 0:00</span>
+    <button class="mpv-fs-btn" onclick="event.stopPropagation();_mpvFullscreen('${vid}')" title="Full screen">⛶ Full</button>
+  </div>
+</div>`;
+  }).join('');
+}
+function _mpvTap(e,vid){
+  const el=document.getElementById(vid);if(!el)return;
+  const now=Date.now(),last=el._lastTap||0;el._lastTap=now;
+  if(now-last<280){
+    clearTimeout(el._tapTimer);
+    const rect=e.currentTarget.getBoundingClientRect();
+    _mpvSeek(vid,(e.clientX-rect.left)<rect.width/2?-5:5);
+  }else{
+    clearTimeout(el._tapTimer);
+    el._tapTimer=setTimeout(()=>_mpvToggle(vid),240);
+  }
+}
+function _mpvToggle(vid){
+  const el=document.getElementById(vid);if(!el)return;
+  if(el.paused){el.play().catch(()=>{});}else{el.pause();}
+}
+function _mpvSeek(vid,secs){
+  const el=document.getElementById(vid);if(!el)return;
+  el.currentTime=Math.max(0,Math.min(el.duration||0,el.currentTime+secs));
+}
+function _mpvSeekClick(e,vid){
+  const el=document.getElementById(vid);if(!el||!el.duration)return;
+  const rect=e.currentTarget.getBoundingClientRect();
+  el.currentTime=((e.clientX-rect.left)/rect.width)*el.duration;
+}
+function _mpvProg(vid){
+  const el=document.getElementById(vid);if(!el)return;
+  const bar=document.getElementById('mpv-bar-'+vid);
+  const timeEl=document.getElementById('mpv-time-'+vid);
+  const dur=el.duration||0,cur=el.currentTime||0;
+  if(bar)bar.style.width=dur?(cur/dur*100)+'%':'0%';
+  if(timeEl)timeEl.textContent=_fmtTime(cur)+' / '+_fmtTime(dur);
+}
+function _mpvUI(vid,playing){
+  const btn=document.getElementById('mpv-play-'+vid);
+  if(btn)btn.textContent=playing?'❚❚':'▶';
+  const wrap=document.getElementById('mpv-wrap-'+vid);
+  if(wrap)wrap.dataset.playing=playing?'true':'false';
+}
+function _mpvFullscreen(vid){
+  const el=document.getElementById(vid);if(!el)return;
+  if(el.requestFullscreen){el.requestFullscreen();}
+  else if(el.webkitRequestFullscreen){el.webkitRequestFullscreen();}
+  else if(el.webkitEnterFullscreen){el.webkitEnterFullscreen();}
+}
 function pauseOtherVids(current){
-  document.querySelectorAll('.post-vid-player,.clips-vid,.post-card-vid,.pvm-vid').forEach(v=>{if(v!==current&&!v.paused)v.pause();});
+  document.querySelectorAll('.post-vid-player,.clips-vid,.post-card-vid,.pvm-vid,.mpv-vid').forEach(v=>{if(v!==current&&!v.paused)v.pause();});
 }
 
 // ── Custom inline post-card video player controls ──
+function _pcvTap(e,postId){
+  // Unified single/double-tap handler for post card videos
+  // Single tap → toggle play/pause (debounced so dblclick doesn't also trigger it)
+  // Double tap left half → seek -5s | right half → seek +5s
+  const vid=document.getElementById('pcv-'+postId);if(!vid)return;
+  const now=Date.now();
+  const last=vid._lastTap||0;
+  vid._lastTap=now;
+  if(now-last<280){
+    // Double tap
+    clearTimeout(vid._tapTimer);
+    const rect=e.currentTarget.getBoundingClientRect();
+    const x=(e.clientX||0)-rect.left;
+    _pcvSeek(postId,x<rect.width/2?-5:5);
+  } else {
+    // Single tap — wait briefly to rule out a second tap
+    clearTimeout(vid._tapTimer);
+    vid._tapTimer=setTimeout(()=>{_pcvToggle(postId);},240);
+  }
+}
 function _pcvToggle(postId){
   const vid=document.getElementById('pcv-'+postId);if(!vid)return;
   if(vid.paused){vid.play().catch(()=>{});}else{vid.pause();}
@@ -2955,7 +3042,11 @@ function _pcvProgress(postId){
 }
 function _pcvUpdateUI(postId,playing){
   const btn=document.getElementById('pcv-play-'+postId);
-  if(btn)btn.textContent=playing?' ':'▶';
+  if(btn)btn.textContent=playing?'❚❚':'▶';
+  // Toggle data-playing on the wrapper so CSS can hide/show controls
+  const vid=document.getElementById('pcv-'+postId);
+  const wrap=vid&&vid.closest('.post-card-vid-wrap');
+  if(wrap)wrap.dataset.playing=playing?'true':'false';
 }
 
 // ── Full View: navigate to Clips, scroll to matching clip, sync time ──
@@ -3031,7 +3122,7 @@ let _clipsObserver=null;
 let _clipsVideos=[];
 let _clipsCurrentIdx=0;
 
-function renderClips(){
+function renderClips(forceTop=false){
   const feed=document.getElementById('clips-feed');
   const dots=document.getElementById('clips-scroll-dots');
   if(!feed)return;
@@ -3051,32 +3142,26 @@ function renderClips(){
     return;
   }
 
+  // Save scroll before rebuild — forceTop resets to 0 (user re-clicked Clips nav)
+  const _clipsContainer=document.querySelector('.clips-page');
+  const _savedScroll=(!forceTop&&_clipsContainer)?_clipsContainer.scrollTop:0;
+
+  // Pause & disconnect existing observer before wipe
+  if(_clipsObserver){_clipsObserver.disconnect();_clipsObserver=null;}
   _clipsVideos=[];
+
   feed.innerHTML=clipsData.map((c,i)=>{
     const p=c.post;
     const authorBadge=p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>');
     return`<div class="clip-item" id="clip-${i}" data-idx="${i}"><video class="clip-vid clips-vid" id="clip-vid-${i}" src="${c.vurl}" playsinline preload="metadata" loop></video><div class="clip-tap-zone" id="clip-tap-${i}" onclick="_onClipTap(event,${i})"></div><div class="clip-seek-zone left"><span class="clip-seek-ripple" id="clip-rpl-left-${i}">↺ 5s</span></div><div class="clip-seek-zone right"><span class="clip-seek-ripple" id="clip-rpl-right-${i}">5s ↻</span></div><div class="clip-centre-controls" id="clip-ctrls-${i}"><span class="clip-ctrl-icon">↺</span><span class="clip-ctrl-icon play-icon" id="clip-play-icon-${i}">▶</span><span class="clip-ctrl-icon">↻</span></div><div class="clip-progress-wrap" id="clip-prog-wrap-${i}" onclick="event.stopPropagation();seekClipByClick(event,${i})"><div class="clip-progress-bar" id="clip-prog-${i}"></div></div><span class="clip-time" id="clip-time-${i}">0:00 / 0:00</span><div class="clip-overlay"><div class="clip-info"><div class="clip-meta"><span class="clip-tag">${esc(p.tag)}</span>${p.author?`<span class='clip-author'>by ${esc(p.author)} ${authorBadge}</span>`:''}${p.pinned?'<span class="post-pin-badge">📌</span>':''}</div><div class="clip-title">${esc(p.title)}</div>${p.content?`<div class='clip-desc clip-desc-collapsed' id='clip-desc-${i}' onclick='event.stopPropagation();toggleClipDesc(${i})'>${esc(p.content)}</div><span class='clip-desc-toggle' id='clip-desc-btn-${i}' onclick='event.stopPropagation();toggleClipDesc(${i})'>... more</span>`:''}<span class='clip-post-link' onclick='event.stopPropagation();_openClipPost(${p.id},${S.communityPosts.includes(p)?1:0})'>📖 View full post</span></div></div></div>`;
   }).join('');
 
-  // Collect video elements
+  // Collect video elements and wire progress events
   _clipsVideos=clipsData.map((_,i)=>document.getElementById('clip-vid-'+i));
-
-  // Wire up timeupdate for progress bar + time display
   _clipsVideos.forEach((vid,i)=>{
     if(!vid)return;
     vid.addEventListener('timeupdate',()=>_updateClipProgress(i));
     vid.addEventListener('loadedmetadata',()=>_updateClipProgress(i));
-  });
-
-  // Hide "...more" toggle for descriptions that are short enough to not need clamping
-  requestAnimationFrame(()=>{
-    clipsData.forEach((_,i)=>{
-      const desc=document.getElementById('clip-desc-'+i);
-      const btn=document.getElementById('clip-desc-btn-'+i);
-      if(!desc||!btn)return;
-      // scrollHeight > clientHeight means the text is actually clamped
-      if(desc.scrollHeight<=desc.clientHeight+2)btn.style.display='none';
-    });
   });
 
   // Scroll-snap dots
@@ -3084,61 +3169,63 @@ function renderClips(){
     dots.innerHTML=clipsData.map((_,i)=>`<div class="clips-scroll-dot${i===0?' active':''}" id="cdot-${i}"></div>`).join('');
   }
 
-  // Set up IntersectionObserver to autoplay on scroll — use clips-page as root
-  if(_clipsObserver)_clipsObserver.disconnect();
-  const _clipsContainer=document.querySelector('.clips-page');
-  _clipsObserver=new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{
-      const idx=parseInt(e.target.dataset.idx);
-      const vid=_clipsVideos[idx];
-      if(!vid)return;
-      if(e.isIntersecting){
-        _clipsCurrentIdx=idx;
-        // pause all others
-        _clipsVideos.forEach((v,i)=>{if(i!==idx&&!v.paused)v.pause();});
-        vid.play().catch(()=>{});
-        _updateClipUI(idx,true);
-        // update dots
-        document.querySelectorAll('.clips-scroll-dot').forEach((d,i)=>{
-          d.classList.toggle('active',i===idx);
-        });
-      } else {
-        if(!vid.paused)vid.pause();
-        // Reset to start so the clip plays fresh next time the user returns to it
-        vid.currentTime=0;
-        _updateClipProgress(idx);
-        _updateClipUI(idx,false);
-      }
+  // ── All post-layout work in rAF so browser finishes its scroll reset first ──
+  requestAnimationFrame(()=>{
+    // 1. Restore scroll position (or stay at 0 for forceTop)
+    if(_clipsContainer){
+      _clipsContainer.scrollTop=_savedScroll;
+    }
+
+    // 2. Hide "...more" for short descriptions
+    clipsData.forEach((_,i)=>{
+      const desc=document.getElementById('clip-desc-'+i);
+      const btn=document.getElementById('clip-desc-btn-'+i);
+      if(!desc||!btn)return;
+      if(desc.scrollHeight<=desc.clientHeight+2)btn.style.display='none';
     });
-  },{root:_clipsContainer||null,threshold:0.65});
 
-  document.querySelectorAll('.clip-item').forEach(item=>_clipsObserver.observe(item));
+    // 3. Set up IntersectionObserver AFTER scroll is restored so it fires for the right clip
+    _clipsObserver=new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{
+        const idx=parseInt(e.target.dataset.idx);
+        const vid=_clipsVideos[idx];
+        if(!vid)return;
+        if(e.isIntersecting){
+          _clipsCurrentIdx=idx;
+          _clipsVideos.forEach((v,i)=>{if(i!==idx&&!v.paused)v.pause();});
+          vid.play().catch(()=>{});
+          _updateClipUI(idx,true);
+          document.querySelectorAll('.clips-scroll-dot').forEach((d,i)=>{
+            d.classList.toggle('active',i===idx);
+          });
+        }else{
+          if(!vid.paused)vid.pause();
+          vid.currentTime=0;
+          _updateClipProgress(idx);
+          _updateClipUI(idx,false);
+        }
+      });
+    },{root:_clipsContainer||null,threshold:0.65});
 
-  // ── Desktop mouse-wheel: jump exactly one clip per scroll gesture ──
-  // CSS snap fights tiny wheel deltas and gets stuck; intercept and drive it ourselves
-  const _clipsEl=document.querySelector('.clips-page');
-  if(_clipsEl){
-    // Remove any previous listener before adding (re-render safe)
-    if(_clipsEl._wheelHandler)_clipsEl.removeEventListener('wheel',_clipsEl._wheelHandler,{passive:false});
-    let _wheelLocked=false;
-    _clipsEl._wheelHandler=function(e){
-      e.preventDefault();
-      if(_wheelLocked)return;
-      _wheelLocked=true;
-      const dir=e.deltaY>0?1:-1;
-      const next=Math.max(0,Math.min(_clipsVideos.length-1,_clipsCurrentIdx+dir));
-      const target=document.getElementById('clip-'+next);
-      if(target)_clipsEl.scrollTo({top:target.offsetTop,behavior:'smooth'});
-      setTimeout(()=>{_wheelLocked=false;},520);
-    };
-    _clipsEl.addEventListener('wheel',_clipsEl._wheelHandler,{passive:false});
-  }
+    document.querySelectorAll('.clip-item').forEach(item=>_clipsObserver.observe(item));
 
-  // Autoplay first clip after a short delay
-  setTimeout(()=>{
-    const first=_clipsVideos[0];
-    if(first){first.play().catch(()=>{});_updateClipUI(0,true);}
-  },300);
+    // 4. Wire desktop mouse-wheel one-clip-at-a-time scroll
+    if(_clipsContainer){
+      if(_clipsContainer._wheelHandler)_clipsContainer.removeEventListener('wheel',_clipsContainer._wheelHandler,{passive:false});
+      let _wheelLocked=false;
+      _clipsContainer._wheelHandler=function(e){
+        e.preventDefault();
+        if(_wheelLocked)return;
+        _wheelLocked=true;
+        const dir=e.deltaY>0?1:-1;
+        const next=Math.max(0,Math.min(_clipsVideos.length-1,_clipsCurrentIdx+dir));
+        const target=document.getElementById('clip-'+next);
+        if(target)_clipsContainer.scrollTo({top:target.offsetTop,behavior:'smooth'});
+        setTimeout(()=>{_wheelLocked=false;},520);
+      };
+      _clipsContainer.addEventListener('wheel',_clipsContainer._wheelHandler,{passive:false});
+    }
+  });
 }
 
 function toggleClipPlay(idx){
