@@ -360,7 +360,7 @@
         <div class="card-box"><h3>⚙️ Community Settings</h3>
           <div class="grid-2">
             <div class="form-group"><label>Community Name</label><input type="text" id="cfg-name" placeholder="SRZK COMMUNITY"></div>
-            <div class="form-group"><label>Tagline</label><input type="text" id="cfg-desc" placeholder="Your SRZK community…"></div>
+            <div class="form-group"><label>Tagline</label><input type="text" id="cfg-desc" placeholder="Your Minecraft community…"></div>
           </div>
           <div class="form-group">
             <label>Contact / Social Links <span class="label-opt">(shown on home page)</span></label>
@@ -796,7 +796,7 @@ function nav(page){
     if(_clipsObserver){_clipsObserver.disconnect();_clipsObserver=null;}
     (_clipsVideos||[]).forEach(v=>{if(v&&!v.paused)v.pause();});
   }
-  if(page!=='updates'&&page!=='community'){// pause inline card videos when leaving those pages
+  if(page!=='updates'&&page!=='community'&&page!=='clips'){
     document.querySelectorAll('.post-card-vid').forEach(v=>{if(!v.paused)v.pause();});
   }
   if(page==='admin'){if(S.authed)showDash();else if(S.modAuthed)showModDash();else showInfoPanel();}
@@ -962,8 +962,10 @@ function openPostModal(postId,pool){
     ${vidHtml}
     <div class="post-detail-meta">${p.pinned?'<span class="post-pin-badge">📌 Pinned</span>':''}${p.tag?'<span class="post-tag">'+esc(p.tag)+'</span>':''}<span class="post-date">${esc(p.date)}</span>${p.author?`<span class="post-author" style="margin-left:auto">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>')}</span>`:''}</div>
     <div class="post-detail-title">${esc(p.title)}</div>
-    <div class="post-full-content">${esc(p.content)}</div>`;
+    <div class="post-full-content">${esc(p.content)}</div>
+    <div class="modal-heart-row">${_heartHtml(postId)}<span style="font-size:12px;color:var(--txt3);font-family:var(--mf)">React to this post</span></div>`;
   openModal('post-detail-modal');
+  _heartListen(postId);
 
   // Sync card video's current time into the modal video on load
   if(vids.length){
@@ -1337,12 +1339,15 @@ function renderUpdates(){
         <div class="post-content-wrap">
           <div class="post-content-preview">${esc(p.content)}</div>
         </div>
+        <div class="post-card-heart-row" onclick="event.stopPropagation()">${_heartHtml(p.id)}</div>
         <div class="post-read-hint">📖 Click to read full post</div>
       </div>
     </article>`;
   }).join('');
   setTimeout(initReveal,100);
   _initCardVidObserver();
+  // Start heart listeners for all visible posts
+  S.posts.forEach(p=>_heartListen(p.id));
 }
 function renderCommunity(){
   const el=document.getElementById('community-list');if(!el)return;
@@ -1384,12 +1389,14 @@ function renderCommunity(){
         <div class="post-title">${esc(p.title)}</div>
         ${p.author?`<div class="post-author">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>')}</div>`:''}
         <div class="post-content-wrap"><div class="post-content-preview">${esc(p.content)}</div></div>
+        <div class="post-card-heart-row" onclick="event.stopPropagation()">${_heartHtml(p.id)}</div>
         <div class="post-read-hint">📖 Click to read full post</div>
       </div>
-    </article>`;
+      </article>`;
   }).join('');
   setTimeout(initReveal,100);
   _initCardVidObserver();
+  S.communityPosts.forEach(p=>_heartListen(p.id));
 }
 function renderHome(){
   const el=document.getElementById('home-posts');const latest=S.posts.slice(0,4);
@@ -3172,7 +3179,7 @@ function renderClips(forceTop=false){
   feed.innerHTML=clipsData.map((c,i)=>{
     const p=c.post;
     const authorBadge=p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>');
-    return`<div class="clip-item" id="clip-${i}" data-idx="${i}"><video class="clip-vid clips-vid" id="clip-vid-${i}" src="${c.vurl}" playsinline preload="metadata" loop></video><div class="clip-tap-zone" id="clip-tap-${i}" onclick="_onClipTap(event,${i})"></div><div class="clip-seek-zone left"><span class="clip-seek-ripple" id="clip-rpl-left-${i}">↺ 5s</span></div><div class="clip-seek-zone right"><span class="clip-seek-ripple" id="clip-rpl-right-${i}">5s ↻</span></div><div class="clip-centre-controls" id="clip-ctrls-${i}"><span class="clip-ctrl-icon">↺</span><span class="clip-ctrl-icon play-icon" id="clip-play-icon-${i}">▶</span><span class="clip-ctrl-icon">↻</span></div><div class="clip-progress-wrap" id="clip-prog-wrap-${i}" onclick="event.stopPropagation();seekClipByClick(event,${i})"><div class="clip-progress-bar" id="clip-prog-${i}"></div></div><span class="clip-time" id="clip-time-${i}">0:00 / 0:00</span><div class="clip-overlay"><div class="clip-info"><div class="clip-meta"><span class="clip-tag">${esc(p.tag)}</span>${p.author?`<span class='clip-author'>by ${esc(p.author)} ${authorBadge}</span>`:''}${p.pinned?'<span class="post-pin-badge">📌</span>':''}</div><div class="clip-title">${esc(p.title)}</div>${p.content?`<div class='clip-desc clip-desc-collapsed' id='clip-desc-${i}' onclick='event.stopPropagation();toggleClipDesc(${i})'>${esc(p.content)}</div><span class='clip-desc-toggle' id='clip-desc-btn-${i}' onclick='event.stopPropagation();toggleClipDesc(${i})'>... more</span>`:''}<span class='clip-post-link' onclick='event.stopPropagation();_openClipPost(${p.id},${S.communityPosts.includes(p)?1:0})'>📖 View full post</span></div></div></div>`;
+    return`<div class="clip-item" id="clip-${i}" data-idx="${i}"><video class="clip-vid clips-vid" id="clip-vid-${i}" src="${c.vurl}" playsinline preload="metadata" loop></video><div class="clip-tap-zone" id="clip-tap-${i}" onclick="_onClipTap(event,${i})"></div><div class="clip-seek-zone left"><span class="clip-seek-ripple" id="clip-rpl-left-${i}">↺ 5s</span></div><div class="clip-seek-zone right"><span class="clip-seek-ripple" id="clip-rpl-right-${i}">5s ↻</span></div><div class="clip-centre-controls" id="clip-ctrls-${i}"><span class="clip-ctrl-icon">↺</span><span class="clip-ctrl-icon play-icon" id="clip-play-icon-${i}">▶</span><span class="clip-ctrl-icon">↻</span></div><div class="clip-progress-wrap" id="clip-prog-wrap-${i}" onclick="event.stopPropagation();seekClipByClick(event,${i})"><div class="clip-progress-bar" id="clip-prog-${i}"></div></div><span class="clip-time" id="clip-time-${i}">0:00 / 0:00</span><div class="clip-overlay"><div class="clip-info"><div class="clip-meta">${p.tag?'<span class="clip-tag">'+esc(p.tag)+'</span>':''}${p.author?`<span class='clip-author'>by ${esc(p.author)} ${authorBadge}</span>`:''}${p.pinned?'<span class="post-pin-badge">📌</span>':''}</div><div class="clip-title">${esc(p.title)}</div>${p.content?`<div class='clip-desc-row' onclick='event.stopPropagation()'><div class='clip-desc clip-desc-collapsed' id='clip-desc-${i}'>${esc(p.content)}</div><span class='clip-desc-toggle' id='clip-desc-btn-${i}' onclick='toggleClipDesc(${i})'>…more</span></div>`:''}<span class='clip-post-link' onclick='event.stopPropagation();_openClipPost(${p.id},${S.communityPosts.includes(p)?1:0})'>📖 View full post</span></div></div><div class="clip-heart-wrap" onclick="event.stopPropagation()">${_heartHtml(p.id)}</div></div>`;
   }).join('');
 
   // Collect video elements and wire progress events
@@ -3195,12 +3202,13 @@ function renderClips(forceTop=false){
       _clipsContainer.scrollTop=_savedScroll;
     }
 
-    // 2. Hide "...more" for short descriptions
+    // 2. Hide "…more" for short descriptions that fit on one line
     clipsData.forEach((_,i)=>{
       const desc=document.getElementById('clip-desc-'+i);
       const btn=document.getElementById('clip-desc-btn-'+i);
       if(!desc||!btn)return;
-      if(desc.scrollHeight<=desc.clientHeight+2)btn.style.display='none';
+      // 1-line nowrap: text doesn't overflow → hide toggle
+      if(desc.scrollWidth<=desc.clientWidth+2)btn.style.display='none';
     });
 
     // 3. Set up IntersectionObserver AFTER scroll is restored so it fires for the right clip
@@ -3244,6 +3252,9 @@ function renderClips(forceTop=false){
       };
       _clipsContainer.addEventListener('wheel',_clipsContainer._wheelHandler,{passive:false});
     }
+
+    // Start heart listeners for all clips
+    clipsData.forEach(c=>_heartListen(c.post.id));
   });
 }
 
@@ -3346,8 +3357,15 @@ function toggleClipDesc(idx){
   const btn=document.getElementById('clip-desc-btn-'+idx);
   if(!desc||!btn)return;
   _descExpanded[idx]=!_descExpanded[idx];
-  if(_descExpanded[idx]){desc.classList.remove('clip-desc-collapsed');btn.textContent='Show less';}
-  else{desc.classList.add('clip-desc-collapsed');btn.textContent='... more';}
+  if(_descExpanded[idx]){
+    desc.classList.remove('clip-desc-collapsed');
+    desc.classList.add('clip-desc-expanded');
+    btn.textContent='Show less';
+  }else{
+    desc.classList.remove('clip-desc-expanded');
+    desc.classList.add('clip-desc-collapsed');
+    btn.textContent='…more';
+  }
 }
 
 
@@ -3456,7 +3474,90 @@ async function _init(){
   document.getElementById('pl-date').valueAsDate=new Date();
   setTimeout(initReveal,400);
 }
-// Firebase module dispatches 'firebase-ready' when the SDK is loaded.
+// ═════ HEART REACTIONS ═══════════════════════════════
+// Each post/clip gets a Firestore doc at reactions/{postId}
+// Structure: { count: N, likedBy: ['uid1','uid2',...] }
+
+function _getUserId(){
+  let uid=localStorage.getItem('srzk_uid');
+  if(!uid){uid='u_'+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem('srzk_uid',uid);}
+  return uid;
+}
+
+// Active heart listeners keyed by postId so we can unsubscribe
+const _heartUnsubs={};
+
+function _heartListen(postId){
+  if(_heartUnsubs[postId])return;// already listening
+  if(!window._fsDoc||!window._fsSnap)return;
+  const ref=window._fsDoc('reactions',String(postId));
+  const uid=_getUserId();
+  const unsub=window._fsSnap(ref,snap=>{
+    const d=snap.exists()?snap.data():{count:0,likedBy:[]};
+    const liked=(d.likedBy||[]).includes(uid);
+    const count=d.count||0;
+    // Update every heart button for this post on the page
+    document.querySelectorAll(`.heart-btn[data-pid="${postId}"]`).forEach(btn=>{
+      btn.classList.toggle('liked',liked);
+      const hi=btn.querySelector('.hi');
+      const hc=btn.querySelector('.hcount');
+      const hl=btn.querySelector('.hlabel');
+      if(hi)hi.textContent=liked?'♥️️':'🤍';
+      if(hc)hc.textContent=count>0?count:'';
+      // Hide "Like" label once there's a count or it's already liked
+      if(hl)hl.style.display=(count>0||liked)?'none':'';
+    });
+  },()=>{});
+  _heartUnsubs[postId]=unsub;
+}
+
+function _heartStopAll(){
+  Object.values(_heartUnsubs).forEach(u=>u&&u());
+  Object.keys(_heartUnsubs).forEach(k=>delete _heartUnsubs[k]);
+}
+
+async function _heartToggle(e,postId){
+  e.stopPropagation();
+  if(!window._fsDoc||!window._fsSet)return;
+  const uid=_getUserId();
+  const ref=window._fsDoc('reactions',String(postId));
+  // Optimistic UI update immediately
+  const btn=e.currentTarget;
+  const wasLiked=btn.classList.contains('liked');
+  const hi=btn.querySelector('.hi');
+  const hc=btn.querySelector('.hcount');
+  const hl=btn.querySelector('.hlabel');
+  const curCount=parseInt(hc?.textContent||'0')||0;
+  btn.classList.toggle('liked',!wasLiked);
+  if(hi)hi.textContent=wasLiked?'🤍':'♥️️';
+  const newCount=wasLiked?(curCount>1?curCount-1:0):(curCount+1);
+  if(hc)hc.textContent=newCount>0?newCount:'';
+  if(hl)hl.style.display=newCount>0?'none':'';
+  // Persist to Firestore (onSnapshot will sync all other instances)
+  try{
+    // Use a read-modify-write so concurrent toggles don't clobber each other
+    const{getFirestore,doc,runTransaction}=await import('https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js');
+    // We can't easily import runTransaction here — use _fsSet with merge carefully
+    // Instead read current doc then write
+    const snap=await new Promise(res=>{ const u=window._fsSnap(ref,s=>{u();res(s);},()=>res(null)); });
+    if(!snap)return;
+    const d=snap.exists()?snap.data():{count:0,likedBy:[]};
+    let likedBy=[...(d.likedBy||[])];
+    if(wasLiked){likedBy=likedBy.filter(x=>x!==uid);}
+    else{if(!likedBy.includes(uid))likedBy.push(uid);}
+    await window._fsSet(ref,{count:likedBy.length,likedBy});
+  }catch(err){
+    // Revert optimistic update on failure
+    btn.classList.toggle('liked',wasLiked);
+    if(hi)hi.textContent=wasLiked?'♥️️':'🤍';
+    if(hc)hc.textContent=curCount>0?curCount:'';
+    console.warn('Heart toggle failed:',err);
+  }
+}
+
+function _heartHtml(postId){
+  return`<button class="heart-btn" data-pid="${postId}" onclick="_heartToggle(event,${postId})" title="Like this post"><span class="hi">🤍</span><span class="hcount"></span><span class="hlabel">Like</span></button>`;
+}
 // Guard against the (unlikely) case where it fires before this script runs.
 if(window._fbReady){_init();}
 else{document.addEventListener('firebase-ready',_init,{once:true});}

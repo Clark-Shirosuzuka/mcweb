@@ -143,7 +143,7 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 /* ── UPDATES ── */
 .updates-list,#updates-list,#community-list{display:flex;flex-direction:column;gap:24px;max-width:760px;margin:0 auto}
 @media(max-width:600px){#updates-list,#community-list{gap:16px;padding:0 2px}}
-.post-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:all .3s var(--ease);cursor:pointer}
+.post-card{background:var(--surf);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:all .3s var(--ease);cursor:pointer;position:relative}
 .post-card:hover{border-color:var(--border2);box-shadow:0 10px 32px rgba(0,0,0,.3);transform:translateY(-1px)}
 .post-body{padding:22px 26px}
 .post-meta{display:flex;align-items:center;gap:9px;margin-bottom:10px;flex-wrap:wrap}
@@ -155,6 +155,24 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 .post-content-preview{font-size:14px;color:var(--txt2);line-height:1.75;word-break:break-word;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .post-content-wrap::after{content:'';position:absolute;bottom:0;left:0;right:0;height:48px;background:linear-gradient(to bottom,transparent,var(--surf));pointer-events:none}
 .post-read-hint{font-size:11px;color:var(--txt3);margin-top:12px;font-family:var(--mf);display:flex;align-items:center;gap:4px}
+/* ── Heart reaction button ── */
+.heart-btn{background:none;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-family:var(--mf);font-size:12px;color:var(--txt3);padding:5px 4px;border-radius:8px;transition:transform .15s,color .15s;user-select:none;-webkit-tap-highlight-color:transparent;line-height:1}
+.heart-btn:hover{transform:scale(1.12)}
+.heart-btn .hi{font-size:17px;line-height:1;transition:transform .2s cubic-bezier(.34,1.56,.64,1)}
+.heart-btn.liked{color:#f43f5e}
+.heart-btn.liked .hi{transform:scale(1.25)}
+.heart-btn .hcount{font-size:11px;min-width:14px}
+/* Post card heart: inline row above the read hint */
+.post-card-heart-row{display:flex;align-items:center;margin-top:10px;margin-bottom:2px}
+.heart-btn .hlabel{font-size:11.5px;color:var(--txt3);font-family:var(--mf);transition:opacity .2s}
+.heart-btn.liked .hlabel,.heart-btn .hlabel.hidden{display:none}
+/* Clip heart: TikTok-style right-side, vertically centred on screen */
+.clip-heart-wrap{position:absolute;right:14px;top:50%;transform:translateY(-50%);z-index:10;display:flex;flex-direction:column;align-items:center;gap:2px}
+.clip-heart-wrap .heart-btn{flex-direction:column;gap:2px;color:rgba(255,255,255,.85);font-size:11px}
+.clip-heart-wrap .heart-btn .hi{font-size:28px;filter:drop-shadow(0 1px 4px rgba(0,0,0,.5))}
+.clip-heart-wrap .heart-btn.liked{color:#f43f5e}
+/* Modal heart row */
+.modal-heart-row{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}
 .post-author{font-size:11px;color:var(--txt3);font-family:var(--mf);margin-top:5px;display:flex;align-items:center;gap:6px}
 .vid-thumb-wrap{position:relative;width:90px;height:64px;border-radius:8px;overflow:hidden;border:1px solid var(--border);background:#000;flex-shrink:0}
 .vid-thumb-wrap video{width:100%;height:100%;object-fit:cover}
@@ -234,8 +252,12 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 .clip-author{font-size:11px;color:rgba(255,255,255,.7);font-family:var(--mf)}
 .clip-post-link{font-size:11px;color:rgba(255,255,255,.55);cursor:pointer;pointer-events:auto;font-family:var(--mf);text-decoration:underline;margin-top:8px;display:block}
 .clip-desc{font-size:12.5px;color:rgba(255,255,255,.78);line-height:1.5;margin:5px 0 2px;pointer-events:auto;word-break:break-word}
-.clip-desc-collapsed{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.clip-desc-toggle{font-size:11px;color:rgba(255,255,255,.5);font-family:var(--mf);cursor:pointer;pointer-events:auto;display:inline-block;margin-bottom:3px}
+/* Collapsed: single line, text truncated, …more sits inline after */
+.clip-desc-collapsed{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:calc(100% - 52px)}
+/* Expanded: full text wraps normally */
+.clip-desc-expanded{white-space:pre-wrap;word-break:break-word;max-width:100%}
+.clip-desc-row{display:flex;align-items:baseline;gap:0;max-width:82%}
+.clip-desc-toggle{font-size:11px;color:rgba(255,255,255,.55);font-family:var(--mf);cursor:pointer;pointer-events:auto;white-space:nowrap;flex-shrink:0;margin-left:3px}
 .clip-centre-controls{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:56px;pointer-events:none;opacity:0;transition:opacity .2s;z-index:6}
 .clip-centre-controls.visible{opacity:1}
 .clip-ctrl-icon{display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;flex-shrink:0;text-shadow:0 2px 8px rgba(0,0,0,.7);line-height:1}
@@ -251,7 +273,7 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 .clip-time{position:absolute;bottom:8px;right:14px;font-size:10px;font-family:var(--mf);color:rgba(255,255,255,.5);pointer-events:none;z-index:10}
 .clips-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:70vh;gap:14px;color:var(--txt3)}
 .clips-empty .empty-icon{font-size:52px}
-.clips-scroll-hint{position:fixed;right:14px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:7px;z-index:50;pointer-events:none}
+.clips-scroll-hint{position:fixed;right:52px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:7px;z-index:50;pointer-events:none}
 .clips-scroll-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .2s}
 .clips-scroll-dot.active{background:#fff;height:16px;border-radius:3px}
 .post-pin-badge{background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.3);font-size:9.5px;font-family:var(--mf);font-weight:700;padding:1px 7px;border-radius:100px;letter-spacing:.04em;text-transform:uppercase}
