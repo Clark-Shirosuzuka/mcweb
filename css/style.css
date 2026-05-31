@@ -353,6 +353,32 @@ main{padding-top:var(--nav-h);min-height:100vh;position:relative;z-index:1}
 .post-dest-toggle{display:flex;gap:6px;margin-top:4px}
 .post-dest-btn{flex:1;padding:8px 12px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surf);color:var(--txt2);font-size:12.5px;cursor:pointer;transition:all .2s var(--ease);font-family:var(--bf);font-weight:500;text-align:center}
 .post-dest-btn.active{background:rgba(74,222,128,.12);color:var(--green);border-color:rgba(74,222,128,.3)}
+/* Admin post date / schedule section */
+/* ── Date & Scheduling section ── */
+.adm-date-section{margin-top:18px;border-radius:12px;overflow:hidden;border:1px solid rgba(74,222,128,.18);background:linear-gradient(135deg,rgba(74,222,128,.04) 0%,rgba(34,197,94,.02) 100%)}
+.adm-date-header{display:flex;align-items:center;gap:9px;padding:12px 16px;background:rgba(74,222,128,.06);border-bottom:1px solid rgba(74,222,128,.1)}
+.adm-date-header-icon{font-size:16px;line-height:1;flex-shrink:0}
+.adm-date-header-text{flex:1}
+.adm-date-header-text strong{font-size:11.5px;font-weight:700;color:var(--txt);display:block;letter-spacing:.01em}
+.adm-date-header-text span{font-size:10px;color:var(--txt3);font-family:var(--mf)}
+.adm-date-body{padding:14px 16px;display:flex;flex-direction:column;gap:14px}
+.adm-date-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.adm-date-row{grid-template-columns:1fr}}
+.adm-date-card{background:var(--surf2);border:1px solid var(--border);border-radius:9px;padding:12px 13px;transition:border-color .2s}
+.adm-date-card:focus-within{border-color:var(--green);box-shadow:0 0 0 3px var(--glow)}
+.adm-date-card label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);font-family:var(--mf);display:flex;align-items:center;gap:5px;margin-bottom:7px}
+.adm-date-card label .dc-icon{font-size:12px}
+.adm-date-card input{width:100%;background:transparent;border:none;padding:0;font-size:13px;color:var(--txt);font-family:var(--bf);outline:none;box-shadow:none}
+.adm-date-card input:focus{border:none;box-shadow:none}
+.adm-date-card input::-webkit-calendar-picker-indicator{filter:invert(70%) sepia(30%) saturate(400%) hue-rotate(90deg);cursor:pointer;opacity:.7}
+.adm-date-card input::-webkit-calendar-picker-indicator:hover{opacity:1}
+.adm-date-note{display:flex;align-items:flex-start;gap:7px;padding:9px 12px;background:rgba(251,191,36,.05);border:1px solid rgba(251,191,36,.15);border-radius:8px;font-size:10.5px;color:var(--txt3);font-family:var(--mf);line-height:1.55}
+.adm-date-note::before{content:'💡';font-size:13px;flex-shrink:0;margin-top:1px}
+/* Edit modal date section (same style, compact) */
+.edit-date-section{border-radius:10px;overflow:hidden;border:1px solid rgba(74,222,128,.18);background:linear-gradient(135deg,rgba(74,222,128,.04) 0%,rgba(34,197,94,.02) 100%)}
+.edit-date-section .adm-date-header{border-bottom:1px solid rgba(74,222,128,.1)}
+.edit-date-section .adm-date-body{padding:12px 14px}
+.scheduled-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:var(--mf);background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);padding:2px 8px;border-radius:100px;vertical-align:middle;margin-left:6px}
 .img-up-spin{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:18px;pointer-events:none}
 
 /* Post detail modal */

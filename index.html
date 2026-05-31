@@ -276,10 +276,33 @@
               <button class="post-dest-btn"         id="dest-btn-community" onclick="selectPostDest('community')">🌿 Community</button>
             </div>
           </div>
-          <div style="display:flex;gap:9px;flex-wrap:wrap"><button class="btn btn-primary" onclick="addPost()">Publish Post</button><button class="btn btn-ghost" onclick="clearPost()">Clear</button></div>
+          <div class="adm-date-section">
+            <div class="adm-date-header">
+              <div class="adm-date-header-icon">📅</div>
+              <div class="adm-date-header-text">
+                <strong>Date &amp; Scheduling</strong>
+                <span>Both fields are optional — leave blank to post immediately with today's date</span>
+              </div>
+            </div>
+            <div class="adm-date-body">
+              <div class="adm-date-row">
+                <div class="adm-date-card">
+                  <label><span class="dc-icon">🗓️</span> Custom Post Date <span class="label-opt" style="text-transform:none;letter-spacing:0;font-size:9px">(display date)</span></label>
+                  <input type="date" id="p-custom-date">
+                </div>
+                <div class="adm-date-card">
+                  <label><span class="dc-icon">⏰</span> Schedule Post <span class="label-opt" style="text-transform:none;letter-spacing:0;font-size:9px">(auto-publish at)</span></label>
+                  <input type="datetime-local" id="p-schedule">
+                </div>
+              </div>
+              <div class="adm-date-note">If both are set, the custom date appears on the card while the schedule controls when it goes live.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary" onclick="addPost()">Publish Post</button><button class="btn btn-ghost" onclick="clearPost()">Clear</button></div>
         </div>
         <div class="card-box"><h3>📢 Updates Posts</h3><div id="adm-posts"><div class="empty"><span class="empty-icon">📋</span><p>No posts yet.</p></div></div></div>
         <div class="card-box"><h3>🌿 Community Posts</h3><div id="adm-community-posts"><div class="empty"><span class="empty-icon">🌿</span><p>No community posts yet.</p></div></div></div>
+        <div class="card-box"><h3>⏰ Scheduled Posts</h3><div id="adm-scheduled"><div class="empty"><span class="empty-icon">⏰</span><p>No scheduled posts.</p></div></div></div>
       </div>
       <!-- SERVERS -->
       <div class="panel" id="tab-servers">
@@ -1045,17 +1068,36 @@ function addPost(){
   if(postImgIds.some(id=>id===null)||postVideoIds.some(id=>id===null)){toast('Please wait for uploads to finish.','err');return;}
   const t=v('p-title'),c=v('p-content'),tag=v('p-tag');
   if(!t||!c){toast('Title and content required.','err');return;}
+  const customDateVal=v('p-custom-date');
+  const scheduleVal=v('p-schedule');
+  // Resolve display date
+  const displayDate=customDateVal
+    ? new Date(customDateVal).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})
+    : new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   const post={id:Date.now(),title:t,content:c,tag,images:[...postImgs],imageIds:[...postImgIds],
     videos:[...postVideos],videoIds:[...postVideoIds],
-    author:'Admin',isAdmin:true,
-    date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})};
-  if(postDest==='community'){S.communityPosts.unshift(post);}
-  else{S.posts.unshift(post);}
-  save();clearPost();renderAdmPosts();renderAdmCommunityPosts();
-  toast(postDest==='community'?'Posted to Community! 🌿':'Post published to Updates! 📢','ok');
+    author:'Admin',isAdmin:true,date:displayDate};
+  if(scheduleVal){
+    const schedTs=new Date(scheduleVal).getTime();
+    if(schedTs<=Date.now()){toast('Scheduled time must be in the future.','err');return;}
+    post.scheduledFor=schedTs;
+    post.scheduled=true;
+    // Store in scheduled queue — not yet published
+    if(!S.scheduledPosts)S.scheduledPosts=[];
+    S.scheduledPosts.push({...post,dest:postDest});
+    save();clearPost();renderAdmScheduled();
+    toast(`Post scheduled for ${new Date(schedTs).toLocaleString()} ⏰`,'ok');
+  }else{
+    if(postDest==='community'){S.communityPosts.unshift(post);}
+    else{S.posts.unshift(post);}
+    save();clearPost();renderAdmPosts();renderAdmCommunityPosts();
+    toast(postDest==='community'?'Posted to Community! 🌿':'Post published to Updates! 📢','ok');
+  }
 }
 function clearPost(){
-  set('p-title','');set('p-content','');document.getElementById('p-tag').value='Announcement';
+  set('p-title','');set('p-content','');document.getElementById('p-tag').value='';
+  const pcd=document.getElementById('p-custom-date');if(pcd)pcd.value='';
+  const ps=document.getElementById('p-schedule');if(ps)ps.value='';
   const wrap=document.getElementById('p-img-thumbs');if(wrap)wrap.innerHTML='';
   const vwrap=document.getElementById('p-vid-thumbs');if(vwrap)vwrap.innerHTML='';
   document.getElementById('p-img-input').value='';
@@ -1063,7 +1105,53 @@ function clearPost(){
   postImgs=[];postImgIds=[];postVideos=[];postVideoIds=[];
 }
 
-// ── Request Post (user-submitted posts awaiting admin approval) ──
+// ── Scheduled posts engine ──────────────────────────────
+let _schedTimer=null;
+function _startScheduler(){
+  if(_schedTimer)clearInterval(_schedTimer);
+  _schedTimer=setInterval(_runScheduler,30000);// check every 30s
+  _runScheduler();// run immediately on start
+}
+function _runScheduler(){
+  if(!S.scheduledPosts||!S.scheduledPosts.length)return;
+  const now=Date.now();
+  const due=S.scheduledPosts.filter(p=>p.scheduledFor<=now);
+  if(!due.length)return;
+  due.forEach(sp=>{
+    const{dest,...post}=sp;
+    delete post.scheduled;delete post.scheduledFor;
+    if(dest==='community'){S.communityPosts.unshift(post);}
+    else{S.posts.unshift(post);}
+    toast(`Scheduled post "${post.title}" is now live! 📢`,'ok');
+  });
+  S.scheduledPosts=S.scheduledPosts.filter(p=>p.scheduledFor>now);
+  save();
+  renderAdmPosts();renderAdmCommunityPosts();renderAdmScheduled();
+  if(document.getElementById('page-updates')?.classList.contains('active'))renderUpdates();
+  if(document.getElementById('page-community')?.classList.contains('active'))renderCommunity();
+}
+function renderAdmScheduled(){
+  const el=document.getElementById('adm-scheduled');if(!el)return;
+  const list=S.scheduledPosts||[];
+  if(!list.length){el.innerHTML='<div class="empty"><span class="empty-icon">⏰</span><p>No scheduled posts.</p></div>';return;}
+  el.innerHTML=`<table class="adm-table"><thead><tr><th>Title</th><th>Tag</th><th>Dest</th><th>Publishes At</th><th>Actions</th></tr></thead><tbody>${
+    list.map(p=>`<tr>
+      <td><span class="tbl-title">${esc(p.title)}</span></td>
+      <td>${p.tag?`<span class="badge bg">${esc(p.tag)}</span>`:'—'}</td>
+      <td><span class="badge">${p.dest==='community'?'🌿 Community':'📢 Updates'}</span></td>
+      <td style="font-family:var(--mf);font-size:11px;color:var(--txt2)">${new Date(p.scheduledFor).toLocaleString()}</td>
+      <td><div class="tbl-actions"><button class="icon-btn del" onclick="cancelScheduled(${p.id})">🗑️</button></div></td>
+    </tr>`).join('')
+  }</tbody></table>`;
+}
+function cancelScheduled(id){
+  confirmAction('Cancel this scheduled post? It will not be published.',()=>{
+    const p=S.scheduledPosts.find(x=>x.id===id);
+    if(p){(p.imageIds||[]).forEach(pid=>_clDelete(pid));(p.videoIds||[]).forEach(pid=>_clDelete(pid));}
+    S.scheduledPosts=(S.scheduledPosts||[]).filter(x=>x.id!==id);
+    save();renderAdmScheduled();toast('Scheduled post cancelled.','ok');
+  },{title:'Cancel Scheduled Post?',icon:'⏰',okLabel:'Cancel Post',okClass:'btn-danger'});
+}
 function renderReqThumb(src,idx,uploading=false){
   const wrap=document.getElementById('rp-img-thumbs');if(!wrap)return;
   const div=document.createElement('div');div.className='img-thumb-wrap'+(uploading?' uploading':'');div.dataset.idx=idx;
@@ -1212,6 +1300,36 @@ function openEditPost(id,pool='updates'){
   const arr=pool==='community'?S.communityPosts:S.posts;
   const p=arr.find(x=>x.id===id);if(!p)return;
   const imgs=p.images||[];
+
+  // Convert stored display date back to yyyy-mm-dd for the date input (admin only)
+  let dateInputVal='';
+  if(p.isAdmin&&p.date){
+    const parsed=new Date(p.date);
+    if(!isNaN(parsed)){
+      const y=parsed.getFullYear();
+      const mo=String(parsed.getMonth()+1).padStart(2,'0');
+      const d=String(parsed.getDate()).padStart(2,'0');
+      dateInputVal=`${y}-${mo}-${d}`;
+    }
+  }
+
+  const dateSection=p.isAdmin?`
+    <div class="edit-date-section adm-date-section" style="margin-top:4px;margin-bottom:0">
+      <div class="adm-date-header">
+        <div class="adm-date-header-icon">🗓️</div>
+        <div class="adm-date-header-text">
+          <strong>Post Date</strong>
+          <span>Leave blank to keep the current date · admin only</span>
+        </div>
+      </div>
+      <div class="adm-date-body">
+        <div class="adm-date-card">
+          <label><span class="dc-icon">📅</span> Custom Date <span class="label-opt" style="text-transform:none;letter-spacing:0;font-size:9px">(shown on card)</span></label>
+          <input type="date" id="ep-date" value="${dateInputVal}">
+        </div>
+      </div>
+    </div>`:'';
+
   document.getElementById('edit-modal-title').textContent='✏️ Edit Post';
   document.getElementById('edit-modal-body').innerHTML=`
     <div class="form-group"><label>Title</label><input type="text" id="ep-title" value="${esc(p.title)}"></div>
@@ -1222,7 +1340,8 @@ function openEditPost(id,pool='updates'){
         <span class="up-icon">🖼️</span><span class="up-text">Click or drag to add images</span></div>
       <div class="img-thumbs" id="ep-img-thumbs">${imgs.map((src,i)=>`<div class="img-thumb-wrap"><img src="${src}"><button class="img-thumb-remove" onclick="removeEditPostImg(${id},${i})">✕</button></div>`).join('')}</div>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn btn-primary" onclick="saveEditPost(${id})">Save</button><button class="btn btn-ghost" onclick="closeModal('edit-modal')">Cancel</button></div>`;
+    ${dateSection}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-primary" onclick="saveEditPost(${id})">Save</button><button class="btn btn-ghost" onclick="closeModal('edit-modal')">Cancel</button></div>`;
   openModal('edit-modal');
 }
 async function handleEditMultiImg(input,postId){
@@ -1261,12 +1380,21 @@ function removeEditPostImg(postId,idx){
   wrap.innerHTML=p.images.map((src,i)=>`<div class="img-thumb-wrap"><img src="${src}"><button class="img-thumb-remove" onclick="removeEditPostImg(${postId},${i})">✕</button></div>`).join('');
 }
 function saveEditPost(id){
-  const t=v('ep-title'),c=v('ep-content'),tag=v('ep-tag');if(!t||!c){toast('Title and content required.','err');return;}
+  const t=v('ep-title'),c=v('ep-content'),tag=v('ep-tag');
+  if(!t||!c){toast('Title and content required.','err');return;}
   const p=S.posts.find(x=>x.id===id)||S.communityPosts.find(x=>x.id===id);if(!p)return;
   p.title=t;p.content=c;p.tag=tag;
+  // Apply custom date if the post is admin-created and a date was entered
+  if(p.isAdmin){
+    const epDateEl=document.getElementById('ep-date');
+    if(epDateEl&&epDateEl.value){
+      p.date=new Date(epDateEl.value).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    }
+  }
   save();closeModal('edit-modal');
   renderAdmPosts();renderAdmCommunityPosts();
   renderModPosts();renderModCommunityPosts();
+  renderUpdates();renderCommunity();
   toast('Post updated! ✅','ok');
 }
 function renderAdmPosts(){
