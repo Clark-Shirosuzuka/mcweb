@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style></style>
 </head>
 <body>
 <!-- ══ NAV ══════════════════════════════════════════ -->
@@ -288,11 +289,23 @@
               <div class="adm-date-row">
                 <div class="adm-date-card">
                   <label><span class="dc-icon">🗓️</span> Custom Post Date <span class="label-opt" style="text-transform:none;letter-spacing:0;font-size:9px">(display date)</span></label>
-                  <input type="date" id="p-custom-date">
+                  <div class="dp-wrap" id="dp-wrap-pcd">
+                    <button type="button" class="dp-trigger" onclick="_dpOpen('p-custom-date','date','pcd')">
+                      <span class="dp-trigger-val placeholder" id="dp-val-pcd">Pick a date…</span>
+                      <span class="dp-trigger-icon">📅</span>
+                    </button>
+                    <input type="hidden" id="p-custom-date">
+                  </div>
                 </div>
                 <div class="adm-date-card">
                   <label><span class="dc-icon">⏰</span> Schedule Post <span class="label-opt" style="text-transform:none;letter-spacing:0;font-size:9px">(auto-publish at)</span></label>
-                  <input type="datetime-local" id="p-schedule">
+                  <div class="dp-wrap" id="dp-wrap-ps">
+                    <button type="button" class="dp-trigger" onclick="_dpOpen('p-schedule','datetime','ps')">
+                      <span class="dp-trigger-val placeholder" id="dp-val-ps">Pick date &amp; time…</span>
+                      <span class="dp-trigger-icon">⏰</span>
+                    </button>
+                    <input type="hidden" id="p-schedule">
+                  </div>
                 </div>
               </div>
               <div class="adm-date-note">If both are set, the custom date appears on the card while the schedule controls when it goes live.</div>
@@ -302,7 +315,19 @@
         </div>
         <div class="card-box"><h3>📢 Updates Posts</h3><div id="adm-posts"><div class="empty"><span class="empty-icon">📋</span><p>No posts yet.</p></div></div></div>
         <div class="card-box"><h3>🌿 Community Posts</h3><div id="adm-community-posts"><div class="empty"><span class="empty-icon">🌿</span><p>No community posts yet.</p></div></div></div>
-        <div class="card-box"><h3>⏰ Scheduled Posts</h3><div id="adm-scheduled"><div class="empty"><span class="empty-icon">⏰</span><p>No scheduled posts.</p></div></div></div>
+        <div class="card-box">
+          <div class="sched-section-hd">
+            <div class="sched-section-hd-left">
+              <div class="sched-section-icon">⏰</div>
+              <div>
+                <div class="sched-section-title">Scheduled Posts</div>
+                <div class="sched-section-sub">Posts queued for automatic publishing</div>
+              </div>
+            </div>
+            <span class="sched-count-badge" id="sched-count-badge" style="display:none"></span>
+          </div>
+          <div id="adm-scheduled"><div class="empty"><span class="empty-icon">⏰</span><p>No scheduled posts.</p></div></div>
+        </div>
       </div>
       <!-- SERVERS -->
       <div class="panel" id="tab-servers">
@@ -726,6 +751,7 @@ async function _fsSave(){
     W(D('srzk','requests'),       {items:S.requests}),
     W(D('srzk','postReqs'),       {items:S.postReqs}),
     W(D('srzk','delReqs'),        {items:S.delReqs}),
+    W(D('srzk','scheduledPosts'), {items:S.scheduledPosts||[]}),
     W(D('srzk','cfg'),            {...S.cfg}),
   ]);
 }
@@ -736,7 +762,7 @@ async function _fsSave(){
 // changes data on another device, this page updates automatically.
 async function load(){
   return new Promise(resolve=>{
-    const KEYS=['posts','communityPosts','servers','players','requests','postReqs','delReqs','cfg'];
+    const KEYS=['posts','communityPosts','servers','players','requests','postReqs','delReqs','scheduledPosts','cfg'];
     let got=0;let done=false;
     const finish=()=>{if(!done){done=true;resolve();}};
 
@@ -774,6 +800,7 @@ function _onRemoteUpdate(key){
   if(key==='postReqs'&&S.modAuthed){renderModPostReqs();updateModPostReqBadge();}
   if(key==='delReqs'&&S.authed){renderAdmDelReqs();updateAdmDelReqBadge();}
   if(key==='delReqs'&&S.modAuthed){renderModPosts();renderModCommunityPosts();}
+  if(key==='scheduledPosts'&&S.authed){renderAdmScheduled();}
   if(key==='cfg'){renderHome();renderPrePanel();if(S.authed&&id==='page-admin'){const ci=document.getElementById('cfg-name');if(ci)ci.value=S.cfg.name||'';}if(S.modAuthed)loadModCfg();}
 }
 
@@ -1096,8 +1123,8 @@ function addPost(){
 }
 function clearPost(){
   set('p-title','');set('p-content','');document.getElementById('p-tag').value='';
-  const pcd=document.getElementById('p-custom-date');if(pcd)pcd.value='';
-  const ps=document.getElementById('p-schedule');if(ps)ps.value='';
+  _dpClear('p-custom-date','pcd','date');
+  _dpClear('p-schedule','ps','datetime');
   const wrap=document.getElementById('p-img-thumbs');if(wrap)wrap.innerHTML='';
   const vwrap=document.getElementById('p-vid-thumbs');if(vwrap)vwrap.innerHTML='';
   document.getElementById('p-img-input').value='';
@@ -1133,16 +1160,49 @@ function _runScheduler(){
 function renderAdmScheduled(){
   const el=document.getElementById('adm-scheduled');if(!el)return;
   const list=S.scheduledPosts||[];
-  if(!list.length){el.innerHTML='<div class="empty"><span class="empty-icon">⏰</span><p>No scheduled posts.</p></div>';return;}
-  el.innerHTML=`<table class="adm-table"><thead><tr><th>Title</th><th>Tag</th><th>Dest</th><th>Publishes At</th><th>Actions</th></tr></thead><tbody>${
-    list.map(p=>`<tr>
-      <td><span class="tbl-title">${esc(p.title)}</span></td>
-      <td>${p.tag?`<span class="badge bg">${esc(p.tag)}</span>`:'—'}</td>
-      <td><span class="badge">${p.dest==='community'?'🌿 Community':'📢 Updates'}</span></td>
-      <td style="font-family:var(--mf);font-size:11px;color:var(--txt2)">${new Date(p.scheduledFor).toLocaleString()}</td>
-      <td><div class="tbl-actions"><button class="icon-btn del" onclick="cancelScheduled(${p.id})">🗑️</button></div></td>
-    </tr>`).join('')
-  }</tbody></table>`;
+  // Update count badge
+  const badge=document.getElementById('sched-count-badge');
+  if(badge){if(list.length){badge.textContent=list.length+' queued';badge.style.display='';}else{badge.style.display='none';}}
+  if(!list.length){el.innerHTML='<div class="empty"><span class="empty-icon">⏰</span><p>No scheduled posts.</p><p style="font-size:12px;color:var(--txt3)">Posts scheduled via the form above will appear here.</p></div>';return;}
+
+  // Sort soonest first
+  const sorted=[...list].sort((a,b)=>a.scheduledFor-b.scheduledFor);
+
+  el.innerHTML=`<div class="sched-list">${sorted.map(p=>{
+    const d=new Date(p.scheduledFor);
+    const dateStr=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    const timeStr=d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    const msLeft=d-Date.now();
+    let countdown='';
+    if(msLeft>0){
+      const days=Math.floor(msLeft/86400000);
+      const hrs=Math.floor((msLeft%86400000)/3600000);
+      const mins=Math.floor((msLeft%3600000)/60000);
+      if(days>0)countdown=`in ${days}d ${hrs}h`;
+      else if(hrs>0)countdown=`in ${hrs}h ${mins}m`;
+      else if(mins>0)countdown=`in ${mins}m`;
+      else countdown='publishing soon…';
+    } else {countdown='processing…';}
+    const isCommunity=p.dest==='community';
+    return`<div class="sched-card">
+      <div class="sched-card-clock">⏰</div>
+      <div class="sched-card-body">
+        <div class="sched-card-title">${esc(p.title)}</div>
+        <div class="sched-card-meta">
+          <span class="sched-dest-badge ${isCommunity?'sched-dest-community':'sched-dest-updates'}">${isCommunity?'🌿 Community':'📢 Updates'}</span>
+          ${p.tag?`<span class="post-tag" style="font-size:10px;padding:2px 8px">${esc(p.tag)}</span>`:''}
+        </div>
+        <div class="sched-time-row">
+          <span class="sched-time-icon">📅</span>
+          <span class="sched-time-val">${dateStr} · ${timeStr}</span>
+          <span class="sched-countdown">${countdown}</span>
+        </div>
+      </div>
+      <div class="sched-card-actions">
+        <button class="icon-btn del" onclick="cancelScheduled(${p.id})" title="Cancel scheduled post">🗑️</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
 }
 function cancelScheduled(id){
   confirmAction('Cancel this scheduled post? It will not be published.',()=>{
@@ -1325,7 +1385,13 @@ function openEditPost(id,pool='updates'){
       <div class="adm-date-body">
         <div class="adm-date-card">
           <label><span class="dc-icon">📅</span> Custom Date <span class="label-opt" style="text-transform:none;letter-spacing:0;font-size:9px">(shown on card)</span></label>
-          <input type="date" id="ep-date" value="${dateInputVal}">
+          <div class="dp-wrap" id="dp-wrap-epd">
+            <button type="button" class="dp-trigger" onclick="_dpOpen('ep-date','date','epd')">
+              <span class="dp-trigger-val ${dateInputVal?'':'placeholder'}" id="dp-val-epd">${dateInputVal?_dpFmtDisplay(dateInputVal,'date'):'Pick a date…'}</span>
+              <span class="dp-trigger-icon">📅</span>
+            </button>
+            <input type="hidden" id="ep-date" value="${dateInputVal}">
+          </div>
         </div>
       </div>
     </div>`:'';
@@ -3592,6 +3658,281 @@ async function _init(){
   document.getElementById('pl-date').valueAsDate=new Date();
   setTimeout(initReveal,400);
 }
+// ═════ CUSTOM DATE / DATETIME PICKER ═══════════════════
+// Usage: _dpOpen(hiddenInputId, 'date'|'datetime', wrapperId)
+// Writes yyyy-mm-dd or yyyy-mm-ddTHH:MM into the hidden input
+// and shows a human-readable label in #dp-val-{wrapperId}
+
+const _dpState={
+  inputId:null,wrapperId:null,mode:null,   // 'date' | 'datetime'
+  year:0,month:0,                           // calendar view
+  selYear:null,selMonth:null,selDay:null,   // selected date
+  hour:12,minute:0,ampm:'AM',              // time (12-h display)
+  view:'cal',                               // 'cal' | 'my' (month/year grid)
+  myYear:0,                                 // year shown in my-grid
+};
+let _dpPanel=null;
+
+function _dpReposition(){
+  if(!_dpPanel)return;
+  const wrap=document.getElementById('dp-wrap-'+_dpState.wrapperId);
+  if(!wrap){_dpClose();return;}
+  const r=wrap.getBoundingClientRect();
+  // If trigger scrolled off screen, close the panel
+  if(r.bottom<0||r.top>window.innerHeight){_dpClose();return;}
+  const panelW=300;
+  const spaceBelow=window.innerHeight-r.bottom;
+  const openAbove=spaceBelow<340&&r.top>340;
+  if(openAbove){
+    _dpPanel.style.bottom=(window.innerHeight-r.top+8)+'px';
+    _dpPanel.style.top='auto';
+  } else {
+    _dpPanel.style.top=(r.bottom+8)+'px';
+    _dpPanel.style.bottom='auto';
+  }
+  _dpPanel.style.left=Math.max(6,Math.min(r.left,window.innerWidth-panelW-10))+'px';
+}
+
+function _dpOpen(inputId,mode,wrapperId){
+  if(_dpPanel&&_dpState.inputId===inputId){_dpClose();return;}
+  _dpClose();
+
+  const hidden=document.getElementById(inputId);
+  const val=hidden?hidden.value:'';
+
+  const now=new Date();
+  let sy=now.getFullYear(),sm=now.getMonth(),sd=null,sh=12,smin=0,sampm='AM';
+  if(val){
+    const d=new Date(val.includes('T')?val:val+'T12:00:00');
+    if(!isNaN(d)){
+      sy=d.getFullYear();sm=d.getMonth();sd=d.getDate();
+      if(mode==='datetime'){let h=d.getHours();smin=d.getMinutes();sampm=h>=12?'PM':'AM';sh=h%12||12;}
+    }
+  }
+
+  Object.assign(_dpState,{inputId,wrapperId,mode,year:sy,month:sm,
+    selYear:sd?sy:null,selMonth:sd?sm:null,selDay:sd,
+    hour:sh,minute:smin,ampm:sampm,view:'cal',myYear:sy});
+
+  _dpPanel=document.createElement('div');
+  _dpPanel.className='dp-panel';
+  _dpPanel.style.position='fixed';
+  _dpPanel.style.zIndex='9999';
+  _dpPanel.style.width='300px';
+  document.body.appendChild(_dpPanel);
+
+  _dpReposition();
+  _dpRender();
+
+  // Reposition on any scroll (captures scroll in modals too)
+  window.addEventListener('scroll',_dpReposition,{capture:true,passive:true});
+  setTimeout(()=>document.addEventListener('click',_dpOutside,{capture:true}),0);
+}
+
+function _dpOutside(e){
+  if(_dpPanel&&!_dpPanel.contains(e.target)){
+    // also check the trigger button
+    const wrap=document.getElementById('dp-wrap-'+_dpState.wrapperId);
+    if(wrap&&wrap.contains(e.target))return;
+    _dpClose();
+  }
+}
+
+function _dpClose(){
+  if(_dpPanel){_dpPanel.remove();_dpPanel=null;}
+  window.removeEventListener('scroll',_dpReposition,{capture:true});
+  document.removeEventListener('click',_dpOutside,{capture:true});
+  _dpState.inputId=null;
+}
+
+function _dpRender(){
+  if(!_dpPanel)return;
+  _dpPanel.innerHTML=_dpState.view==='my'?_dpRenderMY():_dpRenderCal();
+}
+
+function _dpRenderCal(){
+  const {year,month,selYear,selMonth,selDay,mode}=_dpState;
+  const now=new Date();
+  const today={y:now.getFullYear(),m:now.getMonth(),d:now.getDate()};
+
+  const monthNames=['January','February','March','April','May','June',
+    'July','August','September','October','November','December'];
+  const dowNames=['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+
+  // Build day cells
+  let cells='';
+  // empty cells before first day
+  for(let i=0;i<firstDay;i++)cells+=`<button class="dp-day dp-day-empty" disabled></button>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const isToday=year===today.y&&month===today.m&&d===today.d;
+    const isSel=selYear===year&&selMonth===month&&selDay===d;
+    const isPast=mode==='datetime'&&new Date(year,month,d)<new Date(today.y,today.m,today.d);
+    let cls='dp-day';
+    if(isToday)cls+=' dp-day-today';
+    if(isSel)cls+=' dp-day-selected';
+    if(isPast)cls+=' dp-day-past';
+    const dis=isPast?' disabled':'';
+    cells+=`<button class="${cls}" onclick="_dpSelDay(${d})"${dis}>${d}</button>`;
+  }
+
+  const dowRow=dowNames.map(d=>`<div class="dp-dow">${d}</div>`).join('');
+  const timeHtml=mode==='datetime'?_dpRenderTime():'';
+  const {hour,minute,ampm}=_dpState;
+  const hasDate=selYear!==null;
+  const hasTime=mode==='datetime';
+  let applyLabel=hasDate?(hasTime?'Set Date & Time':'Set Date'):'Pick a day';
+
+  return`
+    <div class="dp-cal-header">
+      <button class="dp-nav-btn" onclick="_dpNavMonth(-1)" title="Previous month">‹</button>
+      <button class="dp-month-year" onclick="_dpToggleMY()">${monthNames[month]} ${year} ▾</button>
+      <button class="dp-nav-btn" onclick="_dpNavMonth(1)" title="Next month">›</button>
+    </div>
+    <div class="dp-dow-row">${dowRow}</div>
+    <div class="dp-days">${cells}</div>
+    ${timeHtml}
+    <div class="dp-footer">
+      <button class="dp-clear-btn" onclick="_dpClearSel()">✕ Clear</button>
+      <button class="dp-apply-btn" onclick="_dpApply()" ${!hasDate?'disabled':''}>${applyLabel}</button>
+    </div>`;
+}
+
+function _dpRenderTime(){
+  const {hour,minute,ampm}=_dpState;
+  const hDisp=String(hour).padStart(2,'0');
+  const mDisp=String(minute).padStart(2,'0');
+  return`
+    <div class="dp-time-section">
+      <div class="dp-time-label">🕐 Set Time</div>
+      <div class="dp-time-row">
+        <div class="dp-time-col">
+          <label>Hour</label>
+          <button class="dp-time-btn" onclick="_dpTimeStep('hour',1)">▲</button>
+          <div class="dp-time-val">${hDisp}</div>
+          <button class="dp-time-btn" onclick="_dpTimeStep('hour',-1)">▼</button>
+        </div>
+        <div class="dp-time-sep">:</div>
+        <div class="dp-time-col">
+          <label>Min</label>
+          <button class="dp-time-btn" onclick="_dpTimeStep('minute',5)">▲</button>
+          <div class="dp-time-val">${mDisp}</div>
+          <button class="dp-time-btn" onclick="_dpTimeStep('minute',-5)">▼</button>
+        </div>
+        <div class="dp-time-ampm">
+          <button class="dp-ampm-btn${ampm==='AM'?' active':''}" onclick="_dpSetAmpm('AM')">AM</button>
+          <button class="dp-ampm-btn${ampm==='PM'?' active':''}" onclick="_dpSetAmpm('PM')">PM</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function _dpRenderMY(){
+  const {myYear,selYear,selMonth}=_dpState;
+  const monthNames=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const months=monthNames.map((mn,i)=>{
+    const isSel=selYear===myYear&&selMonth===i;
+    return`<button class="dp-my-btn${isSel?' active':''}" onclick="_dpSelMonth(${myYear},${i})">${mn}</button>`;
+  }).join('');
+  return`
+    <div class="dp-year-row">
+      <button class="dp-year-nav" onclick="_dpMyYear(-1)">‹</button>
+      <span class="dp-year-val">${myYear}</span>
+      <button class="dp-year-nav" onclick="_dpMyYear(1)">›</button>
+    </div>
+    <div class="dp-my-grid">${months}</div>
+    <div class="dp-footer">
+      <button class="dp-clear-btn" onclick="_dpToggleMY()">← Back to Calendar</button>
+    </div>`;
+}
+
+function _dpNavMonth(dir){
+  let {year,month}=_dpState;
+  month+=dir;
+  if(month<0){month=11;year--;}
+  if(month>11){month=0;year++;}
+  _dpState.year=year;_dpState.month=month;_dpRender();
+}
+
+function _dpToggleMY(){
+  _dpState.view=_dpState.view==='cal'?'my':'cal';
+  _dpState.myYear=_dpState.year;
+  _dpRender();
+}
+
+function _dpMyYear(dir){_dpState.myYear+=dir;_dpRender();}
+
+function _dpSelMonth(y,m){
+  _dpState.year=y;_dpState.month=m;_dpState.view='cal';_dpRender();
+}
+
+function _dpSelDay(d){
+  _dpState.selYear=_dpState.year;
+  _dpState.selMonth=_dpState.month;
+  _dpState.selDay=d;
+  _dpRender();
+}
+
+function _dpTimeStep(part,step){
+  if(part==='hour'){
+    let h=_dpState.hour+step;
+    if(h<1)h=12;if(h>12)h=1;
+    _dpState.hour=h;
+  }else{
+    let m=_dpState.minute+step;
+    if(m<0)m=55;if(m>59)m=0;
+    _dpState.minute=m;
+  }
+  _dpRender();
+}
+
+function _dpSetAmpm(ap){_dpState.ampm=ap;_dpRender();}
+
+function _dpClearSel(){
+  _dpState.selYear=null;_dpState.selMonth=null;_dpState.selDay=null;
+  const hidden=document.getElementById(_dpState.inputId);
+  if(hidden)hidden.value='';
+  const valEl=document.getElementById('dp-val-'+_dpState.wrapperId);
+  if(valEl){valEl.textContent=_dpState.mode==='datetime'?'Pick date & time…':'Pick a date…';valEl.classList.add('placeholder');}
+  _dpRender();
+}
+
+function _dpClear(inputId,wrapperId,mode){
+  const hidden=document.getElementById(inputId);if(hidden)hidden.value='';
+  const valEl=document.getElementById('dp-val-'+wrapperId);
+  if(valEl){valEl.textContent=mode==='datetime'?'Pick date & time…':'Pick a date…';valEl.classList.add('placeholder');}
+}
+
+function _dpApply(){
+  const {selYear,selMonth,selDay,hour,minute,ampm,mode,inputId,wrapperId}=_dpState;
+  if(selYear===null)return;
+  const mo=String(selMonth+1).padStart(2,'0');
+  const dy=String(selDay).padStart(2,'0');
+  let val=`${selYear}-${mo}-${dy}`;
+  if(mode==='datetime'){
+    let h24=hour+(ampm==='PM'&&hour!==12?12:0)-(ampm==='AM'&&hour===12?12:0);
+    val+=`T${String(h24).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
+  }
+  const hidden=document.getElementById(inputId);if(hidden)hidden.value=val;
+  const valEl=document.getElementById('dp-val-'+wrapperId);
+  if(valEl){valEl.textContent=_dpFmtDisplay(val,mode);valEl.classList.remove('placeholder');}
+  _dpClose();
+}
+
+function _dpFmtDisplay(val,mode){
+  if(!val)return'';
+  const d=new Date(val.includes('T')?val:val+'T12:00:00');
+  if(isNaN(d))return val;
+  const dateStr=d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  if(mode==='datetime'){
+    const timeStr=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true});
+    return`${dateStr} · ${timeStr}`;
+  }
+  return dateStr;
+}
+
 // ═════ HEART REACTIONS ═══════════════════════════════
 // Each post/clip gets a Firestore doc at reactions/{postId}
 // Structure: { count: N, likedBy: ['uid1','uid2',...] }
