@@ -536,6 +536,19 @@
         </div>
         <div class="card-box"><h3>📢 Updates Posts</h3><div id="mod-adm-posts"><div class="empty"><span class="empty-icon">📋</span><p>No posts yet.</p></div></div></div>
         <div class="card-box"><h3>🌿 Community Posts</h3><div id="mod-adm-community-posts"><div class="empty"><span class="empty-icon">🌿</span><p>No community posts yet.</p></div></div></div>
+        <div class="card-box">
+          <div class="sched-section-hd">
+            <div class="sched-section-hd-left">
+              <div class="sched-section-icon">⏰</div>
+              <div>
+                <div class="sched-section-title">My Scheduled Posts</div>
+                <div class="sched-section-sub">Your posts queued for automatic publishing</div>
+              </div>
+            </div>
+            <span class="sched-count-badge" id="mod-sched-count-badge" style="display:none"></span>
+          </div>
+          <div id="mod-scheduled"><div class="empty"><span class="empty-icon">⏰</span><p>No scheduled posts.</p></div></div>
+        </div>
       </div>
       <!-- MOD POST REQUESTS TAB -->
       <div class="panel" id="mod-tab-post-requests">
@@ -822,7 +835,7 @@ function _onRemoteUpdate(key){
   if(key==='postReqs'&&S.modAuthed){renderModPostReqs();updateModPostReqBadge();}
   if(key==='delReqs'&&S.authed){renderAdmDelReqs();updateAdmDelReqBadge();}
   if(key==='delReqs'&&S.modAuthed){renderModPosts();renderModCommunityPosts();}
-  if(key==='scheduledPosts'&&S.authed){renderAdmScheduled();}
+  if(key==='scheduledPosts'){if(S.authed)renderAdmScheduled();if(S.modAuthed)renderModScheduled();}
   if(key==='cfg'){renderHome();renderPrePanel();if(S.authed&&id==='page-admin'){const ci=document.getElementById('cfg-name');if(ci)ci.value=S.cfg.name||'';}if(S.modAuthed)loadModCfg();}
 }
 
@@ -1235,8 +1248,64 @@ function cancelScheduled(id){
     const p=S.scheduledPosts.find(x=>x.id===id);
     if(p){(p.imageIds||[]).forEach(pid=>_clDelete(pid));(p.videoIds||[]).forEach(pid=>_clDelete(pid));}
     S.scheduledPosts=(S.scheduledPosts||[]).filter(x=>x.id!==id);
-    save();renderAdmScheduled();toast('Scheduled post cancelled.','ok');
+    save();renderAdmScheduled();renderModScheduled();toast('Scheduled post cancelled.','ok');
   },{title:'Cancel Scheduled Post?',icon:'⏰',okLabel:'Cancel Post',okClass:'btn-danger'});
+}
+function cancelModScheduled(id){
+  // Moderators can directly cancel their own scheduled posts
+  confirmAction('Cancel this scheduled post? It will not be published.',()=>{
+    const p=S.scheduledPosts.find(x=>x.id===id);
+    if(p){(p.imageIds||[]).forEach(pid=>_clDelete(pid));(p.videoIds||[]).forEach(pid=>_clDelete(pid));}
+    S.scheduledPosts=(S.scheduledPosts||[]).filter(x=>x.id!==id);
+    save();renderModScheduled();renderAdmScheduled();toast('Scheduled post cancelled.','ok');
+  },{title:'Cancel Your Scheduled Post?',icon:'⏰',okLabel:'Cancel Post',okClass:'btn-danger'});
+}
+function renderModScheduled(){
+  const el=document.getElementById('mod-scheduled');if(!el)return;
+  // Only show mod-created scheduled posts
+  const list=(S.scheduledPosts||[]).filter(p=>p.isMod);
+  const badge=document.getElementById('mod-sched-count-badge');
+  if(badge){if(list.length){badge.textContent=list.length+' queued';badge.style.display='';}else{badge.style.display='none';}}
+  if(!list.length){el.innerHTML='<div class="empty"><span class="empty-icon">⏰</span><p>No scheduled posts.</p><p style="font-size:12px;color:var(--txt3)">Posts scheduled via the form above will appear here.</p></div>';return;}
+  const sorted=[...list].sort((a,b)=>a.scheduledFor-b.scheduledFor);
+  el.innerHTML=`<div class="sched-list">${sorted.map(p=>{
+    const d=new Date(p.scheduledFor);
+    const dateStr=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+    const timeStr=d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    const msLeft=d-Date.now();
+    let countdown='';
+    if(msLeft>0){
+      const days=Math.floor(msLeft/86400000);
+      const hrs=Math.floor((msLeft%86400000)/3600000);
+      const mins=Math.floor((msLeft%3600000)/60000);
+      if(days>0)countdown=`in ${days}d ${hrs}h`;
+      else if(hrs>0)countdown=`in ${hrs}h ${mins}m`;
+      else if(mins>0)countdown=`in ${mins}m`;
+      else countdown='publishing soon…';
+    }else{countdown='processing…';}
+    const isCommunity=p.dest==='community';
+    return`<div class="sched-card">
+      <div class="sched-card-clock">⏰</div>
+      <div class="sched-card-body">
+        <div class="sched-card-title">${esc(p.title)}</div>
+        <div class="sched-card-meta">
+          <span class="sched-dest-badge ${isCommunity?'sched-dest-community':'sched-dest-updates'}">${isCommunity?'🌿 Community':'📢 Updates'}</span>
+          ${p.tag?`<span class="post-tag" style="font-size:10px;padding:2px 8px">${esc(p.tag)}</span>`:''}
+        </div>
+        <div class="sched-time-row">
+          <span>📅</span>
+          <span class="sched-time-val">${dateStr}</span>
+          <span style="color:var(--txt4)">·</span>
+          <span class="sched-time-val">${timeStr}</span>
+          <span class="sched-countdown">${countdown}</span>
+        </div>
+      </div>
+      <div class="sched-card-actions">
+        <button class="icon-btn" onclick="editScheduled(${p.id})" title="Edit scheduled post">✏️</button>
+        <button class="icon-btn del" onclick="cancelModScheduled(${p.id})" title="Cancel scheduled post">🗑️</button>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
 }
 function editScheduled(id){
   const p=(S.scheduledPosts||[]).find(x=>x.id===id);if(!p)return;
@@ -1283,7 +1352,7 @@ function saveEditScheduled(id){
   p.title=t;p.content=c;p.tag=tag;p.scheduledFor=schedTs;
   const cdVal=v('esp-date');
   if(cdVal){p.date=new Date(cdVal).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});}
-  save();closeModal('edit-modal');renderAdmScheduled();toast('Scheduled post updated! ✅','ok');
+  save();closeModal('edit-modal');renderAdmScheduled();renderModScheduled();toast('Scheduled post updated! ✅','ok');
 }
 function renderReqThumb(src,idx,uploading=false){
   const wrap=document.getElementById('rp-img-thumbs');if(!wrap)return;
@@ -2554,7 +2623,7 @@ function showModDash(){
   document.querySelectorAll('#mod-dash-wrap .panel').forEach(p=>p.classList.remove('active'));
   document.querySelector('#mod-dash-wrap .tab').classList.add('active');
   document.getElementById('mod-tab-posts').classList.add('active');
-  renderModPosts();renderModCommunityPosts();renderModPostReqs();renderModRequests();renderModPlayers();renderModServers();
+  renderModPosts();renderModCommunityPosts();renderModScheduled();renderModPostReqs();renderModRequests();renderModPlayers();renderModServers();
   updateModPostReqBadge();updateModReqBadge();
   loadModCfg();
 }
@@ -2637,7 +2706,7 @@ function addModPost(){
     if(schedTs<=Date.now()){toast('Schedule time must be in the future.','err');return;}
     if(!S.scheduledPosts)S.scheduledPosts=[];
     S.scheduledPosts.push({...post,dest:modPostDest,scheduled:true,scheduledFor:schedTs});
-    save();clearModPost();renderAdmScheduled();
+    save();clearModPost();renderAdmScheduled();renderModScheduled();
     toast(`Post scheduled for ${new Date(schedTs).toLocaleString()}! ⏰`,'ok');
     return;
   }
