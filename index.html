@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style></style>
 </head>
 <body>
 <!-- ══ NAV ══════════════════════════════════════════ -->
@@ -3652,6 +3653,7 @@ function empty(icon,msg){return`<div class="empty"><span class="empty-icon">${ic
 async function _init(){
   await load();          // waits for first Firestore snapshot
   _initSelects();        // wrap all native selects with custom dropdowns
+  _startScheduler();     // start the scheduled-post auto-publish interval
   updateStats();
   renderHome();
   document.getElementById('pl-date').valueAsDate=new Date();
