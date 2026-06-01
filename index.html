@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-<style></style>
 </head>
 <body>
 <!-- ══ NAV ══════════════════════════════════════════ -->
@@ -511,7 +510,29 @@
               <button class="post-dest-btn" id="mod-dest-btn-community" onclick="selectModPostDest('community')">🌿 Community</button>
             </div>
           </div>
-          <div style="display:flex;gap:9px;flex-wrap:wrap"><button class="btn btn-sm" style="background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3)" onclick="addModPost()">Publish Post</button><button class="btn btn-ghost btn-sm" onclick="clearModPost()">Clear</button></div>
+          <div class="adm-date-section">
+            <div class="adm-date-header">
+              <div class="adm-date-header-icon">📅</div>
+              <div class="adm-date-header-text">
+                <strong>Date &amp; Scheduling</strong>
+                <span>Both optional — leave blank to post immediately with today's date</span>
+              </div>
+            </div>
+            <div class="adm-date-body">
+              <div class="adm-date-row">
+                <div class="adm-date-card">
+                  <label><span class="dc-icon">🗓️</span> Custom Post Date <span class="label-opt" style="text-transform:none;letter-spacing:0;font-size:9px">(display date)</span></label>
+                  <div class="dp-wrap" id="dp-wrap-mpcd"><button type="button" class="dp-trigger" onclick="_dpOpen('mp-custom-date','date','mpcd')"><span class="dp-trigger-val placeholder" id="dp-val-mpcd">Pick a date…</span><span class="dp-trigger-icon">📅</span></button><input type="hidden" id="mp-custom-date" value=""></div>
+                </div>
+                <div class="adm-date-card">
+                  <label><span class="dc-icon">⏰</span> Schedule Post <span class="label-opt" style="text-transform:none;letter-spacing:0;font-size:9px">(auto-publish at)</span></label>
+                  <div class="dp-wrap" id="dp-wrap-mpsc"><button type="button" class="dp-trigger" onclick="_dpOpen('mp-schedule','datetime','mpsc')"><span class="dp-trigger-val placeholder" id="dp-val-mpsc">Pick date &amp; time…</span><span class="dp-trigger-icon">📅</span></button><input type="hidden" id="mp-schedule" value=""></div>
+                </div>
+              </div>
+              <div class="adm-date-note">If both are set, the custom date appears on the card while the schedule controls when it goes live.</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px"><button class="btn btn-sm" style="background:rgba(192,132,252,.15);color:var(--purple);border:1px solid rgba(192,132,252,.3)" onclick="addModPost()">Publish Post</button><button class="btn btn-ghost btn-sm" onclick="clearModPost()">Clear</button></div>
         </div>
         <div class="card-box"><h3>📢 Updates Posts</h3><div id="mod-adm-posts"><div class="empty"><span class="empty-icon">📋</span><p>No posts yet.</p></div></div></div>
         <div class="card-box"><h3>🌿 Community Posts</h3><div id="mod-adm-community-posts"><div class="empty"><span class="empty-icon">🌿</span><p>No community posts yet.</p></div></div></div>
@@ -2323,7 +2344,7 @@ function executeClearAll(){
   updatePostReqBadge();updateReqBadge();updateStats();
   toast('All data cleared.','ok');
 }
-function updateStats(){document.getElementById('stat-srv').textContent=S.servers.length;document.getElementById('stat-pl').textContent=S.players.length;document.getElementById('stat-po').textContent=S.posts.length+(S.communityPosts||[]).length;}
+function updateStats(){document.getElementById('stat-srv').textContent=S.servers.length;document.getElementById('stat-pl').textContent=S.players.length;document.getElementById('stat-po').textContent=S.posts.length;}
 
 // ═════ CUSTOM SELECT DROPDOWNS ════════════════════════
 // Wraps every <select> with a fully styled custom dropdown that matches the site design.
@@ -2602,22 +2623,41 @@ function addModPost(){
   if(modPostImgIds.some(id=>id===null)||modPostVideoIds.some(id=>id===null)){toast('Please wait for uploads to finish.','err');return;}
   const t=v('mp-title'),c=v('mp-content'),tag=v('mp-tag');
   if(!t||!c){toast('Title and content required.','err');return;}
+  const customDate=v('mp-custom-date');
+  const schedVal=v('mp-schedule');
+  const displayDate=customDate
+    ?new Date(customDate+'T12:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})
+    :new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   const post={id:Date.now(),title:t,content:c,tag,images:[...modPostImgs],imageIds:[...modPostImgIds],
     videos:[...modPostVideos],videoIds:[...modPostVideoIds],
-    author:'Moderator',isAdmin:false,isMod:true,
-    date:new Date().toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'})};
+    author:'Moderator',isAdmin:false,isMod:true,date:displayDate};
+  if(schedVal){
+    const schedTs=new Date(schedVal).getTime();
+    if(isNaN(schedTs)){toast('Invalid schedule date/time.','err');return;}
+    if(schedTs<=Date.now()){toast('Schedule time must be in the future.','err');return;}
+    if(!S.scheduledPosts)S.scheduledPosts=[];
+    S.scheduledPosts.push({...post,dest:modPostDest,scheduled:true,scheduledFor:schedTs});
+    save();clearModPost();renderAdmScheduled();
+    toast(`Post scheduled for ${new Date(schedTs).toLocaleString()}! ⏰`,'ok');
+    return;
+  }
   if(modPostDest==='community'){S.communityPosts.unshift(post);}
   else{S.posts.unshift(post);}
   save();clearModPost();renderModPosts();renderModCommunityPosts();
   toast(modPostDest==='community'?'Posted to Community! 🌿':'Post published to Updates! 📢','ok');
 }
 function clearModPost(){
-  set('mp-title','');set('mp-content','');document.getElementById('mp-tag').value='Announcement';
+  set('mp-title','');set('mp-content','');document.getElementById('mp-tag').value='';
   const wrap=document.getElementById('mp-img-thumbs');if(wrap)wrap.innerHTML='';
   document.getElementById('mp-img-input').value='';
   const mvi=document.getElementById('mp-vid-input');if(mvi)mvi.value='';
   const mvw=document.getElementById('mp-vid-thumbs');if(mvw)mvw.innerHTML='';
   modPostImgs=[];modPostImgIds=[];modPostVideos=[];modPostVideoIds=[];
+  // Reset dp triggers
+  const mpcd=document.getElementById('mp-custom-date');if(mpcd)mpcd.value='';
+  const mpsc=document.getElementById('mp-schedule');if(mpsc)mpsc.value='';
+  const vcd=document.getElementById('dp-val-mpcd');if(vcd){vcd.textContent='Pick a date…';vcd.className='dp-trigger-val placeholder';}
+  const vsc=document.getElementById('dp-val-mpsc');if(vsc){vsc.textContent='Pick date & time…';vsc.className='dp-trigger-val placeholder';}
 }
 
 // ── Mod post lists (read-only, no edit/delete) ──
