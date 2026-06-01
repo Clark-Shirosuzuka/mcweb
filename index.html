@@ -7,7 +7,6 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
-<style></style>
 </head>
 <body>
 <!-- ══ NAV ══════════════════════════════════════════ -->
@@ -2094,7 +2093,7 @@ function submitRegistration(){
 // ═════ ADMIN ══════════════════════════════════════════
 function showInfoPanel(){document.getElementById('admin-pre').style.display='block';document.getElementById('login-wrap').style.display='none';document.getElementById('mod-login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='none';document.getElementById('mod-dash-wrap').style.display='none';renderPrePanel();setTimeout(initReveal,200);}
 function showLogin(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='flex';document.getElementById('mod-login-wrap').style.display='none';document.getElementById('dash-wrap').style.display='none';document.getElementById('mod-dash-wrap').style.display='none';document.getElementById('adm-pw').value='';document.getElementById('login-err').classList.remove('show');}
-function showDash(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='none';document.getElementById('mod-login-wrap').style.display='none';document.getElementById('mod-dash-wrap').style.display='none';document.getElementById('dash-wrap').style.display='block';renderAdmPosts();renderAdmCommunityPosts();renderAdmServers();renderAdmPlayers();renderAdmRequests();renderAdmPostReqs();renderAdmDelReqs();loadCfg();updateReqBadge();updatePostReqBadge();updateAdmDelReqBadge();}
+function showDash(){document.getElementById('admin-pre').style.display='none';document.getElementById('login-wrap').style.display='none';document.getElementById('mod-login-wrap').style.display='none';document.getElementById('mod-dash-wrap').style.display='none';document.getElementById('dash-wrap').style.display='block';renderAdmPosts();renderAdmCommunityPosts();renderAdmServers();renderAdmPlayers();renderAdmRequests();renderAdmPostReqs();renderAdmDelReqs();renderAdmScheduled();loadCfg();updateReqBadge();updatePostReqBadge();updateAdmDelReqBadge();}
 function renderPrePanel(){
   const admins=S.players.filter(p=>p.role==='admin'),mods=S.players.filter(p=>p.role==='mod');
   document.getElementById('pre-admins').innerHTML=admins.length?admins.map(p=>`<div class="aic-person"><img class="aic-avatar" src="${getAvatar(p,36)}" onerror="this.src='https://mc-heads.net/avatar/Steve/36'" loading="lazy"><div><div class="aic-pname">${esc(p.name)}</div><div class="aic-role-text">Admin</div></div></div>`).join(''):`<span class="aic-empty">No admins listed yet.</span>`;
