@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SRZK COMMUNITY</title>
-<link rel="stylesheet" href="css/style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
 <style></style>
@@ -63,10 +62,11 @@
       <h1 class="hero-title">Your Minecraft<br><em>Community Hub.</em></h1>
       <p class="hero-desc">Browse servers, discover players, and stay updated with everything happening in our community.</p>
       <div class="hero-ctas">
-        <button class="btn btn-primary" onclick="nav('servers')">Browse Servers</button>
-        <button class="btn btn-ghost"   onclick="nav('updates')">Latest Updates</button>
-        <button class="btn btn-ghost"   onclick="nav('players')">Server Players</button>
-        <button class="btn btn-cyan"    onclick="nav('register')">✍️ Join Us</button>
+        <button class="hero-cta-btn hero-cta-primary" onclick="nav('servers')"><span class="hcb-icon">🖥️</span><span class="hcb-text"><span class="hcb-label">Browse Servers</span><span class="hcb-sub">Find your game</span></span></button>
+        <button class="hero-cta-btn hero-cta-ghost" onclick="nav('updates')"><span class="hcb-icon">📢</span><span class="hcb-text"><span class="hcb-label">Latest Updates</span><span class="hcb-sub">News &amp; announcements</span></span></button>
+        <button class="hero-cta-btn hero-cta-ghost" onclick="nav('community')"><span class="hcb-icon">🌿</span><span class="hcb-text"><span class="hcb-label">Community</span><span class="hcb-sub">Posts &amp; discussions</span></span></button>
+        <button class="hero-cta-btn hero-cta-ghost" onclick="nav('players')"><span class="hcb-icon">👥</span><span class="hcb-text"><span class="hcb-label">Server Players</span><span class="hcb-sub">Active members</span></span></button>
+        <button class="hero-cta-btn hero-cta-accent" onclick="nav('register')"><span class="hcb-icon">✍️</span><span class="hcb-text"><span class="hcb-label">Join Us</span><span class="hcb-sub">Register now</span></span></button>
       </div>
       <div class="hero-stats">
         <div class="stat-c rv"><span class="stat-n" id="stat-srv">0</span><span class="stat-l">Servers</span></div>
@@ -1015,7 +1015,8 @@ function openPostModal(postId,pool){
     <div class="post-full-content">${esc(p.content)}</div>
     <div class="modal-heart-row">${_heartHtml(postId)}<span style="font-size:12px;color:var(--txt3);font-family:var(--mf)">React to this post</span></div>`;
   openModal('post-detail-modal');
-  _heartListen(postId);
+  // Apply heart state immediately from cache (no new listener needed — card already has one)
+  requestAnimationFrame(()=>_heartApply(postId));
 
   // Sync card video's current time into the modal video on load
   if(vids.length){
@@ -1193,12 +1194,15 @@ function renderAdmScheduled(){
           ${p.tag?`<span class="post-tag" style="font-size:10px;padding:2px 8px">${esc(p.tag)}</span>`:''}
         </div>
         <div class="sched-time-row">
-          <span class="sched-time-icon">📅</span>
-          <span class="sched-time-val">${dateStr} · ${timeStr}</span>
+          <span>📅</span>
+          <span class="sched-time-val">${dateStr}</span>
+          <span style="color:var(--txt4)">·</span>
+          <span class="sched-time-val">${timeStr}</span>
           <span class="sched-countdown">${countdown}</span>
         </div>
       </div>
       <div class="sched-card-actions">
+        <button class="icon-btn" onclick="editScheduled(${p.id})" title="Edit scheduled post">✏️</button>
         <button class="icon-btn del" onclick="cancelScheduled(${p.id})" title="Cancel scheduled post">🗑️</button>
       </div>
     </div>`;
@@ -1211,6 +1215,53 @@ function cancelScheduled(id){
     S.scheduledPosts=(S.scheduledPosts||[]).filter(x=>x.id!==id);
     save();renderAdmScheduled();toast('Scheduled post cancelled.','ok');
   },{title:'Cancel Scheduled Post?',icon:'⏰',okLabel:'Cancel Post',okClass:'btn-danger'});
+}
+function editScheduled(id){
+  const p=(S.scheduledPosts||[]).find(x=>x.id===id);if(!p)return;
+  // Convert timestamp back to datetime-local string
+  const d=new Date(p.scheduledFor);
+  const pad=n=>String(n).padStart(2,'0');
+  const dtVal=`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  const customDateVal=p.date?new Date(p.date):null;
+  let cdVal='';
+  if(customDateVal&&!isNaN(customDateVal)){
+    cdVal=`${customDateVal.getFullYear()}-${pad(customDateVal.getMonth()+1)}-${pad(customDateVal.getDate())}`;
+  }
+  document.getElementById('edit-modal-title').textContent='✏️ Edit Scheduled Post';
+  document.getElementById('edit-modal-body').innerHTML=`
+    <div class="form-group"><label>Title</label><input type="text" id="esp-title" value="${esc(p.title)}"></div>
+    <div class="form-group"><label>Tag <span class="label-opt">(optional)</span></label><select id="esp-tag"><option value="">— No Tag —</option>${['Announcement','Update','Maintenance','Event','News'].map(t=>`<option${p.tag===t?' selected':''}>${t}</option>`).join('')}</select></div>
+    <div class="form-group"><label>Content</label><textarea id="esp-content">${esc(p.content)}</textarea></div>
+    <div class="adm-date-section" style="margin-top:4px">
+      <div class="adm-date-header"><div class="adm-date-header-icon">⏰</div><div class="adm-date-header-text"><strong>Schedule &amp; Date</strong><span>Update when this post publishes</span></div></div>
+      <div class="adm-date-body">
+        <div class="adm-date-row">
+          <div class="adm-date-card"><label><span class="dc-icon">⏰</span> Publish At</label>
+            <div class="dp-wrap" id="dp-wrap-esps"><button type="button" class="dp-trigger" onclick="_dpOpen('esp-schedule','datetime','esps')"><span class="dp-trigger-val ${dtVal?'':'placeholder'}" id="dp-val-esps">${dtVal?_dpFmtDisplay(dtVal,'datetime'):'Pick date & time…'}</span><span class="dp-trigger-icon">📅</span></button><input type="hidden" id="esp-schedule" value="${dtVal}"></div>
+          </div>
+          <div class="adm-date-card"><label><span class="dc-icon">🗓️</span> Display Date <span class="label-opt" style="text-transform:none;letter-spacing:0;font-size:9px">(optional)</span></label>
+            <div class="dp-wrap" id="dp-wrap-espd"><button type="button" class="dp-trigger" onclick="_dpOpen('esp-date','date','espd')"><span class="dp-trigger-val ${cdVal?'':'placeholder'}" id="dp-val-espd">${cdVal?_dpFmtDisplay(cdVal,'date'):'Keep current…'}</span><span class="dp-trigger-icon">📅</span></button><input type="hidden" id="esp-date" value="${cdVal}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px">
+      <button class="btn btn-primary" onclick="saveEditScheduled(${id})">Save Changes</button>
+      <button class="btn btn-ghost" onclick="closeModal('edit-modal')">Cancel</button>
+    </div>`;
+  openModal('edit-modal');
+}
+function saveEditScheduled(id){
+  const t=v('esp-title'),c=v('esp-content'),tag=v('esp-tag'),sched=v('esp-schedule');
+  if(!t||!c){toast('Title and content required.','err');return;}
+  if(!sched){toast('Please set a publish date & time.','err');return;}
+  const schedTs=new Date(sched).getTime();
+  if(isNaN(schedTs)){toast('Invalid date/time.','err');return;}
+  const p=(S.scheduledPosts||[]).find(x=>x.id===id);if(!p)return;
+  p.title=t;p.content=c;p.tag=tag;p.scheduledFor=schedTs;
+  const cdVal=v('esp-date');
+  if(cdVal){p.date=new Date(cdVal).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});}
+  save();closeModal('edit-modal');renderAdmScheduled();toast('Scheduled post updated! ✅','ok');
 }
 function renderReqThumb(src,idx,uploading=false){
   const wrap=document.getElementById('rp-img-thumbs');if(!wrap)return;
@@ -3371,7 +3422,7 @@ function renderClips(forceTop=false){
   feed.innerHTML=clipsData.map((c,i)=>{
     const p=c.post;
     const authorBadge=p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>');
-    return`<div class="clip-item" id="clip-${i}" data-idx="${i}"><video class="clip-vid clips-vid" id="clip-vid-${i}" src="${c.vurl}" playsinline preload="metadata" loop></video><div class="clip-tap-zone" id="clip-tap-${i}" onclick="_onClipTap(event,${i})"></div><div class="clip-seek-zone left"><span class="clip-seek-ripple" id="clip-rpl-left-${i}">↺ 5s</span></div><div class="clip-seek-zone right"><span class="clip-seek-ripple" id="clip-rpl-right-${i}">5s ↻</span></div><div class="clip-centre-controls" id="clip-ctrls-${i}"><span class="clip-ctrl-icon">↺</span><span class="clip-ctrl-icon play-icon" id="clip-play-icon-${i}">▶</span><span class="clip-ctrl-icon">↻</span></div><div class="clip-progress-wrap" id="clip-prog-wrap-${i}" onclick="event.stopPropagation();seekClipByClick(event,${i})"><div class="clip-progress-bar" id="clip-prog-${i}"></div></div><span class="clip-time" id="clip-time-${i}">0:00 / 0:00</span><div class="clip-overlay"><div class="clip-info"><div class="clip-meta">${p.tag?'<span class="clip-tag">'+esc(p.tag)+'</span>':''}${p.author?`<span class='clip-author'>by ${esc(p.author)} ${authorBadge}</span>`:''}${p.pinned?'<span class="post-pin-badge">📌</span>':''}</div><div class="clip-title">${esc(p.title)}</div>${p.content?`<div class='clip-desc-row' onclick='event.stopPropagation()'><div class='clip-desc clip-desc-collapsed' id='clip-desc-${i}'>${esc(p.content)}</div><span class='clip-desc-toggle' id='clip-desc-btn-${i}' onclick='toggleClipDesc(${i})'>…more</span></div>`:''}<span class='clip-post-link' onclick='event.stopPropagation();_openClipPost(${p.id},${S.communityPosts.includes(p)?1:0})'>📖 View full post</span></div></div><div class="clip-heart-wrap" onclick="event.stopPropagation()">${_heartHtml(p.id)}</div></div>`;
+    return`<div class="clip-item" id="clip-${i}" data-idx="${i}"><video class="clip-vid clips-vid" id="clip-vid-${i}" src="${c.vurl}" playsinline preload="metadata" loop onwaiting="_setClipBuf(${i},true)" onstalled="_setClipBuf(${i},true)" onplaying="_setClipBuf(${i},false)" oncanplay="_setClipBuf(${i},false)"></video><div class="clip-tap-zone" id="clip-tap-${i}" onclick="_onClipTap(event,${i})"></div><div class="clip-seek-zone left"><span class="clip-seek-ripple" id="clip-rpl-left-${i}">↺ 5s</span></div><div class="clip-seek-zone right"><span class="clip-seek-ripple" id="clip-rpl-right-${i}">5s ↻</span></div><div class="clip-centre-controls" id="clip-ctrls-${i}"><span class="clip-ctrl-icon">↺</span><span class="clip-ctrl-icon play-icon" id="clip-play-icon-${i}">▶</span><span class="clip-ctrl-icon">↻</span></div><div class="clip-progress-wrap" id="clip-prog-wrap-${i}" onpointerdown="event.stopPropagation();_clipProgPointerDown(event,${i})"><div class="clip-progress-bar" id="clip-prog-${i}"></div><div class="clip-buffer-shimmer"></div></div><span class="clip-time" id="clip-time-${i}">0:00 / 0:00</span><div class="clip-overlay"><div class="clip-info"><div class="clip-meta">${p.tag?'<span class="clip-tag">'+esc(p.tag)+'</span>':''}${p.author?`<span class='clip-author'>by ${esc(p.author)} ${authorBadge}</span>`:''}${p.date?`<span class='clip-date'>${esc(p.date)}</span>`:''}${p.pinned?'<span class="post-pin-badge">📌</span>':''}</div><div class="clip-title">${esc(p.title)}</div>${p.content?`<div class='clip-desc-row' onclick='event.stopPropagation()'><div class='clip-desc clip-desc-collapsed' id='clip-desc-${i}'>${esc(p.content)}</div><span class='clip-desc-toggle' id='clip-desc-btn-${i}' onclick='toggleClipDesc(${i})'>…more</span></div>`:''}<span class='clip-post-link' onclick='event.stopPropagation();_openClipPost(${p.id},${S.communityPosts.includes(p)?1:0})'>📖 View full post</span></div></div><div class="clip-heart-wrap" onclick="event.stopPropagation()">${_heartHtml(p.id)}</div></div>`;
   }).join('');
 
   // Collect video elements and wire progress events
@@ -3504,15 +3555,33 @@ function _showCentreControls(idx){
 
 function _updateClipUI(idx,playing){
   const ctrls=document.getElementById('clip-ctrls-'+idx);if(!ctrls)return;
-  if(playing){
-    ctrls.classList.remove('visible');
-    clearTimeout(_ctrlTimers[idx]);
-  } else {
-    ctrls.classList.add('visible');
-    clearTimeout(_ctrlTimers[idx]);
-  }
+  if(playing){ctrls.classList.remove('visible');clearTimeout(_ctrlTimers[idx]);}
+  else{ctrls.classList.add('visible');clearTimeout(_ctrlTimers[idx]);}
   const icon=document.getElementById('clip-play-icon-'+idx);
   if(icon)icon.textContent=playing?'':'▶';
+  // Drive CSS visibility of progress bar via data-playing
+  const item=document.getElementById('clip-'+idx);
+  if(item)item.dataset.playing=playing?'true':'false';
+}
+function _setClipBuf(idx,buffering){
+  const item=document.getElementById('clip-'+idx);
+  if(item)item.dataset.buffering=buffering?'true':'false';
+}
+// Drag-seek on clip progress bar
+function _clipProgPointerDown(e,idx){
+  e.stopPropagation();
+  const vid=_clipsVideos[idx];if(!vid||!vid.duration)return;
+  const doSeek=ev=>{
+    const bar=document.getElementById('clip-prog-wrap-'+idx);if(!bar)return;
+    const r=bar.getBoundingClientRect();
+    const pct=Math.max(0,Math.min(1,(ev.clientX-r.left)/r.width));
+    vid.currentTime=pct*vid.duration;
+  };
+  doSeek(e);
+  const onMove=ev=>{doSeek(ev);};
+  const onUp=()=>{document.removeEventListener('pointermove',onMove);document.removeEventListener('pointerup',onUp);};
+  document.addEventListener('pointermove',onMove);
+  document.addEventListener('pointerup',onUp);
 }
 
 function _openClipPost(postId,isCommunity){
@@ -3539,16 +3608,21 @@ const _descExpanded={};
 function toggleClipDesc(idx){
   const desc=document.getElementById('clip-desc-'+idx);
   const btn=document.getElementById('clip-desc-btn-'+idx);
+  const row=desc&&desc.closest('.clip-desc-row');
   if(!desc||!btn)return;
   _descExpanded[idx]=!_descExpanded[idx];
   if(_descExpanded[idx]){
     desc.classList.remove('clip-desc-collapsed');
     desc.classList.add('clip-desc-expanded');
+    if(row)row.classList.add('expanded');
     btn.textContent='Show less';
+    btn.style.marginLeft='0';
   }else{
     desc.classList.remove('clip-desc-expanded');
     desc.classList.add('clip-desc-collapsed');
+    if(row)row.classList.remove('expanded');
     btn.textContent='…more';
+    btn.style.marginLeft='3px';
   }
 }
 
@@ -3966,8 +4040,10 @@ function _heartApply(postId){
 }
 
 function _heartListen(postId){
-  if(_heartUnsubs[postId])return;// guard against double-call within same render
+  if(_heartUnsubs[postId])return;
   if(!window._fsDoc||!window._fsSnap)return;
+  // Apply any already-cached state immediately (covers modal reopen case)
+  if(_heartCache[postId])_heartApply(postId);
   const ref=window._fsDoc('reactions',String(postId));
   const unsub=window._fsSnap(ref,snap=>{
     _heartCache[postId]=snap.exists()?snap.data():{count:0,likedBy:[]};
