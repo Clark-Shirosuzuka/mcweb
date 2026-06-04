@@ -869,7 +869,7 @@ function closeDrawer(){document.getElementById('drawer').classList.remove('open'
 
 // ═════ NAV ═══════════════════════════════════════════
 function nav(page){
-  _heartStopAll();// always tear down listeners; each render restarts them for the new DOM
+  _heartStopAll();_commentStopAll();// always tear down listeners; each render restarts them for the new DOM
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-link').forEach(a=>a.classList.remove('active'));
   document.querySelectorAll('.drawer-link').forEach(a=>a.classList.remove('active'));
@@ -1048,10 +1048,13 @@ function openPostModal(postId,pool){
     <div class="post-detail-meta">${p.pinned?'<span class="post-pin-badge">📌 Pinned</span>':''}${p.tag?'<span class="post-tag">'+esc(p.tag)+'</span>':''}<span class="post-date">${esc(p.date)}</span>${p.author?`<span class="post-author" style="margin-left:auto">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>')}</span>`:''}</div>
     <div class="post-detail-title">${esc(p.title)}</div>
     <div class="post-full-content">${esc(p.content)}</div>
-    <div class="modal-heart-row">${_heartHtml(postId)}<span style="font-size:12px;color:var(--txt3);font-family:var(--mf)">React to this post</span></div>`;
+    <div class="modal-heart-row">${_heartHtml(postId)}<span style="font-size:12px;color:var(--txt3);font-family:var(--mf)">React to this post</span></div>
+    ${_commentSectionHtml(postId)}`;
   openModal('post-detail-modal');
   // Apply heart state immediately from cache (no new listener needed — card already has one)
   requestAnimationFrame(()=>_heartApply(postId));
+  // Start comment listener for this post
+  _commentListen(postId);
 
   // Sync card video's current time into the modal video on load
   if(vids.length){
@@ -1675,7 +1678,7 @@ function renderUpdates(){
         <div class="post-content-wrap">
           <div class="post-content-preview">${esc(p.content)}</div>
         </div>
-        <div class="post-card-heart-row" onclick="event.stopPropagation()">${_heartHtml(p.id)}</div>
+        <div class="post-card-heart-row" onclick="event.stopPropagation()">${_heartHtml(p.id)}<span class="post-comment-count" data-pid="${p.id}"><span class="cc-icon">💬</span><span class="cc-val">0</span></span></div>
         <div class="post-read-hint">📖 Click to read full post</div>
       </div>
     </article>`;
@@ -1683,7 +1686,7 @@ function renderUpdates(){
   setTimeout(initReveal,100);
   _initCardVidObserver();
   // Start heart listeners for all visible posts
-  S.posts.forEach(p=>_heartListen(p.id));
+  S.posts.forEach(p=>{_heartListen(p.id);_commentListen(p.id);});
 }
 function renderCommunity(){
   const el=document.getElementById('community-list');if(!el)return;
@@ -1725,14 +1728,14 @@ function renderCommunity(){
         <div class="post-title">${esc(p.title)}</div>
         ${p.author?`<div class="post-author">by ${esc(p.author)} ${p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>')}</div>`:''}
         <div class="post-content-wrap"><div class="post-content-preview">${esc(p.content)}</div></div>
-        <div class="post-card-heart-row" onclick="event.stopPropagation()">${_heartHtml(p.id)}</div>
+        <div class="post-card-heart-row" onclick="event.stopPropagation()">${_heartHtml(p.id)}<span class="post-comment-count" data-pid="${p.id}"><span class="cc-icon">💬</span><span class="cc-val">0</span></span></div>
         <div class="post-read-hint">📖 Click to read full post</div>
       </div>
       </article>`;
   }).join('');
   setTimeout(initReveal,100);
   _initCardVidObserver();
-  S.communityPosts.forEach(p=>_heartListen(p.id));
+  S.communityPosts.forEach(p=>{_heartListen(p.id);_commentListen(p.id);});
 }
 function renderHome(){
   const el=document.getElementById('home-posts');const latest=S.posts.slice(0,4);
@@ -2515,21 +2518,22 @@ const _csMob=new MutationObserver(muts=>{
 _csMob.observe(document.body,{childList:true,subtree:true});
 function openModal(id){document.getElementById(id).classList.add('open');document.body.style.overflow='hidden';}
 function closeModal(id){
-  // If closing the post-detail modal, pause the modal video and sync time back to the card video
   if(id==='post-detail-modal'){
     const body=document.getElementById('post-detail-body');
     if(body){
-      // Find the first modal video (mpv-* element)
       const modalVid=body.querySelector('.mpv-vid');
       if(modalVid){
         const t=modalVid.currentTime;
         if(!modalVid.paused)modalVid.pause();
-        // Sync time back to the matching card video by src
         document.querySelectorAll('.post-card-vid').forEach(cardVid=>{
-          if(cardVid.src===modalVid.src||cardVid.currentSrc===modalVid.currentSrc){
-            cardVid.currentTime=t;
-          }
+          if(cardVid.src===modalVid.src||cardVid.currentSrc===modalVid.currentSrc)cardVid.currentTime=t;
         });
+      }
+      // Stop the comment listener for this post
+      const listEl=body.querySelector('[id^="comment-list-"]');
+      if(listEl){
+        const pid=listEl.id.replace('comment-list-','');
+        if(_commentUnsubs[pid]){_commentUnsubs[pid]();delete _commentUnsubs[pid];}
       }
     }
   }
@@ -3532,7 +3536,7 @@ function renderClips(forceTop=false){
   feed.innerHTML=clipsData.map((c,i)=>{
     const p=c.post;
     const authorBadge=p.isAdmin?'<span class="post-admin-badge">Admin</span>':(p.isMod?'<span class="post-mod-badge">Moderator</span>':'<span class="post-user-badge">Community</span>');
-    return`<div class="clip-item" id="clip-${i}" data-idx="${i}"><video class="clip-vid clips-vid" id="clip-vid-${i}" src="${c.vurl}" playsinline preload="metadata" loop onwaiting="_setClipBuf(${i},true)" onstalled="_setClipBuf(${i},true)" onplaying="_setClipBuf(${i},false)" oncanplay="_setClipBuf(${i},false)"></video><div class="clip-tap-zone" id="clip-tap-${i}" onclick="_onClipTap(event,${i})"></div><div class="clip-seek-zone left"><span class="clip-seek-ripple" id="clip-rpl-left-${i}">↺ 5s</span></div><div class="clip-seek-zone right"><span class="clip-seek-ripple" id="clip-rpl-right-${i}">5s ↻</span></div><div class="clip-centre-controls" id="clip-ctrls-${i}"><span class="clip-ctrl-icon">↺</span><span class="clip-ctrl-icon play-icon" id="clip-play-icon-${i}">▶</span><span class="clip-ctrl-icon">↻</span></div><div class="clip-progress-wrap" id="clip-prog-wrap-${i}" onpointerdown="event.stopPropagation();_clipProgPointerDown(event,${i})"><div class="clip-progress-bar" id="clip-prog-${i}"></div><div class="clip-buffer-shimmer"></div></div><span class="clip-time" id="clip-time-${i}">0:00 / 0:00</span><div class="clip-overlay"><div class="clip-info"><div class="clip-meta">${p.tag?'<span class="clip-tag">'+esc(p.tag)+'</span>':''}${p.author?`<span class='clip-author'>by ${esc(p.author)} ${authorBadge}</span>`:''}${p.date?`<span class='clip-date'>${esc(p.date)}</span>`:''}${p.pinned?'<span class="post-pin-badge">📌</span>':''}</div><div class="clip-title">${esc(p.title)}</div>${p.content?`<div class='clip-desc-row' onclick='event.stopPropagation()'><div class='clip-desc clip-desc-collapsed' id='clip-desc-${i}'>${esc(p.content)}</div><span class='clip-desc-toggle' id='clip-desc-btn-${i}' onclick='toggleClipDesc(${i})'>…more</span></div>`:''}<span class='clip-post-link' onclick='event.stopPropagation();_openClipPost(${p.id},${S.communityPosts.includes(p)?1:0})'>📖 View full post</span></div></div><div class="clip-heart-wrap" onclick="event.stopPropagation()">${_heartHtml(p.id)}</div></div>`;
+    return`<div class="clip-item" id="clip-${i}" data-idx="${i}"><video class="clip-vid clips-vid" id="clip-vid-${i}" src="${c.vurl}" playsinline preload="metadata" loop onwaiting="_setClipBuf(${i},true)" onstalled="_setClipBuf(${i},true)" onplaying="_setClipBuf(${i},false)" oncanplay="_setClipBuf(${i},false)"></video><div class="clip-tap-zone" id="clip-tap-${i}" onclick="_onClipTap(event,${i})"></div><div class="clip-seek-zone left"><span class="clip-seek-ripple" id="clip-rpl-left-${i}">↺ 5s</span></div><div class="clip-seek-zone right"><span class="clip-seek-ripple" id="clip-rpl-right-${i}">5s ↻</span></div><div class="clip-centre-controls" id="clip-ctrls-${i}"><span class="clip-ctrl-icon">↺</span><span class="clip-ctrl-icon play-icon" id="clip-play-icon-${i}">▶</span><span class="clip-ctrl-icon">↻</span></div><div class="clip-progress-wrap" id="clip-prog-wrap-${i}" onpointerdown="event.stopPropagation();_clipProgPointerDown(event,${i})"><div class="clip-progress-bar" id="clip-prog-${i}"></div><div class="clip-buffer-shimmer"></div></div><span class="clip-time" id="clip-time-${i}">0:00 / 0:00</span><div class="clip-overlay"><div class="clip-info"><div class="clip-meta">${p.tag?'<span class="clip-tag">'+esc(p.tag)+'</span>':''}${p.author?`<span class='clip-author'>by ${esc(p.author)} ${authorBadge}</span>`:''}${p.date?`<span class='clip-date'>${esc(p.date)}</span>`:''}${p.pinned?'<span class="post-pin-badge">📌</span>':''}</div><div class="clip-title">${esc(p.title)}</div>${p.content?`<div class='clip-desc-row' onclick='event.stopPropagation()'><div class='clip-desc clip-desc-collapsed' id='clip-desc-${i}'>${esc(p.content)}</div><span class='clip-desc-toggle' id='clip-desc-btn-${i}' onclick='toggleClipDesc(${i})'>…more</span></div>`:''}<span class='clip-post-link' onclick='event.stopPropagation();_openClipPost(${p.id},${S.communityPosts.includes(p)?1:0})'>📖 View full post</span></div></div><div class="clip-heart-wrap" onclick="event.stopPropagation()">${_heartHtml(p.id)}<button class="clip-cmt-btn" onclick="event.stopPropagation();_clipCmtOpen(${p.id},${i})" title="Comments"><span class="cmt-icon">💬</span><span class="cmt-count clip-cmt-count" data-pid="${p.id}">0</span></button></div><div class="clip-cmt-panel" id="clip-cmt-panel-${i}"><div class="clip-cmt-backdrop" onclick="_clipCmtClose(${i})"></div><div class="clip-cmt-drawer" id="clip-cmt-drawer-${i}"><div class="clip-cmt-drag-handle" id="clip-cmt-drag-${i}"></div><div class="clip-cmt-drawer-hd"><span class="clip-cmt-drawer-title">💬 Comments <span class="clip-cmt-drawer-count" id="clip-cmt-cnt-${i}">0</span></span><button class="clip-cmt-close-btn" onclick="event.stopPropagation();_clipCmtClose(${i})">✕</button></div><div class="clip-cmt-list-wrap" id="clip-cmt-list-${i}"><div class="clip-cmt-empty">Loading…</div></div><div class="clip-cmt-input-bar"><div class="clip-cmt-uname-row"><span class="clip-cmt-uname-icon">👤</span><input class="clip-cmt-uname-input" id="clip-cmt-uname-${i}" type="text" maxlength="24" placeholder="Your username…" value="${esc(_getUsername())}" autocomplete="username"></div><div class="clip-cmt-text-row"><textarea class="clip-cmt-text-input" id="clip-cmt-text-${i}" placeholder="Add a comment… (Ctrl+Enter)" rows="1" oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'" onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){event.preventDefault();_clipCmtPost(${p.id},${i});}"></textarea><button class="clip-cmt-send-btn" id="clip-cmt-btn-${i}" onclick="event.stopPropagation();_clipCmtPost(${p.id},${i})">Send</button></div></div></div></div></div>`;
   }).join('');
 
   // Collect video elements and wire progress events
@@ -3575,6 +3579,8 @@ function renderClips(forceTop=false){
           vid.currentTime=0;
           _updateClipProgress(idx);
           _updateClipUI(idx,false);
+          // Close comment drawer if open on this clip
+          _clipCmtClose(idx);
         }
       });
     },{root:_clipsContainer||null,threshold:0.65});
@@ -3598,8 +3604,8 @@ function renderClips(forceTop=false){
       _clipsContainer.addEventListener('wheel',_clipsContainer._wheelHandler,{passive:false});
     }
 
-    // Start heart listeners for all clips
-    clipsData.forEach(c=>_heartListen(c.post.id));
+    // Start heart + comment listeners for all clips
+    clipsData.forEach(c=>{_heartListen(c.post.id);_commentListen(c.post.id);});
   });
 }
 
@@ -3624,6 +3630,8 @@ function _onClipTap(e,idx){
      e.target.closest('.clip-post-link')||
      e.target.closest('.clip-desc')||
      e.target.closest('.clip-desc-toggle')||
+     e.target.closest('.clip-cmt-panel')||
+     e.target.closest('.clip-cmt-btn')||
      e.target.closest('.clip-overlay'))return;
   const item=document.getElementById('clip-'+idx);
   if(!item)return;
@@ -4210,6 +4218,245 @@ function _heartHtml(postId){
   return`<button class="heart-btn" data-pid="${postId}" onclick="_heartToggle(event,${postId})" title="Like this post"><span class="hi">🤍</span><span class="hcount"></span><span class="hlabel">Like</span></button>`;
 }
 // Guard against the (unlikely) case where it fires before this script runs.
+// ═════ COMMENT SYSTEM ═══════════════════════════════
+// Stored in Firestore: comments/{postId} → {items:[{id,uid,username,text,ts}]}
+
+const _commentUnsubs={};
+const _commentCache={};
+
+function _getUsername(){return localStorage.getItem('srzk_uname')||'';}
+function _setUsername(n){if(n&&n.trim())localStorage.setItem('srzk_uname',n.trim());}
+
+function _commentListen(postId){
+  if(_commentUnsubs[postId])return;
+  if(!window._fsDoc||!window._fsSnap)return;
+  const ref=window._fsDoc('comments',String(postId));
+  const unsub=window._fsSnap(ref,snap=>{
+    _commentCache[postId]=(snap.exists()?snap.data().items:[])||[];
+    _commentApply(postId);
+  },()=>{});
+  _commentUnsubs[postId]=unsub;
+}
+
+function _commentStopAll(){
+  Object.values(_commentUnsubs).forEach(u=>u&&u());
+  Object.keys(_commentUnsubs).forEach(k=>delete _commentUnsubs[k]);
+}
+
+function _commentApply(postId){
+  const items=_commentCache[postId]||[];
+  // Post card count pills (modal + cards)
+  document.querySelectorAll(`.comment-count-pill[data-pid="${postId}"]`).forEach(el=>el.textContent=items.length||'0');
+  document.querySelectorAll(`.post-comment-count[data-pid="${postId}"] .cc-val`).forEach(el=>el.textContent=items.length);
+  // Clip side-bar count bubbles
+  document.querySelectorAll(`.clip-cmt-count[data-pid="${postId}"]`).forEach(el=>el.textContent=items.length||'0');
+  // Re-render any open clip drawer for this post
+  document.querySelectorAll('.clip-cmt-panel.open').forEach(panel=>{
+    if(String(panel.dataset.pid)===String(postId)){
+      const clipIdx=panel.id.replace('clip-cmt-panel-','');
+      _clipCmtRender(postId,parseInt(clipIdx));
+    }
+  });
+  // Post detail modal comment list
+  const listEl=document.getElementById('comment-list-'+postId);
+  if(!listEl)return;
+  const uid=_getUserId();
+  const canDel=S.authed||S.modAuthed;
+  if(!items.length){listEl.innerHTML='<div class="comment-empty">No comments yet — be the first!</div>';return;}
+  const sorted=[...items].sort((a,b)=>a.ts-b.ts);
+  listEl.innerHTML=`<div class="comment-list">${sorted.map(c=>{
+    const isOwn=c.uid===uid;
+    const initial=(c.username||'?')[0].toUpperCase();
+    return`<div class="comment-item">
+      <div class="comment-avatar">${esc(initial)}</div>
+      <div class="comment-body">
+        <div class="comment-header">
+          <span class="comment-username">${esc(c.username)}</span>
+          <span class="comment-time">${_timeAgo(c.ts)}</span>
+          ${isOwn?'<span class="comment-own-badge">You</span>':''}
+        </div>
+        <div class="comment-text">${esc(c.text)}</div>
+      </div>
+      ${(canDel||isOwn)?`<button class="comment-del-btn" onclick="_commentDelete('${postId}','${c.id}')" title="Delete">✕</button>`:''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function _timeAgo(ts){
+  const s=Math.floor((Date.now()-ts)/1000);
+  if(s<60)return'just now';
+  if(s<3600)return Math.floor(s/60)+'m ago';
+  if(s<86400)return Math.floor(s/3600)+'h ago';
+  if(s<604800)return Math.floor(s/86400)+'d ago';
+  return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+
+async function _commentPost(postId){
+  const unameEl=document.getElementById('comment-uname-'+postId);
+  const textEl=document.getElementById('comment-text-'+postId);
+  const btn=document.getElementById('comment-btn-'+postId);
+  if(!unameEl||!textEl)return;
+  const username=unameEl.value.trim();
+  const text=textEl.value.trim();
+  if(!username){toast('Please enter a username.','err');unameEl.focus();return;}
+  if(username.length>24){toast('Username max 24 characters.','err');return;}
+  if(!text){toast('Write something first.','err');textEl.focus();return;}
+  if(text.length>500){toast('Comment too long (max 500 chars).','err');return;}
+  const uid=_getUserId();
+  const last=parseInt(localStorage.getItem('srzk_last_cmt')||'0');
+  if(Date.now()-last<30000){toast(`Wait ${Math.ceil((30000-(Date.now()-last))/1000)}s before commenting again.`,'err');return;}
+  _setUsername(username);
+  // Update saved badge
+  const badge=document.querySelector(`#comment-uname-${postId} ~ .comment-username-badge`);
+  if(!badge){const row=unameEl.parentElement;const b=document.createElement('span');b.className='comment-username-badge';b.textContent='saved';row.appendChild(b);}
+  if(btn)btn.disabled=true;
+  try{
+    const ref=window._fsDoc('comments',String(postId));
+    const items=[...(_commentCache[postId]||[])];
+    items.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),uid,username,text,ts:Date.now()});
+    await window._fsSet(ref,{items});
+    localStorage.setItem('srzk_last_cmt',Date.now().toString());
+    textEl.value='';textEl.style.height='auto';
+  }catch(e){toast('Failed to post comment.','err');}
+  finally{if(btn)btn.disabled=false;}
+}
+
+async function _commentDelete(postId,commentId){
+  if(!window._fsDoc||!window._fsSet)return;
+  const uid=_getUserId();
+  const items=(_commentCache[postId]||[]).filter(c=>{
+    if(c.id!==commentId)return true;
+    if(S.authed||S.modAuthed)return false;
+    return c.uid!==uid;
+  });
+  try{await window._fsSet(window._fsDoc('comments',String(postId)),{items});}
+  catch(e){toast('Could not delete comment.','err');}
+}
+
+// ── Clip comment drawer ──────────────────────────────
+function _clipCmtOpen(postId,clipIdx){
+  // Pause the clip while reading comments
+  const vid=_clipsVideos[clipIdx];
+  if(vid&&!vid.paused)vid.pause();
+  _updateClipUI(clipIdx,false);
+
+  const panel=document.getElementById('clip-cmt-panel-'+clipIdx);
+  if(!panel)return;
+  panel.dataset.pid=String(postId);
+  panel.classList.add('open');
+
+  // Start listener (no-op if already running) then render
+  _commentListen(postId);
+  _clipCmtRender(postId,clipIdx);
+
+  // Focus text input after slide-up animation
+  setTimeout(()=>{
+    const t=document.getElementById('clip-cmt-text-'+clipIdx);
+    if(t)t.focus();
+  },380);
+
+  // Swipe-down-to-close on the drawer
+  const drawer=document.getElementById('clip-cmt-drawer-'+clipIdx);
+  const handle=document.getElementById('clip-cmt-drag-'+clipIdx);
+  if(drawer&&handle&&!drawer._swipeWired){
+    drawer._swipeWired=true;
+    let startY=0,startT=0;
+    handle.addEventListener('pointerdown',e=>{startY=e.clientY;startT=Date.now();handle.setPointerCapture(e.pointerId);});
+    handle.addEventListener('pointermove',e=>{if(!startY)return;const dy=e.clientY-startY;if(dy>0)drawer.style.transform=`translateY(${dy}px)`;});
+    handle.addEventListener('pointerup',e=>{
+      const dy=e.clientY-startY,dt=Date.now()-startT;
+      drawer.style.transform='';startY=0;
+      if(dy>60||(dy>20&&dt<220))_clipCmtClose(clipIdx);
+    });
+  }
+}
+
+function _clipCmtClose(clipIdx){
+  const panel=document.getElementById('clip-cmt-panel-'+clipIdx);
+  if(panel)panel.classList.remove('open');
+}
+
+function _clipCmtRender(postId,clipIdx){
+  const listEl=document.getElementById('clip-cmt-list-'+clipIdx);
+  const cntEl=document.getElementById('clip-cmt-cnt-'+clipIdx);
+  if(!listEl)return;
+  const items=_commentCache[postId]||[];
+  if(cntEl)cntEl.textContent=items.length;
+  const uid=_getUserId();
+  const canDel=S.authed||S.modAuthed;
+  if(!items.length){listEl.innerHTML='<div class="clip-cmt-empty">No comments yet — be the first! 💬</div>';return;}
+  const sorted=[...items].sort((a,b)=>a.ts-b.ts);
+  const wasAtBottom=listEl.scrollHeight-listEl.scrollTop-listEl.clientHeight<60;
+  listEl.innerHTML=sorted.map(c=>{
+    const isOwn=c.uid===uid;
+    const initial=(c.username||'?')[0].toUpperCase();
+    return`<div class="clip-cmt-item">
+      <div class="clip-cmt-avatar">${esc(initial)}</div>
+      <div class="clip-cmt-body">
+        <div class="clip-cmt-name">
+          <span>${esc(c.username)}</span>
+          <span class="clip-cmt-time">${_timeAgo(c.ts)}</span>
+          ${isOwn?'<span class="clip-cmt-own">You</span>':''}
+        </div>
+        <div class="clip-cmt-text">${esc(c.text)}</div>
+      </div>
+      ${(canDel||isOwn)?`<button class="clip-cmt-del" onclick="event.stopPropagation();_commentDelete('${postId}','${c.id}')" title="Delete">✕</button>`:''}
+    </div>`;
+  }).join('');
+  // Auto-scroll to bottom if user was already at bottom
+  if(wasAtBottom||items.length<=3)listEl.scrollTop=listEl.scrollHeight;
+}
+
+async function _clipCmtPost(postId,clipIdx){
+  const unameEl=document.getElementById('clip-cmt-uname-'+clipIdx);
+  const textEl=document.getElementById('clip-cmt-text-'+clipIdx);
+  const btn=document.getElementById('clip-cmt-btn-'+clipIdx);
+  if(!unameEl||!textEl)return;
+  const username=unameEl.value.trim();
+  const text=textEl.value.trim();
+  if(!username){toast('Enter a username first.','err');unameEl.focus();return;}
+  if(username.length>24){toast('Username max 24 characters.','err');return;}
+  if(!text){toast('Write something first.','err');textEl.focus();return;}
+  if(text.length>500){toast('Comment too long (max 500 chars).','err');return;}
+  const uid=_getUserId();
+  const last=parseInt(localStorage.getItem('srzk_last_cmt')||'0');
+  if(Date.now()-last<30000){toast(`Wait ${Math.ceil((30000-(Date.now()-last))/1000)}s before commenting again.`,'err');return;}
+  _setUsername(username);
+  if(btn)btn.disabled=true;
+  try{
+    const ref=window._fsDoc('comments',String(postId));
+    const items=[...(_commentCache[postId]||[])];
+    items.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),uid,username,text,ts:Date.now()});
+    await window._fsSet(ref,{items});
+    localStorage.setItem('srzk_last_cmt',Date.now().toString());
+    textEl.value='';textEl.style.height='auto';
+  }catch(e){toast('Failed to post comment.','err');}
+  finally{if(btn)btn.disabled=false;}
+}
+function _commentSectionHtml(postId){
+  const saved=_getUsername();
+  return`<div class="comment-section">
+    <div class="comment-section-hd">
+      <span class="comment-section-title">💬 Comments</span>
+      <span class="comment-count-pill" data-pid="${postId}">0</span>
+    </div>
+    <div class="comment-input-wrap">
+      <div class="comment-username-row">
+        <span class="comment-username-icon">👤</span>
+        <input class="comment-username-input" id="comment-uname-${postId}" type="text" maxlength="24" placeholder="Your username…" value="${esc(saved)}" autocomplete="username">
+        ${saved?'<span class="comment-username-badge">saved</span>':''}
+      </div>
+      <div class="comment-text-row">
+        <textarea class="comment-text-input" id="comment-text-${postId}" placeholder="Write a comment… (Ctrl+Enter to send)" rows="1"
+          oninput="this.style.height=\'auto\';this.style.height=this.scrollHeight+\'px\'"
+          onkeydown="if(event.key===\'Enter\'&&(event.ctrlKey||event.metaKey)){event.preventDefault();_commentPost(\'${postId}\');}"></textarea>
+        <button class="comment-submit-btn" id="comment-btn-${postId}" onclick="_commentPost(\'${postId}\')">Send</button>
+      </div>
+    </div>
+    <div id="comment-list-${postId}"><div class="comment-empty">Loading comments…</div></div>
+  </div>`;
+}
+
 if(window._fbReady){_init();}
 else{document.addEventListener('firebase-ready',_init,{once:true});}
 </script>
